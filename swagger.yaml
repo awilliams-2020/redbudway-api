@@ -1,0 +1,147 @@
+swagger: "2.0"
+info:
+  title: Redbud Way API
+  description: API description in Markdown.
+  version: 1.0.0
+host: redbudway.com
+basePath: /v1
+schemes:
+  - http
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /tradesperson/account:
+    post:
+      parameters:
+        - in: body
+          name: tradesperson
+          description: The tradesperson to create.
+          schema:
+            type: object
+            required:
+              - name
+              - email
+              - password
+              - number
+              - address
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              password:
+                type: string
+              number:
+                type: string
+              address:
+                type: object
+                required:
+                  - addressLineOne
+                  - zipCode
+                  - city
+                  - state
+                properties:
+                  addressLine:
+                    type: string
+                  zipCode:
+                    type: string
+                  city:
+                    type: string
+                  state:
+                    type: string
+      responses:
+        '201':
+          description: True or false
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+  /tradesperson/account/{tradespersonId}:
+    get:
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: A User object
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              number:
+                type: string
+              address:
+                type: object
+                properties:
+                  line1:
+                    type: string
+                  line2:
+                    type: string
+                  postal_code:
+                    type: string
+                  city:
+                    type: string
+                  state:
+                    type: string
+              description:
+                type: string
+              image:
+                type: string
+              email:
+                type: string
+              jobs:
+                type: integer
+              rating:
+                type: integer
+              reviews:
+                type: integer
+    put:
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: image
+        type: string
+      - in: query
+        name: description
+        type: string
+      - in: query
+        name: profileName
+        type: string
+      responses:
+        '200':
+          description: Updates tradesperson profile
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+    delete:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Deletes tradesperson account
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: boolean
