@@ -41,14 +41,14 @@ type PutTradespersonAccountTradespersonIDParams struct {
 	*/
 	Image *string
 	/*
-	  In: query
-	*/
-	ProfileName *string
-	/*
 	  Required: true
 	  In: path
 	*/
 	TradespersonID int64
+	/*
+	  In: query
+	*/
+	Vanity *string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -72,13 +72,13 @@ func (o *PutTradespersonAccountTradespersonIDParams) BindRequest(r *http.Request
 		res = append(res, err)
 	}
 
-	qProfileName, qhkProfileName, _ := qs.GetOK("profileName")
-	if err := o.bindProfileName(qProfileName, qhkProfileName, route.Formats); err != nil {
+	rTradespersonID, rhkTradespersonID, _ := route.Params.GetOK("tradespersonId")
+	if err := o.bindTradespersonID(rTradespersonID, rhkTradespersonID, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
-	rTradespersonID, rhkTradespersonID, _ := route.Params.GetOK("tradespersonId")
-	if err := o.bindTradespersonID(rTradespersonID, rhkTradespersonID, route.Formats); err != nil {
+	qVanity, qhkVanity, _ := qs.GetOK("vanity")
+	if err := o.bindVanity(qVanity, qhkVanity, route.Formats); err != nil {
 		res = append(res, err)
 	}
 	if len(res) > 0 {
@@ -123,24 +123,6 @@ func (o *PutTradespersonAccountTradespersonIDParams) bindImage(rawData []string,
 	return nil
 }
 
-// bindProfileName binds and validates parameter ProfileName from query.
-func (o *PutTradespersonAccountTradespersonIDParams) bindProfileName(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: false
-	// AllowEmptyValue: false
-
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-	o.ProfileName = &raw
-
-	return nil
-}
-
 // bindTradespersonID binds and validates parameter TradespersonID from path.
 func (o *PutTradespersonAccountTradespersonIDParams) bindTradespersonID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
@@ -156,6 +138,24 @@ func (o *PutTradespersonAccountTradespersonIDParams) bindTradespersonID(rawData 
 		return errors.InvalidType("tradespersonId", "path", "int64", raw)
 	}
 	o.TradespersonID = value
+
+	return nil
+}
+
+// bindVanity binds and validates parameter Vanity from query.
+func (o *PutTradespersonAccountTradespersonIDParams) bindVanity(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.Vanity = &raw
 
 	return nil
 }

@@ -20,7 +20,7 @@ type PutTradespersonAccountTradespersonIDURL struct {
 
 	Description *string
 	Image       *string
-	ProfileName *string
+	Vanity      *string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -79,12 +79,12 @@ func (o *PutTradespersonAccountTradespersonIDURL) Build() (*url.URL, error) {
 		qs.Set("image", imageQ)
 	}
 
-	var profileNameQ string
-	if o.ProfileName != nil {
-		profileNameQ = *o.ProfileName
+	var vanityQ string
+	if o.Vanity != nil {
+		vanityQ = *o.Vanity
 	}
-	if profileNameQ != "" {
-		qs.Set("profileName", profileNameQ)
+	if vanityQ != "" {
+		qs.Set("vanity", vanityQ)
 	}
 
 	_result.RawQuery = qs.Encode()

@@ -6,7 +6,7 @@ info:
 host: redbudway.com
 basePath: /v1
 schemes:
-  - http
+  - https
 
 consumes:
   - application/json
@@ -14,6 +14,50 @@ produces:
   - application/json
 
 paths:
+  /forgot-password:
+    post:
+      parameters:
+        - in: body
+          name: password.
+          schema:
+            type: object
+            required:
+              - email
+              - type
+            properties:
+              email:
+                type: string
+              type:
+                type: string
+      responses:
+        '200':
+          description: Forgot password
+  /reset-password:
+    post:
+      parameters:
+        - in: body
+          name: password.
+          schema:
+            type: object
+            required:
+              - token
+              - password
+              - type
+            properties:
+              token:
+                type: string
+              password:
+                type: string
+              type:
+                type: string
+      responses:
+        '200':
+          description: Update password
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
   /tradesperson/account:
     post:
       parameters:
@@ -37,7 +81,7 @@ paths:
                 type: string
               number:
                 type: string
-              address:
+              address: #Create common schema for address
                 type: object
                 required:
                   - addressLineOne
@@ -80,7 +124,7 @@ paths:
                 type: string
               number:
                 type: string
-              address:
+              address: #Create common schema for address
                 type: object
                 properties:
                   line1:
@@ -119,7 +163,7 @@ paths:
         name: description
         type: string
       - in: query
-        name: profileName
+        name: vanity
         type: string
       responses:
         '200':
@@ -145,3 +189,1109 @@ paths:
             properties:
               deleted:
                 type: boolean
+  /tradesperson/account/{tradespersonId}/settings:
+    get:
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: A tradesperson settings
+          schema:
+            type: object
+            properties:
+              email:
+                type: boolean
+              number:
+                type: boolean
+              address:
+                type: boolean
+    put:
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: email
+        type: boolean
+      - in: query
+        name: number
+        type: boolean
+      - in: query
+        name: address
+        type: boolean
+      responses:
+        '200':
+          description: Updates tradesperson profile
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+  /tradesperson/account/{tradespersonId}/status:
+    get:
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: integer
+          format: int64
+      responses:
+        '200':
+          description: Status of tradesperson stripe account
+          schema:
+            type: object
+            properties:
+              enabled:
+                type: boolean
+              submitted:
+                type: boolean
+              expired:
+                type: boolean
+  /tradesperson/login:
+    post:
+      parameters:
+        - in: body
+          name: tradesperson
+          description: Log in to tradesperson account.
+          schema:
+            type: object
+            required:
+              - email
+              - password
+            properties:
+              email:
+                type: string
+              password:
+                type: string
+      responses:
+        '200':
+          description: Valid account
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+  /tradesperson/{tradespersonId}/login-link:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Stripe login link to dashboard
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+  /tradesperson/{tradespersonId}/onboard:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Stripe onboarding URL
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+  /tradesperson/{tradespersonId}/schedule:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Stripe onboarding URL
+          schema:
+            type: array
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  startTime:
+                    type: string
+                    format: date
+                  segmentSize:
+                    type: string
+                  taken:
+                    type: boolean
+                  customer:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      address:
+                        type: object
+                        properties:
+                          line1:
+                            type: string
+                          line2:
+                            type: string
+                          postal_code:
+                            type: string
+                          city:
+                            type: string
+                          state:
+                            type: string
+                      email:
+                        type: string
+                      phone:
+                        type: string
+  /tradesperson/{tradespersonId}/time-slots:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Stripe onboarding URL
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                subscription:
+                  type: boolean
+                interval:
+                  type: string
+                timeSlots:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      startTime:
+                        type: string
+                        format: date
+                      segmentSize:
+                        type: string
+                      taken:
+                        type: boolean
+                      takenBy:
+                        type: string
+  /tradesperson/{tradespersonId}/update-password:
+    put:
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: currentPassword
+        type: string
+      - in: query
+        name: newPassword
+        type: string
+      responses:
+        '200':
+          description: Tradeperson password updated
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+  /tradesperson/{tradespersonId}/fixed-prices:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Tradesperson fixed-price services
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                priceId:
+                  type: string
+                subscription:
+                  type: boolean
+                interval:
+                  type: string
+                price:
+                  type: string
+                title:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                reviews:
+                  type: integer
+                rating:
+                  type: integer
+                availableTimeSlots:
+                  type: integer
+  /tradesperson/{tradespersonId}/fixed-price:
+    post:
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: fixedPrice
+        description: The fixedPrice to create.
+        schema:
+          type: object
+          required:
+            - category
+            - subCategory
+            - title
+            - description
+            - price
+            - images
+            - subscription
+            - interval
+            - selectPlaces
+            - cityMap
+            - timeSlots
+            - filters
+          properties:
+            category:
+              type: string
+            subCategory:
+              type: string
+            title:
+              type: string
+            description:
+              type: string
+            price:
+              type: string
+            images:
+              type: array
+              items:
+                type: string
+            subscription:
+              type: boolean
+            interval:
+              type: string
+            selectPlaces:
+              type: boolean
+            cityMap:
+              type: array
+              items:
+                type: object
+                properties:
+                  state:
+                    type: string
+                  cities:
+                    type: array
+                    items:
+                      type: string
+            timeSlots:
+              type: array
+              items:
+                type: object
+                properties:
+                  startTime:
+                    type: string
+                    format: date
+                  segmentSize:
+                    type: string
+            filters:
+              type: array
+              items:
+                type: string
+      responses:
+        '201':
+          description: Created fixed-price
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+    get:
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: integer
+          format: int64
+        - in: query
+          name: priceId
+          type: string
+      responses:
+        '200':
+          description: Tradesperson fixed-price services
+          schema:
+            type: object
+            properties:
+              category:
+                type: string
+              subCategory:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              price:
+                type: string
+              images:
+                type: array
+                items:
+                  type: string
+              subscription:
+                type: boolean
+              interval:
+                type: string
+              selectPlaces:
+                type: boolean
+              archived:
+                type: boolean
+              cityMap:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                    cities:
+                      type: array
+                      items:
+                        type: string
+              timeSlots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    startTime:
+                      type: string
+                      format: date
+                    segmentSize:
+                      type: string
+              filters:
+                type: array
+                items:
+                  type: string
+              otherProducts:
+                type: object
+                properties:
+                  subscription:
+                    type: boolean
+                  interval:
+                    type: string
+                  timeSlots:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        startTime:
+                          type: string
+                          format: date
+                        segmentSize:
+                          type: string
+                        taken:
+                          type: boolean
+                        takenBy:
+                          type: string
+    put:
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: integer
+          format: int64
+        - in: body
+          name: tradesperson
+          description: The fixedPrice to update.
+          schema:
+            type: object
+            required:
+              - priceId
+              - category
+              - subCategory
+              - title
+              - description
+              - images
+              - selectPlaces
+              - archived
+              - cityMap
+              - timeSlots
+              - filters
+            properties:
+              priceId:
+                type: string
+              category:
+                type: string
+              subCategory:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              images:
+                type: array
+                items:
+                  type: string
+              selectPlaces:
+                type: boolean
+              archived:
+                type: boolean
+              cityMap:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                    cities:
+                      type: array
+                      items:
+                        type: string
+              timeSlots:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    startTime:
+                      type: string
+                      format: date
+                    segmentSize:
+                      type: string
+              filters:
+                type: array
+                items:
+                  type: string
+      responses:
+        '201':
+          description: Updated fixed-price
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+  /tradesperson/{tradespersonId}/fixed-price/review:
+    post:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: reviewResponse
+        description: The response to a review.
+        schema:
+          type: object
+          required:
+            - response
+            - reviewId
+          properties:
+            response:
+              type: string
+            reviewId:
+              type: string
+      responses:
+        '200':
+          description: Response to review
+          schema:
+            type: object
+            properties:
+              responded:
+                type: boolean
+  /tradesperson/{tradespersonId}/fixed-price/reviews:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Fixed-price reviews
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                customerId:
+                  type: string
+                rating:
+                  type: integer
+                message:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                tradespersonId:
+                  type: string
+                customer:
+                  type: string
+  /tradesperson/{tradespersonId}/quotes:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Tradesperson fixed-price services
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                quoteId:
+                  type: string
+                title:
+                  type: string
+                images:
+                  type: array
+                  items:
+                    type: string
+                reviews:
+                  type: integer
+                rating:
+                  type: integer
+  /tradesperson/{tradespersonId}/quote:
+    post:
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: integer
+          format: int64
+        - in: body
+          name: quote
+          description: The quote to create.
+          schema:
+            type: object
+            required:
+              - category
+              - subCategory
+              - title
+              - description
+              - images
+              - cityMap
+              - filters
+            properties:
+              category:
+                type: string
+              subCategory:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              images:
+                type: array
+                items:
+                  type: string
+              cityMap:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                    cities:
+                      type: array
+                      items:
+                        type: string
+              filters:
+                type: array
+                items:
+                  type: string
+      responses:
+        '201':
+          description: Created quote
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+    get:
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: integer
+          format: int64
+        - in: query
+          name: quoteId
+          type: string
+      responses:
+        '200':
+          description: Tradesperson fixed-price services
+          schema:
+            type: object
+            properties:
+              category:
+                type: string
+              subCategory:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              images:
+                type: array
+                items:
+                  type: string
+              selectPlaces:
+                type: boolean
+              archived:
+                type: boolean
+              cityMap:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                    cities:
+                      type: array
+                      items:
+                        type: string
+              filters:
+                type: array
+                items:
+                  type: string
+    put:
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: integer
+          format: int64
+        - in: body
+          name: quote
+          description: The quote to create.
+          schema:
+            type: object
+            required:
+              - quoteId
+              - category
+              - subCategory
+              - title
+              - description
+              - archived
+              - images
+              - cityMap
+              - filters
+            properties:
+              category:
+                type: string
+              subCategory:
+                type: string
+              title:
+                type: string
+              description:
+                type: string
+              archived:
+                type: boolean
+              images:
+                type: array
+                items:
+                  type: string
+              cityMap:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    state:
+                      type: string
+                    cities:
+                      type: array
+                      items:
+                        type: string
+              filters:
+                type: array
+                items:
+                  type: string
+      responses:
+        '201':
+          description: Created quote
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+  /tradesperson/{tradespersonId}/quote/review:
+    post:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: response
+        description: The response to a review.
+        schema:
+          type: object
+          required:
+            - response
+            - quoteId
+          properties:
+            response:
+              type: string
+            quoteId:
+              type: string
+      responses:
+        '200':
+          description: Response to review
+          schema:
+            type: object
+            properties:
+              responded:
+                type: boolean
+  /tradesperson/{tradespersonId}/quote/reviews:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Quote reviews
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                customerId:
+                  type: string
+                rating:
+                  type: integer
+                message:
+                  type: string
+                date:
+                  type: string
+                  format: date
+                tradespersonId:
+                  type: string
+                customer:
+                  type: string
+  /tradesperson/{tradespersonId}/billing/customer/subscriptions:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: cusStripeId
+        description: Customer Stripe ID
+        required: True
+        type: string
+      responses:
+        '200':
+          description: Quote reviews
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              address:
+                type: object
+                properties:
+                  line1:
+                    type: string
+                  line2:
+                    type: string
+                  postal_code:
+                    type: string
+                  city:
+                    type: string
+                  state:
+                    type: string
+              email:
+                type: string
+              phone:
+                type: string
+              sbuscriptions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    interval:
+                      type: string
+                    details:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          subscriptionId:
+                            type: string
+                          invoiceId:
+                            type: string
+                          status:
+                            type: string
+                          timeSlots:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                startTime:
+                                  type: string
+                                  format: date
+                                segmentSize:
+                                  type: integer
+                                endTime:
+                                  type: string
+    delete:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Canceled customer subscription
+          schema:
+            type: object
+            properties:
+              canceled:
+                type: boolean
+  /tradesperson/{tradespersonId}/billing/customer/subscription/invoice:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: subscription
+        description: The subscription latest invoice
+        schema:
+          type: object
+          required:
+            - subscriptionId
+          properties:
+            subscriptionId:
+              type: string
+      responses:
+        '200':
+          description: Latest invoice
+          schema:
+            type: object
+            properties:
+              interval:
+                type: string
+              created:
+                type: string
+              description:
+                type: string
+              total:
+                type: string
+              paid:
+                type: string
+              status:
+                type: string
+              refund:
+                type: string
+              number:
+                type: string
+              url:
+                type: string
+              service:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  description:
+                    type: string
+              customer:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  address:
+                    type: object
+                    properties:
+                      line1:
+                        type: string
+                      line2:
+                        type: string
+                      postal_code:
+                        type: string
+                      city:
+                        type: string
+                      state:
+                        type: string
+  /tradesperson/{tradespersonId}/billing/customer/subscription/refund:
+    post:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      - in: body
+        name: subscription
+        description: The subscription latest invoice
+        schema:
+          type: object
+          required:
+            - subscriptionId
+          properties:
+            subscriptionId:
+              type: string
+      responses:
+        '200':
+          description: Refunded subscription
+          schema:
+            type: object
+            properties:
+              refunded:
+                type: boolean
+  /tradesperson/{tradespersonId}/billing/invoices:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      - in: query
+        name: quarter
+        description: Quarter of the year
+        required: true
+        type: string
+      - in: query
+        name: year
+        description: Year of invoice
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Invoices in a quarter of some year
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                number:
+                  type: string
+                invoiceId:
+                  type: string
+                customer:
+                  type: string
+  # /tradesperson/{tradespersonId}/billing/invoice:
+  #   get:
+  #   post:
+  #   put:
+  #   delete:
+  #/tradesperson/{tradespersonId}/billing/invoice/refund:
+  #/tradesperson/{tradespersonId}/billing/quotes:
+  #/tradesperson/{tradespersonId}/billing/quote:
+  #/tradesperson/{tradespersonId}/billing/quote/refund:
+  #/tradesperson/{tradespersonId}/billing/manual-invoices:
+  #/tradesperson/{tradespersonId}/billing/manual-invoice:
+  #/tradesperson/{tradespersonId}/billing/manual-invoice/refund:
+  #/tradesperson/{tradespersonId}/billing/subscriptions:
+  /tradesperson/{tradespersonId}/billing/customers:
+    get:
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: integer
+        format: int64
+      responses:
+        '200':
+          description: Quote reviews
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                name:
+                  type: string
+                address:
+                  type: object
+                  properties:
+                    line1:
+                      type: string
+                    line2:
+                      type: string
+                    postal_code:
+                      type: string
+                    city:
+                      type: string
+                    state:
+                      type: string
+                email:
+                  type: string
+                phone:
+                  type: string
+  #/public/profile:
+  #/public/fixed-price:
+  #/public/fixed-price/reviews:
+  #/public/fixed-prices:
+  #/public/quote:
+  #/public/quote/reviews:
+  #/public/quotes:
+  #/public/email:
+  #/customer/account:
+  #/customer/account/verfication:
+  #/customer/account/verified:
+  #/customer/account/verify:
+  #/customer/quote/request:
+  #/customer/quote/accept:
+  #/customer/quote/review

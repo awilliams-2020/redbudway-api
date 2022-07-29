@@ -25,7 +25,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"golang.org/x/net/netutil"
 
-	"redbudway/restapi/operations"
+	"redbudway-api/restapi/operations"
 )
 
 const (
@@ -38,7 +38,7 @@ var defaultSchemes []string
 
 func init() {
 	defaultSchemes = []string{
-		schemeHTTP,
+		schemeHTTPS,
 	}
 }
 
