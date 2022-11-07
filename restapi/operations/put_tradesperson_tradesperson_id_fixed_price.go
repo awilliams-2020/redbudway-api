@@ -8,26 +8,23 @@ package operations
 import (
 	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // PutTradespersonTradespersonIDFixedPriceHandlerFunc turns a function with the right signature into a put tradesperson tradesperson ID fixed price handler
-type PutTradespersonTradespersonIDFixedPriceHandlerFunc func(PutTradespersonTradespersonIDFixedPriceParams) middleware.Responder
+type PutTradespersonTradespersonIDFixedPriceHandlerFunc func(PutTradespersonTradespersonIDFixedPriceParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PutTradespersonTradespersonIDFixedPriceHandlerFunc) Handle(params PutTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-	return fn(params)
+func (fn PutTradespersonTradespersonIDFixedPriceHandlerFunc) Handle(params PutTradespersonTradespersonIDFixedPriceParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // PutTradespersonTradespersonIDFixedPriceHandler interface for that can handle valid put tradesperson tradesperson ID fixed price params
 type PutTradespersonTradespersonIDFixedPriceHandler interface {
-	Handle(PutTradespersonTradespersonIDFixedPriceParams) middleware.Responder
+	Handle(PutTradespersonTradespersonIDFixedPriceParams, interface{}) middleware.Responder
 }
 
 // NewPutTradespersonTradespersonIDFixedPrice creates a new http.Handler for the put tradesperson tradesperson ID fixed price operation
@@ -51,352 +48,50 @@ func (o *PutTradespersonTradespersonIDFixedPrice) ServeHTTP(rw http.ResponseWrit
 		*r = *rCtx
 	}
 	var Params = NewPutTradespersonTradespersonIDFixedPriceParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
 
-// PutTradespersonTradespersonIDFixedPriceBody put tradesperson tradesperson ID fixed price body
+// PutTradespersonTradespersonIDFixedPriceOKBody put tradesperson tradesperson ID fixed price o k body
 //
-// swagger:model PutTradespersonTradespersonIDFixedPriceBody
-type PutTradespersonTradespersonIDFixedPriceBody struct {
-
-	// archived
-	// Required: true
-	Archived *bool `json:"archived"`
-
-	// category
-	// Required: true
-	Category *string `json:"category"`
-
-	// city map
-	// Required: true
-	CityMap []*PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0 `json:"cityMap"`
-
-	// description
-	// Required: true
-	Description *string `json:"description"`
-
-	// filters
-	// Required: true
-	Filters []string `json:"filters"`
-
-	// images
-	// Required: true
-	Images []string `json:"images"`
-
-	// price Id
-	// Required: true
-	PriceID *string `json:"priceId"`
-
-	// select places
-	// Required: true
-	SelectPlaces *bool `json:"selectPlaces"`
-
-	// sub category
-	// Required: true
-	SubCategory *string `json:"subCategory"`
-
-	// time slots
-	// Required: true
-	TimeSlots []*PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0 `json:"timeSlots"`
-
-	// title
-	// Required: true
-	Title *string `json:"title"`
-}
-
-// Validate validates this put tradesperson tradesperson ID fixed price body
-func (o *PutTradespersonTradespersonIDFixedPriceBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateArchived(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateCategory(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateCityMap(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateDescription(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateFilters(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateImages(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validatePriceID(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateSelectPlaces(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateSubCategory(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateTimeSlots(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateTitle(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateArchived(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"archived", "body", o.Archived); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateCategory(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"category", "body", o.Category); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateCityMap(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"cityMap", "body", o.CityMap); err != nil {
-		return err
-	}
-
-	for i := 0; i < len(o.CityMap); i++ {
-		if swag.IsZero(o.CityMap[i]) { // not required
-			continue
-		}
-
-		if o.CityMap[i] != nil {
-			if err := o.CityMap[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("tradesperson" + "." + "cityMap" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("tradesperson" + "." + "cityMap" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateDescription(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"description", "body", o.Description); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateFilters(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"filters", "body", o.Filters); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateImages(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"images", "body", o.Images); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validatePriceID(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"priceId", "body", o.PriceID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateSelectPlaces(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"selectPlaces", "body", o.SelectPlaces); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateSubCategory(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"subCategory", "body", o.SubCategory); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateTimeSlots(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"timeSlots", "body", o.TimeSlots); err != nil {
-		return err
-	}
-
-	for i := 0; i < len(o.TimeSlots); i++ {
-		if swag.IsZero(o.TimeSlots[i]) { // not required
-			continue
-		}
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("tradesperson" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("tradesperson" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) validateTitle(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"title", "body", o.Title); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validate this put tradesperson tradesperson ID fixed price body based on the context it is used
-func (o *PutTradespersonTradespersonIDFixedPriceBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.contextValidateCityMap(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.contextValidateTimeSlots(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) contextValidateCityMap(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(o.CityMap); i++ {
-
-		if o.CityMap[i] != nil {
-			if err := o.CityMap[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("tradesperson" + "." + "cityMap" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("tradesperson" + "." + "cityMap" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceBody) contextValidateTimeSlots(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(o.TimeSlots); i++ {
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("tradesperson" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("tradesperson" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceBody) UnmarshalBinary(b []byte) error {
-	var res PutTradespersonTradespersonIDFixedPriceBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PutTradespersonTradespersonIDFixedPriceCreatedBody put tradesperson tradesperson ID fixed price created body
-//
-// swagger:model PutTradespersonTradespersonIDFixedPriceCreatedBody
-type PutTradespersonTradespersonIDFixedPriceCreatedBody struct {
+// swagger:model PutTradespersonTradespersonIDFixedPriceOKBody
+type PutTradespersonTradespersonIDFixedPriceOKBody struct {
 
 	// updated
-	Updated bool `json:"updated,omitempty"`
+	Updated bool `json:"updated"`
 }
 
-// Validate validates this put tradesperson tradesperson ID fixed price created body
-func (o *PutTradespersonTradespersonIDFixedPriceCreatedBody) Validate(formats strfmt.Registry) error {
+// Validate validates this put tradesperson tradesperson ID fixed price o k body
+func (o *PutTradespersonTradespersonIDFixedPriceOKBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this put tradesperson tradesperson ID fixed price created body based on context it is used
-func (o *PutTradespersonTradespersonIDFixedPriceCreatedBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this put tradesperson tradesperson ID fixed price o k body based on context it is used
+func (o *PutTradespersonTradespersonIDFixedPriceOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceCreatedBody) MarshalBinary() ([]byte, error) {
+func (o *PutTradespersonTradespersonIDFixedPriceOKBody) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -404,110 +99,8 @@ func (o *PutTradespersonTradespersonIDFixedPriceCreatedBody) MarshalBinary() ([]
 }
 
 // UnmarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceCreatedBody) UnmarshalBinary(b []byte) error {
-	var res PutTradespersonTradespersonIDFixedPriceCreatedBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0 put tradesperson tradesperson ID fixed price params body city map items0
-//
-// swagger:model PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0
-type PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0 struct {
-
-	// cities
-	Cities []string `json:"cities"`
-
-	// state
-	State string `json:"state,omitempty"`
-}
-
-// Validate validates this put tradesperson tradesperson ID fixed price params body city map items0
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this put tradesperson tradesperson ID fixed price params body city map items0 based on context it is used
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0) UnmarshalBinary(b []byte) error {
-	var res PutTradespersonTradespersonIDFixedPriceParamsBodyCityMapItems0
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0 put tradesperson tradesperson ID fixed price params body time slots items0
-//
-// swagger:model PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0
-type PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0 struct {
-
-	// segment size
-	SegmentSize string `json:"segmentSize,omitempty"`
-
-	// start time
-	// Format: date
-	StartTime strfmt.Date `json:"startTime,omitempty"`
-}
-
-// Validate validates this put tradesperson tradesperson ID fixed price params body time slots items0
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateStartTime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0) validateStartTime(formats strfmt.Registry) error {
-	if swag.IsZero(o.StartTime) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("startTime", "body", "date", o.StartTime.String(), formats); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this put tradesperson tradesperson ID fixed price params body time slots items0 based on context it is used
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0) UnmarshalBinary(b []byte) error {
-	var res PutTradespersonTradespersonIDFixedPriceParamsBodyTimeSlotsItems0
+func (o *PutTradespersonTradespersonIDFixedPriceOKBody) UnmarshalBinary(b []byte) error {
+	var res PutTradespersonTradespersonIDFixedPriceOKBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

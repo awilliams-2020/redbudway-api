@@ -1,0 +1,32 @@
+services:
+  redbudway-api:
+    container_name: redbudway-api
+    build: ./
+    environment:
+      - STRIPE_KEY=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
+      - SUBDOMAIN=
+      - DATABASE=redbudway
+    volumes:
+      - /home/awilliams/images:/usr/src/app/images
+    networks:
+    - frontend_network
+    - backend_network
+    image: golang
+  redbudway-api-dev:
+    container_name: redbudway-api-dev
+    build: ./
+    environment:
+      - STRIPE_KEY=sk_test_uYo1zefPYHPTRuovutUHfSSM0090vzsSDw
+      - SUBDOMAIN=dev.
+      - DATABASE=redbudway_dev
+    volumes:
+      - /home/awilliams/images-dev:/usr/src/app/images
+    networks:
+    - frontend_network
+    - backend_network
+    image: golang
+networks:
+  frontend_network:
+    name: frontend
+  backend_network:
+    name: backend

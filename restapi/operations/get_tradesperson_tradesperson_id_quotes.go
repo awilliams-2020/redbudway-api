@@ -6,25 +6,22 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 )
 
 // GetTradespersonTradespersonIDQuotesHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID quotes handler
-type GetTradespersonTradespersonIDQuotesHandlerFunc func(GetTradespersonTradespersonIDQuotesParams) middleware.Responder
+type GetTradespersonTradespersonIDQuotesHandlerFunc func(GetTradespersonTradespersonIDQuotesParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDQuotesHandlerFunc) Handle(params GetTradespersonTradespersonIDQuotesParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDQuotesHandlerFunc) Handle(params GetTradespersonTradespersonIDQuotesParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDQuotesHandler interface for that can handle valid get tradesperson tradesperson ID quotes params
 type GetTradespersonTradespersonIDQuotesHandler interface {
-	Handle(GetTradespersonTradespersonIDQuotesParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDQuotesParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDQuotes creates a new http.Handler for the get tradesperson tradesperson ID quotes operation
@@ -48,61 +45,25 @@ func (o *GetTradespersonTradespersonIDQuotes) ServeHTTP(rw http.ResponseWriter, 
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDQuotesParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// GetTradespersonTradespersonIDQuotesOKBodyItems0 get tradesperson tradesperson ID quotes o k body items0
-//
-// swagger:model GetTradespersonTradespersonIDQuotesOKBodyItems0
-type GetTradespersonTradespersonIDQuotesOKBodyItems0 struct {
-
-	// images
-	Images []string `json:"images"`
-
-	// quote Id
-	QuoteID string `json:"quoteId,omitempty"`
-
-	// rating
-	Rating int64 `json:"rating,omitempty"`
-
-	// reviews
-	Reviews int64 `json:"reviews,omitempty"`
-
-	// title
-	Title string `json:"title,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID quotes o k body items0
-func (o *GetTradespersonTradespersonIDQuotesOKBodyItems0) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID quotes o k body items0 based on context it is used
-func (o *GetTradespersonTradespersonIDQuotesOKBodyItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDQuotesOKBodyItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDQuotesOKBodyItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDQuotesOKBodyItems0
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }

@@ -11,42 +11,42 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
-// PutTradespersonTradespersonIDQuoteCreatedCode is the HTTP code returned for type PutTradespersonTradespersonIDQuoteCreated
-const PutTradespersonTradespersonIDQuoteCreatedCode int = 201
+// PutTradespersonTradespersonIDQuoteOKCode is the HTTP code returned for type PutTradespersonTradespersonIDQuoteOK
+const PutTradespersonTradespersonIDQuoteOKCode int = 200
 
-/*PutTradespersonTradespersonIDQuoteCreated Created quote
+/*PutTradespersonTradespersonIDQuoteOK Created quote
 
-swagger:response putTradespersonTradespersonIdQuoteCreated
+swagger:response putTradespersonTradespersonIdQuoteOK
 */
-type PutTradespersonTradespersonIDQuoteCreated struct {
+type PutTradespersonTradespersonIDQuoteOK struct {
 
 	/*
 	  In: Body
 	*/
-	Payload *PutTradespersonTradespersonIDQuoteCreatedBody `json:"body,omitempty"`
+	Payload *PutTradespersonTradespersonIDQuoteOKBody `json:"body,omitempty"`
 }
 
-// NewPutTradespersonTradespersonIDQuoteCreated creates PutTradespersonTradespersonIDQuoteCreated with default headers values
-func NewPutTradespersonTradespersonIDQuoteCreated() *PutTradespersonTradespersonIDQuoteCreated {
+// NewPutTradespersonTradespersonIDQuoteOK creates PutTradespersonTradespersonIDQuoteOK with default headers values
+func NewPutTradespersonTradespersonIDQuoteOK() *PutTradespersonTradespersonIDQuoteOK {
 
-	return &PutTradespersonTradespersonIDQuoteCreated{}
+	return &PutTradespersonTradespersonIDQuoteOK{}
 }
 
-// WithPayload adds the payload to the put tradesperson tradesperson Id quote created response
-func (o *PutTradespersonTradespersonIDQuoteCreated) WithPayload(payload *PutTradespersonTradespersonIDQuoteCreatedBody) *PutTradespersonTradespersonIDQuoteCreated {
+// WithPayload adds the payload to the put tradesperson tradesperson Id quote o k response
+func (o *PutTradespersonTradespersonIDQuoteOK) WithPayload(payload *PutTradespersonTradespersonIDQuoteOKBody) *PutTradespersonTradespersonIDQuoteOK {
 	o.Payload = payload
 	return o
 }
 
-// SetPayload sets the payload to the put tradesperson tradesperson Id quote created response
-func (o *PutTradespersonTradespersonIDQuoteCreated) SetPayload(payload *PutTradespersonTradespersonIDQuoteCreatedBody) {
+// SetPayload sets the payload to the put tradesperson tradesperson Id quote o k response
+func (o *PutTradespersonTradespersonIDQuoteOK) SetPayload(payload *PutTradespersonTradespersonIDQuoteOKBody) {
 	o.Payload = payload
 }
 
 // WriteResponse to the client
-func (o *PutTradespersonTradespersonIDQuoteCreated) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *PutTradespersonTradespersonIDQuoteOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.WriteHeader(201)
+	rw.WriteHeader(200)
 	if o.Payload != nil {
 		payload := o.Payload
 		if err := producer.Produce(rw, payload); err != nil {

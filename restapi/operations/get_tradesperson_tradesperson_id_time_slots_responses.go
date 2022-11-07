@@ -14,7 +14,7 @@ import (
 // GetTradespersonTradespersonIDTimeSlotsOKCode is the HTTP code returned for type GetTradespersonTradespersonIDTimeSlotsOK
 const GetTradespersonTradespersonIDTimeSlotsOKCode int = 200
 
-/*GetTradespersonTradespersonIDTimeSlotsOK Stripe onboarding URL
+/*GetTradespersonTradespersonIDTimeSlotsOK Service time slots
 
 swagger:response getTradespersonTradespersonIdTimeSlotsOK
 */

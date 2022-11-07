@@ -9,12 +9,14 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDBillingCustomersOKCode is the HTTP code returned for type GetTradespersonTradespersonIDBillingCustomersOK
 const GetTradespersonTradespersonIDBillingCustomersOKCode int = 200
 
-/*GetTradespersonTradespersonIDBillingCustomersOK Quote reviews
+/*GetTradespersonTradespersonIDBillingCustomersOK Customers that've done business
 
 swagger:response getTradespersonTradespersonIdBillingCustomersOK
 */
@@ -23,7 +25,7 @@ type GetTradespersonTradespersonIDBillingCustomersOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []*GetTradespersonTradespersonIDBillingCustomersOKBodyItems0 `json:"body,omitempty"`
+	Payload []*models.Customer `json:"body,omitempty"`
 }
 
 // NewGetTradespersonTradespersonIDBillingCustomersOK creates GetTradespersonTradespersonIDBillingCustomersOK with default headers values
@@ -33,13 +35,13 @@ func NewGetTradespersonTradespersonIDBillingCustomersOK() *GetTradespersonTrades
 }
 
 // WithPayload adds the payload to the get tradesperson tradesperson Id billing customers o k response
-func (o *GetTradespersonTradespersonIDBillingCustomersOK) WithPayload(payload []*GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) *GetTradespersonTradespersonIDBillingCustomersOK {
+func (o *GetTradespersonTradespersonIDBillingCustomersOK) WithPayload(payload []*models.Customer) *GetTradespersonTradespersonIDBillingCustomersOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get tradesperson tradesperson Id billing customers o k response
-func (o *GetTradespersonTradespersonIDBillingCustomersOK) SetPayload(payload []*GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) {
+func (o *GetTradespersonTradespersonIDBillingCustomersOK) SetPayload(payload []*models.Customer) {
 	o.Payload = payload
 }
 
@@ -50,7 +52,7 @@ func (o *GetTradespersonTradespersonIDBillingCustomersOK) WriteResponse(rw http.
 	payload := o.Payload
 	if payload == nil {
 		// return empty array
-		payload = make([]*GetTradespersonTradespersonIDBillingCustomersOKBodyItems0, 0, 50)
+		payload = make([]*models.Customer, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {

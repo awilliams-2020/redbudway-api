@@ -6,14 +6,9 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // PostForgotPasswordHandlerFunc turns a function with the right signature into a post forgot password handler
@@ -58,77 +53,4 @@ func (o *PostForgotPassword) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 	res := o.Handler.Handle(Params) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// PostForgotPasswordBody post forgot password body
-//
-// swagger:model PostForgotPasswordBody
-type PostForgotPasswordBody struct {
-
-	// email
-	// Required: true
-	Email *string `json:"email"`
-
-	// type
-	// Required: true
-	Type *string `json:"type"`
-}
-
-// Validate validates this post forgot password body
-func (o *PostForgotPasswordBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateEmail(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateType(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostForgotPasswordBody) validateEmail(formats strfmt.Registry) error {
-
-	if err := validate.Required("password."+"."+"email", "body", o.Email); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostForgotPasswordBody) validateType(formats strfmt.Registry) error {
-
-	if err := validate.Required("password."+"."+"type", "body", o.Type); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this post forgot password body based on context it is used
-func (o *PostForgotPasswordBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostForgotPasswordBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostForgotPasswordBody) UnmarshalBinary(b []byte) error {
-	var res PostForgotPasswordBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }

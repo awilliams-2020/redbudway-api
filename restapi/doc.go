@@ -4,7 +4,7 @@
 //
 //  API description in Markdown.
 //  Schemes:
-//    https
+//    http
 //  Host: redbudway.com
 //  BasePath: /v1
 //  Version: 1.0.0

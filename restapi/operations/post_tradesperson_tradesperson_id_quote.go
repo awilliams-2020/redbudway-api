@@ -8,26 +8,23 @@ package operations
 import (
 	"context"
 	"net/http"
-	"strconv"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // PostTradespersonTradespersonIDQuoteHandlerFunc turns a function with the right signature into a post tradesperson tradesperson ID quote handler
-type PostTradespersonTradespersonIDQuoteHandlerFunc func(PostTradespersonTradespersonIDQuoteParams) middleware.Responder
+type PostTradespersonTradespersonIDQuoteHandlerFunc func(PostTradespersonTradespersonIDQuoteParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostTradespersonTradespersonIDQuoteHandlerFunc) Handle(params PostTradespersonTradespersonIDQuoteParams) middleware.Responder {
-	return fn(params)
+func (fn PostTradespersonTradespersonIDQuoteHandlerFunc) Handle(params PostTradespersonTradespersonIDQuoteParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // PostTradespersonTradespersonIDQuoteHandler interface for that can handle valid post tradesperson tradesperson ID quote params
 type PostTradespersonTradespersonIDQuoteHandler interface {
-	Handle(PostTradespersonTradespersonIDQuoteParams) middleware.Responder
+	Handle(PostTradespersonTradespersonIDQuoteParams, interface{}) middleware.Responder
 }
 
 // NewPostTradespersonTradespersonIDQuote creates a new http.Handler for the post tradesperson tradesperson ID quote operation
@@ -51,219 +48,27 @@ func (o *PostTradespersonTradespersonIDQuote) ServeHTTP(rw http.ResponseWriter, 
 		*r = *rCtx
 	}
 	var Params = NewPostTradespersonTradespersonIDQuoteParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// PostTradespersonTradespersonIDQuoteBody post tradesperson tradesperson ID quote body
-//
-// swagger:model PostTradespersonTradespersonIDQuoteBody
-type PostTradespersonTradespersonIDQuoteBody struct {
-
-	// category
-	// Required: true
-	Category *string `json:"category"`
-
-	// city map
-	// Required: true
-	CityMap []*PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0 `json:"cityMap"`
-
-	// description
-	// Required: true
-	Description *string `json:"description"`
-
-	// filters
-	// Required: true
-	Filters []string `json:"filters"`
-
-	// images
-	// Required: true
-	Images []string `json:"images"`
-
-	// sub category
-	// Required: true
-	SubCategory *string `json:"subCategory"`
-
-	// title
-	// Required: true
-	Title *string `json:"title"`
-}
-
-// Validate validates this post tradesperson tradesperson ID quote body
-func (o *PostTradespersonTradespersonIDQuoteBody) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateCategory(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateCityMap(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateDescription(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateFilters(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateImages(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateSubCategory(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateTitle(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateCategory(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"category", "body", o.Category); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateCityMap(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"cityMap", "body", o.CityMap); err != nil {
-		return err
-	}
-
-	for i := 0; i < len(o.CityMap); i++ {
-		if swag.IsZero(o.CityMap[i]) { // not required
-			continue
-		}
-
-		if o.CityMap[i] != nil {
-			if err := o.CityMap[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("quote" + "." + "cityMap" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("quote" + "." + "cityMap" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateDescription(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"description", "body", o.Description); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateFilters(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"filters", "body", o.Filters); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateImages(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"images", "body", o.Images); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateSubCategory(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"subCategory", "body", o.SubCategory); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) validateTitle(formats strfmt.Registry) error {
-
-	if err := validate.Required("quote"+"."+"title", "body", o.Title); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validate this post tradesperson tradesperson ID quote body based on the context it is used
-func (o *PostTradespersonTradespersonIDQuoteBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.contextValidateCityMap(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostTradespersonTradespersonIDQuoteBody) contextValidateCityMap(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(o.CityMap); i++ {
-
-		if o.CityMap[i] != nil {
-			if err := o.CityMap[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("quote" + "." + "cityMap" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("quote" + "." + "cityMap" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostTradespersonTradespersonIDQuoteBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostTradespersonTradespersonIDQuoteBody) UnmarshalBinary(b []byte) error {
-	var res PostTradespersonTradespersonIDQuoteBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // PostTradespersonTradespersonIDQuoteCreatedBody post tradesperson tradesperson ID quote created body
@@ -272,7 +77,7 @@ func (o *PostTradespersonTradespersonIDQuoteBody) UnmarshalBinary(b []byte) erro
 type PostTradespersonTradespersonIDQuoteCreatedBody struct {
 
 	// created
-	Created bool `json:"created,omitempty"`
+	Created bool `json:"created"`
 }
 
 // Validate validates this post tradesperson tradesperson ID quote created body
@@ -296,46 +101,6 @@ func (o *PostTradespersonTradespersonIDQuoteCreatedBody) MarshalBinary() ([]byte
 // UnmarshalBinary interface implementation
 func (o *PostTradespersonTradespersonIDQuoteCreatedBody) UnmarshalBinary(b []byte) error {
 	var res PostTradespersonTradespersonIDQuoteCreatedBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0 post tradesperson tradesperson ID quote params body city map items0
-//
-// swagger:model PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0
-type PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0 struct {
-
-	// cities
-	Cities []string `json:"cities"`
-
-	// state
-	State string `json:"state,omitempty"`
-}
-
-// Validate validates this post tradesperson tradesperson ID quote params body city map items0
-func (o *PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this post tradesperson tradesperson ID quote params body city map items0 based on context it is used
-func (o *PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0) UnmarshalBinary(b []byte) error {
-	var res PostTradespersonTradespersonIDQuoteParamsBodyCityMapItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

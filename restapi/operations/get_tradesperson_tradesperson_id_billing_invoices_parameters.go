@@ -12,7 +12,6 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
@@ -42,7 +41,7 @@ type GetTradespersonTradespersonIDBillingInvoicesParams struct {
 	  Required: true
 	  In: path
 	*/
-	TradespersonID int64
+	TradespersonID string
 	/*Year of invoice
 	  Required: true
 	  In: query
@@ -111,12 +110,7 @@ func (o *GetTradespersonTradespersonIDBillingInvoicesParams) bindTradespersonID(
 
 	// Required: true
 	// Parameter is provided by construction from the route
-
-	value, err := swag.ConvertInt64(raw)
-	if err != nil {
-		return errors.InvalidType("tradespersonId", "path", "int64", raw)
-	}
-	o.TradespersonID = value
+	o.TradespersonID = raw
 
 	return nil
 }

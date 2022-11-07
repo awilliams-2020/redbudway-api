@@ -14,6 +14,8 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID billing customer subscription invoice handler
@@ -285,7 +287,7 @@ func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBody) 
 type GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomer struct {
 
 	// address
-	Address *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress `json:"address,omitempty"`
+	Address *models.Address `json:"address,omitempty"`
 
 	// name
 	Name string `json:"name,omitempty"`
@@ -365,55 +367,6 @@ func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCu
 // UnmarshalBinary interface implementation
 func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomer) UnmarshalBinary(b []byte) error {
 	var res GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomer
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress get tradesperson tradesperson ID billing customer subscription invoice o k body customer address
-//
-// swagger:model GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress
-type GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress struct {
-
-	// city
-	City string `json:"city,omitempty"`
-
-	// line1
-	Line1 string `json:"line1,omitempty"`
-
-	// line2
-	Line2 string `json:"line2,omitempty"`
-
-	// postal code
-	PostalCode string `json:"postal_code,omitempty"`
-
-	// state
-	State string `json:"state,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID billing customer subscription invoice o k body customer address
-func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID billing customer subscription invoice o k body customer address based on context it is used
-func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

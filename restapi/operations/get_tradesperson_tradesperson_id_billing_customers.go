@@ -6,26 +6,22 @@ package operations
 // Editing this file might prove futile when you re-run the generate command
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 )
 
 // GetTradespersonTradespersonIDBillingCustomersHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID billing customers handler
-type GetTradespersonTradespersonIDBillingCustomersHandlerFunc func(GetTradespersonTradespersonIDBillingCustomersParams) middleware.Responder
+type GetTradespersonTradespersonIDBillingCustomersHandlerFunc func(GetTradespersonTradespersonIDBillingCustomersParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDBillingCustomersHandlerFunc) Handle(params GetTradespersonTradespersonIDBillingCustomersParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDBillingCustomersHandlerFunc) Handle(params GetTradespersonTradespersonIDBillingCustomersParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDBillingCustomersHandler interface for that can handle valid get tradesperson tradesperson ID billing customers params
 type GetTradespersonTradespersonIDBillingCustomersHandler interface {
-	Handle(GetTradespersonTradespersonIDBillingCustomersParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDBillingCustomersParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDBillingCustomers creates a new http.Handler for the get tradesperson tradesperson ID billing customers operation
@@ -49,163 +45,25 @@ func (o *GetTradespersonTradespersonIDBillingCustomers) ServeHTTP(rw http.Respon
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDBillingCustomersParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// GetTradespersonTradespersonIDBillingCustomersOKBodyItems0 get tradesperson tradesperson ID billing customers o k body items0
-//
-// swagger:model GetTradespersonTradespersonIDBillingCustomersOKBodyItems0
-type GetTradespersonTradespersonIDBillingCustomersOKBodyItems0 struct {
-
-	// address
-	Address *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address `json:"address,omitempty"`
-
-	// email
-	Email string `json:"email,omitempty"`
-
-	// id
-	ID string `json:"id,omitempty"`
-
-	// name
-	Name string `json:"name,omitempty"`
-
-	// phone
-	Phone string `json:"phone,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID billing customers o k body items0
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateAddress(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) validateAddress(formats strfmt.Registry) error {
-	if swag.IsZero(o.Address) { // not required
-		return nil
-	}
-
-	if o.Address != nil {
-		if err := o.Address.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("address")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("address")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-// ContextValidate validate this get tradesperson tradesperson ID billing customers o k body items0 based on the context it is used
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.contextValidateAddress(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) contextValidateAddress(ctx context.Context, formats strfmt.Registry) error {
-
-	if o.Address != nil {
-		if err := o.Address.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("address")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("address")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDBillingCustomersOKBodyItems0
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address get tradesperson tradesperson ID billing customers o k body items0 address
-//
-// swagger:model GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address
-type GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address struct {
-
-	// city
-	City string `json:"city,omitempty"`
-
-	// line1
-	Line1 string `json:"line1,omitempty"`
-
-	// line2
-	Line2 string `json:"line2,omitempty"`
-
-	// postal code
-	PostalCode string `json:"postal_code,omitempty"`
-
-	// state
-	State string `json:"state,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID billing customers o k body items0 address
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID billing customers o k body items0 address based on context it is used
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }

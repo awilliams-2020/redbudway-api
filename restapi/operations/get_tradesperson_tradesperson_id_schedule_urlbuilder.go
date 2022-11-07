@@ -10,13 +10,11 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 	"strings"
-
-	"github.com/go-openapi/swag"
 )
 
 // GetTradespersonTradespersonIDScheduleURL generates an URL for the get tradesperson tradesperson ID schedule operation
 type GetTradespersonTradespersonIDScheduleURL struct {
-	TradespersonID int64
+	TradespersonID string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -44,7 +42,7 @@ func (o *GetTradespersonTradespersonIDScheduleURL) Build() (*url.URL, error) {
 
 	var _path = "/tradesperson/{tradespersonId}/schedule"
 
-	tradespersonID := swag.FormatInt64(o.TradespersonID)
+	tradespersonID := o.TradespersonID
 	if tradespersonID != "" {
 		_path = strings.Replace(_path, "{tradespersonId}", tradespersonID, -1)
 	} else {

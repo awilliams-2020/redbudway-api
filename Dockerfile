@@ -1,10 +1,14 @@
-FROM golang:1.18.4
+FROM golang:1.18
 
-COPY /etc/letsencrypt/live/redbudway.com/fullchain.pem .
-COPY /etc/letsencrypt/live/redbudway.com/privkey.pem .
+WORKDIR /usr/src/app
+
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
 
 COPY . .
-RUN go mod tidy
-RUN go build cmd/redbud-way-api-server/main.go
 
-CMD ["./main --tls-certificate=fullchain.pem --tls-key=privkey.pem"]
+RUN go build -v -o /usr/local/bin/app ./cmd/redbud-way-api-server/main.go
+EXPOSE 80
+
+CMD ["app", "--host", "0.0.0.0", "--port", "80"]
+#CMD ["app"]

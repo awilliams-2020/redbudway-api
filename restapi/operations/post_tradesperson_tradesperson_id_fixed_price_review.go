@@ -17,16 +17,16 @@ import (
 )
 
 // PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc turns a function with the right signature into a post tradesperson tradesperson ID fixed price review handler
-type PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc func(PostTradespersonTradespersonIDFixedPriceReviewParams) middleware.Responder
+type PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc func(PostTradespersonTradespersonIDFixedPriceReviewParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc) Handle(params PostTradespersonTradespersonIDFixedPriceReviewParams) middleware.Responder {
-	return fn(params)
+func (fn PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc) Handle(params PostTradespersonTradespersonIDFixedPriceReviewParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // PostTradespersonTradespersonIDFixedPriceReviewHandler interface for that can handle valid post tradesperson tradesperson ID fixed price review params
 type PostTradespersonTradespersonIDFixedPriceReviewHandler interface {
-	Handle(PostTradespersonTradespersonIDFixedPriceReviewParams) middleware.Responder
+	Handle(PostTradespersonTradespersonIDFixedPriceReviewParams, interface{}) middleware.Responder
 }
 
 // NewPostTradespersonTradespersonIDFixedPriceReview creates a new http.Handler for the post tradesperson tradesperson ID fixed price review operation
@@ -50,12 +50,25 @@ func (o *PostTradespersonTradespersonIDFixedPriceReview) ServeHTTP(rw http.Respo
 		*r = *rCtx
 	}
 	var Params = NewPostTradespersonTradespersonIDFixedPriceReviewParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -71,7 +84,7 @@ type PostTradespersonTradespersonIDFixedPriceReviewBody struct {
 
 	// review Id
 	// Required: true
-	ReviewID *string `json:"reviewId"`
+	ReviewID *int64 `json:"reviewId"`
 }
 
 // Validate validates this post tradesperson tradesperson ID fixed price review body
@@ -94,7 +107,7 @@ func (o *PostTradespersonTradespersonIDFixedPriceReviewBody) Validate(formats st
 
 func (o *PostTradespersonTradespersonIDFixedPriceReviewBody) validateResponse(formats strfmt.Registry) error {
 
-	if err := validate.Required("reviewResponse"+"."+"response", "body", o.Response); err != nil {
+	if err := validate.Required("review"+"."+"response", "body", o.Response); err != nil {
 		return err
 	}
 
@@ -103,7 +116,7 @@ func (o *PostTradespersonTradespersonIDFixedPriceReviewBody) validateResponse(fo
 
 func (o *PostTradespersonTradespersonIDFixedPriceReviewBody) validateReviewID(formats strfmt.Registry) error {
 
-	if err := validate.Required("reviewResponse"+"."+"reviewId", "body", o.ReviewID); err != nil {
+	if err := validate.Required("review"+"."+"reviewId", "body", o.ReviewID); err != nil {
 		return err
 	}
 
@@ -139,7 +152,7 @@ func (o *PostTradespersonTradespersonIDFixedPriceReviewBody) UnmarshalBinary(b [
 type PostTradespersonTradespersonIDFixedPriceReviewOKBody struct {
 
 	// responded
-	Responded bool `json:"responded,omitempty"`
+	Responded bool `json:"responded"`
 }
 
 // Validate validates this post tradesperson tradesperson ID fixed price review o k body

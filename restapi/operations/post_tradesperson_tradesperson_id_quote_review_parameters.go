@@ -13,7 +13,6 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
@@ -37,12 +36,12 @@ type PostTradespersonTradespersonIDQuoteReviewParams struct {
 	/*The response to a review.
 	  In: body
 	*/
-	Response PostTradespersonTradespersonIDQuoteReviewBody
+	Review PostTradespersonTradespersonIDQuoteReviewBody
 	/*Tradesperson ID
 	  Required: true
 	  In: path
 	*/
-	TradespersonID int64
+	TradespersonID string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -58,7 +57,7 @@ func (o *PostTradespersonTradespersonIDQuoteReviewParams) BindRequest(r *http.Re
 		defer r.Body.Close()
 		var body PostTradespersonTradespersonIDQuoteReviewBody
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("response", "body", "", err))
+			res = append(res, errors.NewParseError("review", "body", "", err))
 		} else {
 			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
@@ -71,7 +70,7 @@ func (o *PostTradespersonTradespersonIDQuoteReviewParams) BindRequest(r *http.Re
 			}
 
 			if len(res) == 0 {
-				o.Response = body
+				o.Review = body
 			}
 		}
 	}
@@ -95,12 +94,7 @@ func (o *PostTradespersonTradespersonIDQuoteReviewParams) bindTradespersonID(raw
 
 	// Required: true
 	// Parameter is provided by construction from the route
-
-	value, err := swag.ConvertInt64(raw)
-	if err != nil {
-		return errors.InvalidType("tradespersonId", "path", "int64", raw)
-	}
-	o.TradespersonID = value
+	o.TradespersonID = raw
 
 	return nil
 }

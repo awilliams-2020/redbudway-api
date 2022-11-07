@@ -5,11 +5,16 @@ package restapi
 import (
 	"crypto/tls"
 	"net/http"
+	"os"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/stripe/stripe-go/v72"
 
+	"redbudway-api/database"
+	"redbudway-api/handlers"
+	"redbudway-api/internal"
 	"redbudway-api/restapi/operations"
 )
 
@@ -37,171 +42,212 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	if api.DeleteTradespersonAccountTradespersonIDHandler == nil {
-		api.DeleteTradespersonAccountTradespersonIDHandler = operations.DeleteTradespersonAccountTradespersonIDHandlerFunc(func(params operations.DeleteTradespersonAccountTradespersonIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.DeleteTradespersonAccountTradespersonID has not yet been implemented")
-		})
-	}
-	if api.DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler == nil {
-		api.DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler = operations.DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandlerFunc(func(params operations.DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.DeleteTradespersonTradespersonIDBillingCustomerSubscriptions has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonAccountTradespersonIDHandler == nil {
-		api.GetTradespersonAccountTradespersonIDHandler = operations.GetTradespersonAccountTradespersonIDHandlerFunc(func(params operations.GetTradespersonAccountTradespersonIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonAccountTradespersonID has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonAccountTradespersonIDSettingsHandler == nil {
-		api.GetTradespersonAccountTradespersonIDSettingsHandler = operations.GetTradespersonAccountTradespersonIDSettingsHandlerFunc(func(params operations.GetTradespersonAccountTradespersonIDSettingsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonAccountTradespersonIDSettings has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonAccountTradespersonIDStatusHandler == nil {
-		api.GetTradespersonAccountTradespersonIDStatusHandler = operations.GetTradespersonAccountTradespersonIDStatusHandlerFunc(func(params operations.GetTradespersonAccountTradespersonIDStatusParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonAccountTradespersonIDStatus has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler == nil {
-		api.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler = operations.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandlerFunc(func(params operations.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoice has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler == nil {
-		api.GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler = operations.GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandlerFunc(func(params operations.GetTradespersonTradespersonIDBillingCustomerSubscriptionsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDBillingCustomerSubscriptions has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDBillingCustomersHandler == nil {
-		api.GetTradespersonTradespersonIDBillingCustomersHandler = operations.GetTradespersonTradespersonIDBillingCustomersHandlerFunc(func(params operations.GetTradespersonTradespersonIDBillingCustomersParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDBillingCustomers has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDBillingInvoicesHandler == nil {
-		api.GetTradespersonTradespersonIDBillingInvoicesHandler = operations.GetTradespersonTradespersonIDBillingInvoicesHandlerFunc(func(params operations.GetTradespersonTradespersonIDBillingInvoicesParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDBillingInvoices has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDFixedPriceHandler == nil {
-		api.GetTradespersonTradespersonIDFixedPriceHandler = operations.GetTradespersonTradespersonIDFixedPriceHandlerFunc(func(params operations.GetTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDFixedPrice has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDFixedPriceReviewsHandler == nil {
-		api.GetTradespersonTradespersonIDFixedPriceReviewsHandler = operations.GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc(func(params operations.GetTradespersonTradespersonIDFixedPriceReviewsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDFixedPriceReviews has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDFixedPricesHandler == nil {
-		api.GetTradespersonTradespersonIDFixedPricesHandler = operations.GetTradespersonTradespersonIDFixedPricesHandlerFunc(func(params operations.GetTradespersonTradespersonIDFixedPricesParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDFixedPrices has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDLoginLinkHandler == nil {
-		api.GetTradespersonTradespersonIDLoginLinkHandler = operations.GetTradespersonTradespersonIDLoginLinkHandlerFunc(func(params operations.GetTradespersonTradespersonIDLoginLinkParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDLoginLink has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDOnboardHandler == nil {
-		api.GetTradespersonTradespersonIDOnboardHandler = operations.GetTradespersonTradespersonIDOnboardHandlerFunc(func(params operations.GetTradespersonTradespersonIDOnboardParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDOnboard has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDQuoteHandler == nil {
-		api.GetTradespersonTradespersonIDQuoteHandler = operations.GetTradespersonTradespersonIDQuoteHandlerFunc(func(params operations.GetTradespersonTradespersonIDQuoteParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDQuote has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDQuoteReviewsHandler == nil {
-		api.GetTradespersonTradespersonIDQuoteReviewsHandler = operations.GetTradespersonTradespersonIDQuoteReviewsHandlerFunc(func(params operations.GetTradespersonTradespersonIDQuoteReviewsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDQuoteReviews has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDQuotesHandler == nil {
-		api.GetTradespersonTradespersonIDQuotesHandler = operations.GetTradespersonTradespersonIDQuotesHandlerFunc(func(params operations.GetTradespersonTradespersonIDQuotesParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDQuotes has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDScheduleHandler == nil {
-		api.GetTradespersonTradespersonIDScheduleHandler = operations.GetTradespersonTradespersonIDScheduleHandlerFunc(func(params operations.GetTradespersonTradespersonIDScheduleParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDSchedule has not yet been implemented")
-		})
-	}
-	if api.GetTradespersonTradespersonIDTimeSlotsHandler == nil {
-		api.GetTradespersonTradespersonIDTimeSlotsHandler = operations.GetTradespersonTradespersonIDTimeSlotsHandlerFunc(func(params operations.GetTradespersonTradespersonIDTimeSlotsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.GetTradespersonTradespersonIDTimeSlots has not yet been implemented")
-		})
-	}
-	if api.PostForgotPasswordHandler == nil {
-		api.PostForgotPasswordHandler = operations.PostForgotPasswordHandlerFunc(func(params operations.PostForgotPasswordParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostForgotPassword has not yet been implemented")
-		})
-	}
+	// Applies when the "Authorization" header is set
+	api.BearerAuth = internal.ValidateToken
+
+	// Set your custom authorizer if needed. Default one is security.Authorized()
+	// Expected interface runtime.Authorizer
+	//
+	// Example:
+	// api.APIAuthorizer = security.Authorized()
+
+	database.Init()
+
+	stripe.Key = os.Getenv("STRIPE_KEY")
+
+	api.DeleteCustomerCustomerIDHandler = operations.DeleteCustomerCustomerIDHandlerFunc(handlers.DeleteCustomerCustomerIDHandler)
+
+	api.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler = operations.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(handlers.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
+
+	api.GetTradespersonTradespersonIDAccessTokenHandler = operations.GetTradespersonTradespersonIDAccessTokenHandlerFunc(handlers.GetTradespersonTradespersonIDAccessTokenHandler)
+
+	api.GetCustomerCustomerIDAccessTokenHandler = operations.GetCustomerCustomerIDAccessTokenHandlerFunc(handlers.GetCustomerCustomerIDAccessTokenHandler)
+
+	api.GetCustomerCustomerIDBillingLinkHandler = operations.GetCustomerCustomerIDBillingLinkHandlerFunc(handlers.GetCustomerCustomerIDBillingLinkHandler)
+
+	api.GetCustomerCustomerIDPaymentDefaultHandler = operations.GetCustomerCustomerIDPaymentDefaultHandlerFunc(handlers.GetCustomerCustomerIDPaymentDefaultHandler)
+
+	api.GetCustomerCustomerIDFixedPricePriceIDReviewHandler = operations.GetCustomerCustomerIDFixedPricePriceIDReviewHandlerFunc(handlers.GetCustomerCustomerIDFixedPricePriceIDReviewHandler)
+
+	api.GetCustomerCustomerIDQuoteQuoteIDReviewHandler = operations.GetCustomerCustomerIDQuoteQuoteIDReviewHandlerFunc(handlers.GetCustomerCustomerIDQuoteQuoteIDReviewHandler)
+
+	api.GetCustomerCustomerIDSubscriptionPriceIDReviewHandler = operations.GetCustomerCustomerIDSubscriptionPriceIDReviewHandlerFunc(handlers.GetCustomerCustomerIDSubscriptionPriceIDReviewHandler)
+
+	api.GetCustomerCustomerIDReverifyHandler = operations.GetCustomerCustomerIDReverifyHandlerFunc(handlers.GetCustomerCustomerIDReverifyHandler)
+
+	api.GetCustomerCustomerIDQuotesHandler = operations.GetCustomerCustomerIDQuotesHandlerFunc(handlers.GetCustomerCustomerIDQuotesHandler)
+
+	api.GetCustomerCustomerIDQuoteQuoteIDHandler = operations.GetCustomerCustomerIDQuoteQuoteIDHandlerFunc(handlers.GetCustomerCustomerIDQuoteQuoteIDHandler)
+
+	api.GetFixedPricePriceIDHandler = operations.GetFixedPricePriceIDHandlerFunc(handlers.GetFixedPricePriceIDHandler)
+
+	api.GetFixedPricePriceIDReviewsHandler = operations.GetFixedPricePriceIDReviewsHandlerFunc(handlers.GetFixedPricePriceIDReviewsHandler)
+
+	api.GetFixedPricesHandler = operations.GetFixedPricesHandlerFunc(handlers.GetFixedPricesHandler)
+
+	api.GetForgotPasswordHandler = operations.GetForgotPasswordHandlerFunc(handlers.GetForgotPasswordHandler)
+
+	api.GetLocationHandler = operations.GetLocationHandlerFunc(handlers.GetLocationHandler)
+
+	api.GetQuoteQuoteIDHandler = operations.GetQuoteQuoteIDHandlerFunc(handlers.GetQuoteQuoteIDHandler)
+
+	api.GetQuoteQuoteIDReviewsHandler = operations.GetQuoteQuoteIDReviewsHandlerFunc(handlers.GetQuoteQuoteIDReviewsHandler)
+
+	api.GetQuotesHandler = operations.GetQuotesHandlerFunc(handlers.GetQuotesHandler)
+
+	api.GetProfileVanityOrIDHandler = operations.GetProfileVanityOrIDHandlerFunc(handlers.GetProfileVanityOrIDHandler)
+
+	api.GetProfileVanityOrIDFixedPricesHandler = operations.GetProfileVanityOrIDFixedPricesHandlerFunc(handlers.GetProfileVanityOrIDFixedPricesHandler)
+
+	api.GetProfileVanityOrIDQuotesHandler = operations.GetProfileVanityOrIDQuotesHandlerFunc(handlers.GetProfileVanityOrIDQuotesHandler)
+
+	api.GetTradespersonTradespersonIDHandler = operations.GetTradespersonTradespersonIDHandlerFunc(handlers.GetTradespersonTradespersonIDHandler)
+
+	api.GetTradespersonTradespersonIDLoginLinkHandler = operations.GetTradespersonTradespersonIDLoginLinkHandlerFunc(handlers.GetTradespersonTradespersonIDLoginLinkHandler)
+
+	api.GetTradespersonTradespersonIDSettingsHandler = operations.GetTradespersonTradespersonIDSettingsHandlerFunc(handlers.GetTradespersonTradespersonIDSettingsHandler)
+
+	api.GetTradespersonTradespersonIDStatusHandler = operations.GetTradespersonTradespersonIDStatusHandlerFunc(handlers.GetTradespersonTradespersonIDStatusHandler)
+
+	api.GetTradespersonTradespersonIDBillingSubscriptionsHandler = operations.GetTradespersonTradespersonIDBillingSubscriptionsHandlerFunc(handlers.GetTradespersonTradespersonIDBillingSubscriptionsHandler)
+
+	api.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler = operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandlerFunc(handlers.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler)
+
+	api.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler = operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandlerFunc(handlers.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler)
+
+	api.GetTradespersonTradespersonIDBillingCustomersHandler = operations.GetTradespersonTradespersonIDBillingCustomersHandlerFunc(handlers.GetTradespersonTradespersonIDBillingCustomersHandler)
+
+	api.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler = operations.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(handlers.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
+
+	api.GetTradespersonTradespersonIDBillingInvoicesHandler = operations.GetTradespersonTradespersonIDBillingInvoicesHandlerFunc(handlers.GetTradespersonTradespersonIDBillingInvoicesHandler)
+
+	api.GetTradespersonTradespersonIDBillingQuotesHandler = operations.GetTradespersonTradespersonIDBillingQuotesHandlerFunc(handlers.GetTradespersonTradespersonIDBillingQuotesHandler)
+
+	api.GetTradespersonTradespersonIDBillingManualInvoicesHandler = operations.GetTradespersonTradespersonIDBillingManualInvoicesHandlerFunc(handlers.GetTradespersonTradespersonIDBillingManualInvoicesHandler)
+
+	api.GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler = operations.GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandlerFunc(handlers.GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler)
+
+	api.GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler = operations.GetTradespersonTradespersonIDBillingQuoteQuoteIDHandlerFunc(handlers.GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler)
+
+	api.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler = operations.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandlerFunc(handlers.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler)
+
+	api.GetTradespersonTradespersonIDFixedPricePriceIDHandler = operations.GetTradespersonTradespersonIDFixedPricePriceIDHandlerFunc(handlers.GetTradespersonTradespersonIDFixedPricePriceIDHandler)
+
+	api.GetTradespersonTradespersonIDFixedPriceReviewsHandler = operations.GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc(handlers.GetTradespersonTradespersonIDFixedPriceReviewsHandler)
+
+	api.GetTradespersonTradespersonIDFixedPricesHandler = operations.GetTradespersonTradespersonIDFixedPricesHandlerFunc(handlers.GetTradespersonTradespersonIDFixedPricesHandler)
+
+	api.GetTradespersonTradespersonIDOnboardHandler = operations.GetTradespersonTradespersonIDOnboardHandlerFunc(handlers.GetTradespersonTradespersonIDOnboardHandler)
+
+	api.GetTradespersonTradespersonIDQuoteQuoteIDHandler = operations.GetTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(handlers.GetTradespersonTradespersonIDQuoteQuoteIDHandler)
+
+	api.GetTradespersonTradespersonIDQuoteReviewsHandler = operations.GetTradespersonTradespersonIDQuoteReviewsHandlerFunc(handlers.GetTradespersonTradespersonIDQuoteReviewsHandler)
+
+	api.GetTradespersonTradespersonIDQuotesHandler = operations.GetTradespersonTradespersonIDQuotesHandlerFunc(handlers.GetTradespersonTradespersonIDQuotesHandler)
+
+	api.GetTradespersonTradespersonIDScheduleHandler = operations.GetTradespersonTradespersonIDScheduleHandlerFunc(handlers.GetTradespersonTradespersonIDScheduleHandler)
+
+	api.GetTradespersonTradespersonIDTimeSlotsHandler = operations.GetTradespersonTradespersonIDTimeSlotsHandlerFunc(handlers.GetTradespersonTradespersonIDTimeSlotsHandler)
+
+	api.GetCustomerCustomerIDVerifyHandler = operations.GetCustomerCustomerIDVerifyHandlerFunc(handlers.GetCustomerCustomerIDVerifyHandler)
+
+	api.PostCustomerHandler = operations.PostCustomerHandlerFunc(handlers.PostCustomerHandler)
+
+	api.PostCustomerLoginHandler = operations.PostCustomerLoginHandlerFunc(handlers.PostCustomerLoginHandler)
+
+	api.PostCustomerCustomerIDLogoutHandler = operations.PostCustomerCustomerIDLogoutHandlerFunc(handlers.PostCustomerCustomerIDLogoutHandler)
+
+	api.PostCustomerCustomerIDFixedPricePriceIDReviewHandler = operations.PostCustomerCustomerIDFixedPricePriceIDReviewHandlerFunc(handlers.PostCustomerCustomerIDFixedPricePriceIDReviewHandler)
+
+	api.PostCustomerCustomerIDQuoteQuoteIDReviewHandler = operations.PostCustomerCustomerIDQuoteQuoteIDReviewHandlerFunc(handlers.PostCustomerCustomerIDQuoteQuoteIDReviewHandler)
+
+	api.PostCustomerCustomerIDAccessTokenHandler = operations.PostCustomerCustomerIDAccessTokenHandlerFunc(handlers.PostCustomerCustomerIDAccessTokenHandler)
+
+	api.PostCustomerCustomerIDFixedPricePriceIDBookHandler = operations.PostCustomerCustomerIDFixedPricePriceIDBookHandlerFunc(handlers.PostCustomerCustomerIDFixedPricePriceIDBookHandler)
+
+	api.PostCustomerCustomerIDSubscriptionPriceIDBookHandler = operations.PostCustomerCustomerIDSubscriptionPriceIDBookHandlerFunc(handlers.PostCustomerCustomerIDSubscriptionPriceIDBookHandler)
+
+	api.PostCustomerCustomerIDQuoteQuoteIDRequestHandler = operations.PostCustomerCustomerIDQuoteQuoteIDRequestHandlerFunc(handlers.PostCustomerCustomerIDQuoteQuoteIDRequestHandler)
+
+	api.PostCustomerCustomerIDQuoteQuoteIDAcceptHandler = operations.PostCustomerCustomerIDQuoteQuoteIDAcceptHandlerFunc(handlers.PostCustomerCustomerIDQuoteQuoteIDAcceptHandler)
+
+	api.PostCustomerCustomerIDVerifyHandler = operations.PostCustomerCustomerIDVerifyHandlerFunc(handlers.PostCustomerCustomerIDVerifyHandler)
+
 	if api.PostResetPasswordHandler == nil {
 		api.PostResetPasswordHandler = operations.PostResetPasswordHandlerFunc(func(params operations.PostResetPasswordParams) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostResetPassword has not yet been implemented")
 		})
 	}
-	if api.PostTradespersonAccountHandler == nil {
-		api.PostTradespersonAccountHandler = operations.PostTradespersonAccountHandlerFunc(func(params operations.PostTradespersonAccountParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonAccount has not yet been implemented")
-		})
-	}
-	if api.PostTradespersonLoginHandler == nil {
-		api.PostTradespersonLoginHandler = operations.PostTradespersonLoginHandlerFunc(func(params operations.PostTradespersonLoginParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonLogin has not yet been implemented")
-		})
-	}
-	if api.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler == nil {
-		api.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler = operations.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandlerFunc(func(params operations.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefund has not yet been implemented")
-		})
-	}
-	if api.PostTradespersonTradespersonIDFixedPriceHandler == nil {
-		api.PostTradespersonTradespersonIDFixedPriceHandler = operations.PostTradespersonTradespersonIDFixedPriceHandlerFunc(func(params operations.PostTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonTradespersonIDFixedPrice has not yet been implemented")
-		})
-	}
-	if api.PostTradespersonTradespersonIDFixedPriceReviewHandler == nil {
-		api.PostTradespersonTradespersonIDFixedPriceReviewHandler = operations.PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc(func(params operations.PostTradespersonTradespersonIDFixedPriceReviewParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonTradespersonIDFixedPriceReview has not yet been implemented")
-		})
-	}
-	if api.PostTradespersonTradespersonIDQuoteHandler == nil {
-		api.PostTradespersonTradespersonIDQuoteHandler = operations.PostTradespersonTradespersonIDQuoteHandlerFunc(func(params operations.PostTradespersonTradespersonIDQuoteParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonTradespersonIDQuote has not yet been implemented")
-		})
-	}
+
+	api.PostTradespersonHandler = operations.PostTradespersonHandlerFunc(handlers.PostTradespersonHandler)
+
+	api.PostTradespersonLoginHandler = operations.PostTradespersonLoginHandlerFunc(handlers.PostTradespersonLoginHandler)
+
+	api.PostTradespersonTradespersonIDLogoutHandler = operations.PostTradespersonTradespersonIDLogoutHandlerFunc(handlers.PostTradespersonTradespersonIDLogoutHandler)
+
+	api.PostTradespersonTradespersonIDAccessTokenHandler = operations.PostTradespersonTradespersonIDAccessTokenHandlerFunc(handlers.PostTradespersonTradespersonIDAccessTokenHandler)
+
+	api.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler = operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandlerFunc(handlers.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler)
+
+	api.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler = operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandlerFunc(handlers.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler)
+
+	api.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler = operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandlerFunc(handlers.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler)
+
+	api.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler = operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandlerFunc(handlers.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler)
+
+	api.PostTradespersonTradespersonIDBillingManualInvoiceHandler = operations.PostTradespersonTradespersonIDBillingManualInvoiceHandlerFunc(handlers.PostTradespersonTradespersonIDBillingManualInvoiceHandler)
+
+	api.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler = operations.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandlerFunc(handlers.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler)
+
+	api.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler = operations.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandlerFunc(handlers.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler)
+
+	api.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler = operations.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandlerFunc(handlers.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler)
+
+	api.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler = operations.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandlerFunc(handlers.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler)
+
+	api.PostTradespersonTradespersonIDEmailHandler = operations.PostTradespersonTradespersonIDEmailHandlerFunc(handlers.PostTradespersonTradespersonIDEmailHandler)
+
+	api.PostTradespersonTradespersonIDFixedPriceHandler = operations.PostTradespersonTradespersonIDFixedPriceHandlerFunc(handlers.PostTradespersonTradespersonIDFixedPriceHandler)
+
+	api.PostTradespersonTradespersonIDFixedPriceReviewHandler = operations.PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc(handlers.PostTradespersonTradespersonIDFixedPriceReviewHandler)
+
+	api.PostTradespersonTradespersonIDQuoteHandler = operations.PostTradespersonTradespersonIDQuoteHandlerFunc(handlers.PostTradespersonTradespersonIDQuoteHandler)
+
 	if api.PostTradespersonTradespersonIDQuoteReviewHandler == nil {
-		api.PostTradespersonTradespersonIDQuoteReviewHandler = operations.PostTradespersonTradespersonIDQuoteReviewHandlerFunc(func(params operations.PostTradespersonTradespersonIDQuoteReviewParams) middleware.Responder {
+		api.PostTradespersonTradespersonIDQuoteReviewHandler = operations.PostTradespersonTradespersonIDQuoteReviewHandlerFunc(func(params operations.PostTradespersonTradespersonIDQuoteReviewParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation operations.PostTradespersonTradespersonIDQuoteReview has not yet been implemented")
 		})
 	}
-	if api.PutTradespersonAccountTradespersonIDHandler == nil {
-		api.PutTradespersonAccountTradespersonIDHandler = operations.PutTradespersonAccountTradespersonIDHandlerFunc(func(params operations.PutTradespersonAccountTradespersonIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PutTradespersonAccountTradespersonID has not yet been implemented")
-		})
-	}
-	if api.PutTradespersonAccountTradespersonIDSettingsHandler == nil {
-		api.PutTradespersonAccountTradespersonIDSettingsHandler = operations.PutTradespersonAccountTradespersonIDSettingsHandlerFunc(func(params operations.PutTradespersonAccountTradespersonIDSettingsParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PutTradespersonAccountTradespersonIDSettings has not yet been implemented")
-		})
-	}
-	if api.PutTradespersonTradespersonIDFixedPriceHandler == nil {
-		api.PutTradespersonTradespersonIDFixedPriceHandler = operations.PutTradespersonTradespersonIDFixedPriceHandlerFunc(func(params operations.PutTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PutTradespersonTradespersonIDFixedPrice has not yet been implemented")
-		})
-	}
-	if api.PutTradespersonTradespersonIDQuoteHandler == nil {
-		api.PutTradespersonTradespersonIDQuoteHandler = operations.PutTradespersonTradespersonIDQuoteHandlerFunc(func(params operations.PutTradespersonTradespersonIDQuoteParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PutTradespersonTradespersonIDQuote has not yet been implemented")
-		})
-	}
-	if api.PutTradespersonTradespersonIDUpdatePasswordHandler == nil {
-		api.PutTradespersonTradespersonIDUpdatePasswordHandler = operations.PutTradespersonTradespersonIDUpdatePasswordHandlerFunc(func(params operations.PutTradespersonTradespersonIDUpdatePasswordParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PutTradespersonTradespersonIDUpdatePassword has not yet been implemented")
-		})
-	}
+
+	api.PutTradespersonTradespersonIDHandler = operations.PutTradespersonTradespersonIDHandlerFunc(handlers.PutTradespersonTradespersonIDHandler)
+
+	api.PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler = operations.PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(handlers.PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
+
+	api.PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler = operations.PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandlerFunc(handlers.PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler)
+
+	api.PutTradespersonTradespersonIDSettingsHandler = operations.PutTradespersonTradespersonIDSettingsHandlerFunc(handlers.PutTradespersonTradespersonIDSettingsHandler)
+
+	api.PutTradespersonTradespersonIDFixedPricePriceIDHandler = operations.PutTradespersonTradespersonIDFixedPricePriceIDHandlerFunc(handlers.PutTradespersonTradespersonIDFixedPricePriceIDHandler)
+
+	api.PutTradespersonTradespersonIDQuoteQuoteIDHandler = operations.PutTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(handlers.PutTradespersonTradespersonIDQuoteQuoteIDHandler)
+
+	api.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler = operations.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandlerFunc(handlers.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler)
+
+	api.PutTradespersonTradespersonIDPasswordHandler = operations.PutTradespersonTradespersonIDPasswordHandlerFunc(handlers.PutTradespersonTradespersonIDPasswordHandler)
 
 	api.PreServerShutdown = func() {}
 

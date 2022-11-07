@@ -65,13 +65,13 @@ func (o *PostResetPassword) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // swagger:model PostResetPasswordBody
 type PostResetPasswordBody struct {
 
+	// access token
+	// Required: true
+	AccessToken *string `json:"accessToken"`
+
 	// password
 	// Required: true
 	Password *string `json:"password"`
-
-	// token
-	// Required: true
-	Token *string `json:"token"`
 
 	// type
 	// Required: true
@@ -82,11 +82,11 @@ type PostResetPasswordBody struct {
 func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validatePassword(formats); err != nil {
+	if err := o.validateAccessToken(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := o.validateToken(formats); err != nil {
+	if err := o.validatePassword(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,18 +100,18 @@ func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *PostResetPasswordBody) validatePassword(formats strfmt.Registry) error {
+func (o *PostResetPasswordBody) validateAccessToken(formats strfmt.Registry) error {
 
-	if err := validate.Required("password."+"."+"password", "body", o.Password); err != nil {
+	if err := validate.Required("password."+"."+"accessToken", "body", o.AccessToken); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (o *PostResetPasswordBody) validateToken(formats strfmt.Registry) error {
+func (o *PostResetPasswordBody) validatePassword(formats strfmt.Registry) error {
 
-	if err := validate.Required("password."+"."+"token", "body", o.Token); err != nil {
+	if err := validate.Required("password."+"."+"password", "body", o.Password); err != nil {
 		return err
 	}
 
@@ -156,7 +156,7 @@ func (o *PostResetPasswordBody) UnmarshalBinary(b []byte) error {
 type PostResetPasswordOKBody struct {
 
 	// updated
-	Updated bool `json:"updated,omitempty"`
+	Updated bool `json:"updated"`
 }
 
 // Validate validates this post reset password o k body

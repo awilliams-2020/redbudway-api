@@ -67,7 +67,8 @@ type PostTradespersonLoginBody struct {
 
 	// email
 	// Required: true
-	Email *string `json:"email"`
+	// Format: email
+	Email *strfmt.Email `json:"email"`
 
 	// password
 	// Required: true
@@ -95,6 +96,10 @@ func (o *PostTradespersonLoginBody) Validate(formats strfmt.Registry) error {
 func (o *PostTradespersonLoginBody) validateEmail(formats strfmt.Registry) error {
 
 	if err := validate.Required("tradesperson"+"."+"email", "body", o.Email); err != nil {
+		return err
+	}
+
+	if err := validate.FormatOf("tradesperson"+"."+"email", "body", "email", o.Email.String(), formats); err != nil {
 		return err
 	}
 
@@ -138,8 +143,17 @@ func (o *PostTradespersonLoginBody) UnmarshalBinary(b []byte) error {
 // swagger:model PostTradespersonLoginOKBody
 type PostTradespersonLoginOKBody struct {
 
+	// access token
+	AccessToken string `json:"accessToken,omitempty"`
+
+	// refresh token
+	RefreshToken string `json:"refreshToken,omitempty"`
+
+	// tradesperson Id
+	TradespersonID string `json:"tradespersonId,omitempty"`
+
 	// valid
-	Valid bool `json:"valid,omitempty"`
+	Valid bool `json:"valid"`
 }
 
 // Validate validates this post tradesperson login o k body

@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDQuoteOKCode is the HTTP code returned for type GetTradespersonTradespersonIDQuoteOK
@@ -23,7 +25,7 @@ type GetTradespersonTradespersonIDQuoteOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *GetTradespersonTradespersonIDQuoteOKBody `json:"body,omitempty"`
+	Payload *models.ServiceDetails `json:"body,omitempty"`
 }
 
 // NewGetTradespersonTradespersonIDQuoteOK creates GetTradespersonTradespersonIDQuoteOK with default headers values
@@ -33,13 +35,13 @@ func NewGetTradespersonTradespersonIDQuoteOK() *GetTradespersonTradespersonIDQuo
 }
 
 // WithPayload adds the payload to the get tradesperson tradesperson Id quote o k response
-func (o *GetTradespersonTradespersonIDQuoteOK) WithPayload(payload *GetTradespersonTradespersonIDQuoteOKBody) *GetTradespersonTradespersonIDQuoteOK {
+func (o *GetTradespersonTradespersonIDQuoteOK) WithPayload(payload *models.ServiceDetails) *GetTradespersonTradespersonIDQuoteOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get tradesperson tradesperson Id quote o k response
-func (o *GetTradespersonTradespersonIDQuoteOK) SetPayload(payload *GetTradespersonTradespersonIDQuoteOKBody) {
+func (o *GetTradespersonTradespersonIDQuoteOK) SetPayload(payload *models.ServiceDetails) {
 	o.Payload = payload
 }
 

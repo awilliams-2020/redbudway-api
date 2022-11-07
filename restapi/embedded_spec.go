@@ -25,7 +25,7 @@ func init() {
     "application/json"
   ],
   "schemes": [
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "info": {
@@ -36,23 +36,88 @@ func init() {
   "host": "redbudway.com",
   "basePath": "/v1",
   "paths": {
-    "/forgot-password": {
+    "/customer": {
       "post": {
         "parameters": [
           {
-            "name": "password.",
+            "description": "The customer account to create.",
+            "name": "customer",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "name",
+                "email",
+                "password",
+                "number",
+                "address"
+              ],
+              "properties": {
+                "address": {
+                  "$ref": "#/definitions/Address"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "number": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "customerId": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/login": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Log in to customer account.",
+            "name": "customer",
             "in": "body",
             "schema": {
               "type": "object",
               "required": [
                 "email",
-                "type"
+                "password"
               ],
               "properties": {
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email"
                 },
-                "type": {
+                "password": {
                   "type": "string"
                 }
               }
@@ -61,7 +126,1389 @@ func init() {
         ],
         "responses": {
           "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                },
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid customer accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/billing-link": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stripe billing link",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/fixed-price/{priceId}/book": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The time slots to book",
+            "name": "booking",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timeSlots": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TimeSlot"
+                  },
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "If fixed price was booked",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "booked": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/fixed-price/{priceId}/review": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reviewed": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to create.",
+            "name": "review",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/logout": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log customer out",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "loggedOut": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/payment/default": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer default payment",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "defaultPayment": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer quote service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "expires": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "number": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "request": {
+                  "type": "string"
+                },
+                "service": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/Product"
+                      }
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string"
+                },
+                "tradesperson": {
+                  "$ref": "#/definitions/Tradesperson"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}/accept": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote was accepted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accepted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}/request": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote to request",
+            "name": "request",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "images": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "If quote request was created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requested": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}/review": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote with review",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reviewed": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID with review",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote review to create.",
+            "name": "review",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quotes": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "customer quotes",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "number": {
+                    "type": "string",
+                    "x-omitempty": false
+                  },
+                  "quoteId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/reverify": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reverify customer account"
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/subscription/{priceId}/book": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The time slots to book",
+            "name": "booking",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timeSlots": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TimeSlot"
+                  },
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "If fixed price was booked",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "booked": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/subscription/{priceId}/review": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reviewed": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to create.",
+            "name": "review",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/verify": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "verified": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to create.",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "verified": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fixed-price/{priceId}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Price ID",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fixed Price Details",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "business": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "tradespersonId": {
+                      "type": "string"
+                    },
+                    "vanityURL": {
+                      "type": "string",
+                      "x-omitempty": false
+                    }
+                  }
+                },
+                "service": {
+                  "$ref": "#/definitions/ServiceDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fixed-price/{priceId}/reviews": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Fixed price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Page of reviews",
+            "name": "page",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reviews",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fiveStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "fourStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "oneStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "reviews": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "customer": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "rating": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "respDate": {
+                        "type": "string"
+                      },
+                      "respMsg": {
+                        "type": "string"
+                      },
+                      "responded": {
+                        "type": "boolean",
+                        "x-omitempty": false
+                      },
+                      "tradesperson": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "threeStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "twoStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fixed-prices": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forgot-password": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "email",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "accountType",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
             "description": "Forgot password"
+          }
+        }
+      }
+    },
+    "/location": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "latitude",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "longitude",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "City and State of end user",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/{vanityOrId}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson vanity URL or ID",
+            "name": "vanityOrId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Tradesperson"
+            }
+          }
+        }
+      }
+    },
+    "/profile/{vanityOrId}/fixed-prices": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson vanity URL or ID",
+            "name": "vanityOrId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/{vanityOrId}/quotes": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson vanity URL or ID",
+            "name": "vanityOrId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quote/{quoteId}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote details",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "business": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "tradespersonId": {
+                      "type": "string"
+                    },
+                    "vanityURL": {
+                      "type": "string",
+                      "x-omitempty": false
+                    }
+                  }
+                },
+                "service": {
+                  "$ref": "#/definitions/ServiceDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quote/{quoteId}/reviews": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Quote ID with review",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Page of reviews",
+            "name": "page",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reviews",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "rating": {
+                    "type": "integer",
+                    "format": "int64"
+                  },
+                  "respDate": {
+                    "type": "string"
+                  },
+                  "respMsg": {
+                    "type": "string"
+                  },
+                  "responded": {
+                    "type": "boolean",
+                    "x-omitempty": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson quote services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
           }
         }
       }
@@ -75,15 +1522,15 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "token",
+                "accessToken",
                 "password",
                 "type"
               ],
               "properties": {
-                "password": {
+                "accessToken": {
                   "type": "string"
                 },
-                "token": {
+                "password": {
                   "type": "string"
                 },
                 "type": {
@@ -100,7 +1547,8 @@ func init() {
               "type": "object",
               "properties": {
                 "updated": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -108,7 +1556,7 @@ func init() {
         }
       }
     },
-    "/tradesperson/account": {
+    "/tradesperson": {
       "post": {
         "parameters": [
           {
@@ -126,30 +1574,14 @@ func init() {
               ],
               "properties": {
                 "address": {
-                  "type": "object",
-                  "required": [
-                    "addressLineOne",
-                    "zipCode",
-                    "city",
-                    "state"
-                  ],
-                  "properties": {
-                    "addressLine": {
-                      "type": "string"
-                    },
-                    "city": {
-                      "type": "string"
-                    },
-                    "state": {
-                      "type": "string"
-                    },
-                    "zipCode": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/Address"
+                },
+                "description": {
+                  "type": "string"
                 },
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email"
                 },
                 "name": {
                   "type": "string"
@@ -158,7 +1590,8 @@ func init() {
                   "type": "string"
                 },
                 "password": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "password"
                 }
               }
             }
@@ -166,249 +1599,25 @@ func init() {
         ],
         "responses": {
           "201": {
-            "description": "True or false",
+            "description": "Created tradesperson account",
             "schema": {
               "type": "object",
               "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
                 "created": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/account/{tradespersonId}": {
-      "get": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A User object",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "object",
-                  "properties": {
-                    "city": {
-                      "type": "string"
-                    },
-                    "line1": {
-                      "type": "string"
-                    },
-                    "line2": {
-                      "type": "string"
-                    },
-                    "postal_code": {
-                      "type": "string"
-                    },
-                    "state": {
-                      "type": "string"
-                    }
-                  }
+                  "type": "boolean",
+                  "x-omitempty": false
                 },
-                "description": {
+                "refreshToken": {
                   "type": "string"
                 },
-                "email": {
+                "tradespersonId": {
                   "type": "string"
                 },
-                "image": {
+                "url": {
                   "type": "string"
-                },
-                "jobs": {
-                  "type": "integer"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "number": {
-                  "type": "string"
-                },
-                "rating": {
-                  "type": "integer"
-                },
-                "reviews": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "image",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "name": "description",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "name": "vanity",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Updates tradesperson profile",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "updated": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Deletes tradesperson account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "deleted": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/account/{tradespersonId}/settings": {
-      "get": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A tradesperson settings",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "boolean"
-                },
-                "email": {
-                  "type": "boolean"
-                },
-                "number": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "boolean",
-            "name": "email",
-            "in": "query"
-          },
-          {
-            "type": "boolean",
-            "name": "number",
-            "in": "query"
-          },
-          {
-            "type": "boolean",
-            "name": "address",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Updates tradesperson profile",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "updated": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/account/{tradespersonId}/status": {
-      "get": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Status of tradesperson stripe account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "expired": {
-                  "type": "boolean"
-                },
-                "submitted": {
-                  "type": "boolean"
                 }
               }
             }
@@ -431,7 +1640,8 @@ func init() {
               ],
               "properties": {
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email"
                 },
                 "password": {
                   "type": "string"
@@ -442,12 +1652,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Valid account",
+            "description": "Valid email and password",
             "schema": {
               "type": "object",
               "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                },
+                "tradespersonId": {
+                  "type": "string"
+                },
                 "valid": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -455,32 +1675,201 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/billing/customer/subscription/invoice": {
+    "/tradesperson/{tradespersonId}": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Tradesperson"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson to update.",
+            "name": "tradesperson",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson profile",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deletes tradesperson account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid tradesperson accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "description": "The subscription latest invoice",
-            "name": "subscription",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "subscriptionId"
-              ],
-              "properties": {
-                "subscriptionId": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "subscriptionId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
@@ -490,35 +1879,11 @@ func init() {
               "type": "object",
               "properties": {
                 "created": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "customer": {
-                  "type": "object",
-                  "properties": {
-                    "address": {
-                      "type": "object",
-                      "properties": {
-                        "city": {
-                          "type": "string"
-                        },
-                        "line1": {
-                          "type": "string"
-                        },
-                        "line2": {
-                          "type": "string"
-                        },
-                        "postal_code": {
-                          "type": "string"
-                        },
-                        "state": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/Customer"
                 },
                 "description": {
                   "type": "string"
@@ -529,11 +1894,12 @@ func init() {
                 "number": {
                   "type": "string"
                 },
-                "paid": {
+                "pdf": {
                   "type": "string"
                 },
-                "refund": {
-                  "type": "string"
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "service": {
                   "type": "object",
@@ -549,8 +1915,12 @@ func init() {
                 "status": {
                   "type": "string"
                 },
+                "timeSlot": {
+                  "$ref": "#/definitions/TimeSlot"
+                },
                 "total": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "url": {
                   "type": "string"
@@ -561,32 +1931,41 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/billing/customer/subscription/refund": {
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId}/refund": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "description": "The subscription latest invoice",
-            "name": "subscription",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "subscriptionId"
-              ],
-              "properties": {
-                "subscriptionId": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "subscriptionId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
@@ -596,7 +1975,8 @@ func init() {
               "type": "object",
               "properties": {
                 "refunded": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -604,12 +1984,16 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/billing/customer/subscriptions": {
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -617,37 +2001,20 @@ func init() {
           },
           {
             "type": "string",
-            "description": "Customer Stripe ID",
-            "name": "cusStripeId",
-            "in": "query",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "Quote reviews",
+            "description": "Customer subscriptions",
             "schema": {
               "type": "object",
               "properties": {
                 "address": {
-                  "type": "object",
-                  "properties": {
-                    "city": {
-                      "type": "string"
-                    },
-                    "line1": {
-                      "type": "string"
-                    },
-                    "line2": {
-                      "type": "string"
-                    },
-                    "postal_code": {
-                      "type": "string"
-                    },
-                    "state": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/Address"
                 },
                 "email": {
                   "type": "string"
@@ -658,11 +2025,14 @@ func init() {
                 "phone": {
                   "type": "string"
                 },
-                "sbuscriptions": {
+                "subscriptions": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
+                      "description": {
+                        "type": "string"
+                      },
                       "details": {
                         "type": "array",
                         "items": {
@@ -680,20 +2050,9 @@ func init() {
                             "timeSlots": {
                               "type": "array",
                               "items": {
-                                "type": "object",
-                                "properties": {
-                                  "endTime": {
-                                    "type": "string"
-                                  },
-                                  "segmentSize": {
-                                    "type": "integer"
-                                  },
-                                  "startTime": {
-                                    "type": "string",
-                                    "format": "date"
-                                  }
-                                }
-                              }
+                                "$ref": "#/definitions/TimeSlot"
+                              },
+                              "x-omitempty": false
                             }
                           }
                         }
@@ -703,6 +2062,10 @@ func init() {
                       },
                       "title": {
                         "type": "string"
+                      },
+                      "total": {
+                        "type": "integer",
+                        "format": "int64"
                       }
                     }
                   }
@@ -711,16 +2074,40 @@ func init() {
             }
           }
         }
-      },
-      "delete": {
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions/cancel": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The subscriptions to cancel.",
+            "name": "subscriptions",
+            "in": "body",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -730,7 +2117,8 @@ func init() {
               "type": "object",
               "properties": {
                 "canceled": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -740,10 +2128,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/billing/customers": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -752,44 +2144,341 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Quote reviews",
+            "description": "Customers that've done business",
             "schema": {
               "type": "array",
               "items": {
-                "type": "object",
-                "properties": {
-                  "address": {
-                    "type": "object",
-                    "properties": {
-                      "city": {
-                        "type": "string"
-                      },
-                      "line1": {
-                        "type": "string"
-                      },
-                      "line2": {
-                        "type": "string"
-                      },
-                      "postal_code": {
-                        "type": "string"
-                      },
-                      "state": {
-                        "type": "string"
-                      }
+                "$ref": "#/definitions/Customer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "customer": {
+                  "$ref": "#/definitions/Customer"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "number": {
+                  "type": "string"
+                },
+                "pdf": {
+                  "type": "string"
+                },
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "service": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
                     }
-                  },
-                  "email": {
-                    "type": "string"
-                  },
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "phone": {
-                    "type": "string"
                   }
+                },
+                "status": {
+                  "type": "string"
+                },
+                "timeSlot": {
+                  "type": "object",
+                  "properties": {
+                    "endTime": {
+                      "type": "string"
+                    },
+                    "startTime": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Invoice memo",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice memo was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/finalize": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice was sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "finalized": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/refund": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refunded": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/uncollectible": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice was marked uncollectible",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "uncollectible": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/void": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice voided",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "voided": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -799,10 +2488,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/billing/invoices": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -838,6 +2531,904 @@ func init() {
                     "type": "string"
                   },
                   "number": {
+                    "type": "string",
+                    "x-omitempty": false
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Manual invoice to create",
+            "name": "invoice",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cuStripeId": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "dueDate": {
+                  "type": "string"
+                },
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Product"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manual invoice",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cost": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Product"
+                  }
+                },
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "customer": {
+                  "$ref": "#/definitions/Customer"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "dueDate": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "number": {
+                  "type": "string"
+                },
+                "paid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "pdf": {
+                  "type": "string"
+                },
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/refund": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refunded": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/uncollectible": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice was marked uncollectible",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "uncollectible": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/void": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice voided",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "voided": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoices": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of invoice",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manual invoices in a quarter of some year",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "customer": {
+                    "type": "string"
+                  },
+                  "invoiceId": {
+                    "type": "string"
+                  },
+                  "number": {
+                    "type": "string",
+                    "x-omitempty": false
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson quote service",
+            "schema": {
+              "$ref": "#/definitions/QuoteDetails"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote to update.",
+            "name": "quote",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Product"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated quote",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/cancel": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled quote",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "canceled": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/finalize": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote was sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "finalized": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "customer": {
+                  "$ref": "#/definitions/Customer"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "number": {
+                  "type": "string"
+                },
+                "pdf": {
+                  "type": "string"
+                },
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Product"
+                  }
+                },
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Invoice memo",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice memo was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/finalize": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote invoice was finalized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "finalized": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/refund": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refunded": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/uncollectible": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice was marked uncollectible",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "uncollectible": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/void": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice voided",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "voided": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/revise": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote was revised",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "quoteId": {
+                  "type": "string"
+                },
+                "revised": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quotes": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of quote",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "quotes in a quarter of some year",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "customer": {
+                    "type": "string"
+                  },
+                  "invoiceId": {
+                    "type": "string"
+                  },
+                  "number": {
+                    "type": "string",
+                    "x-omitempty": false
+                  },
+                  "quoteId": {
                     "type": "string"
                   },
                   "status": {
@@ -850,196 +3441,86 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/fixed-price": {
+    "/tradesperson/{tradespersonId}/billing/subscriptions": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "name": "priceId",
-            "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Tradesperson fixed-price services",
+            "description": "Customers active, canceled, incomplete subscriptions",
             "schema": {
-              "type": "object",
-              "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "cities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "state": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "integer",
+                    "format": "int64",
+                    "x-omitempty": false
+                  },
+                  "canceled": {
+                    "type": "integer",
+                    "format": "int64",
+                    "x-omitempty": false
+                  },
+                  "incomplete": {
+                    "type": "integer",
+                    "format": "int64",
+                    "x-omitempty": false
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "stripeId": {
                     "type": "string"
                   }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "interval": {
-                  "type": "string"
-                },
-                "otherProducts": {
-                  "type": "object",
-                  "properties": {
-                    "interval": {
-                      "type": "string"
-                    },
-                    "subscription": {
-                      "type": "boolean"
-                    },
-                    "timeSlots": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "segmentSize": {
-                            "type": "string"
-                          },
-                          "startTime": {
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "taken": {
-                            "type": "boolean"
-                          },
-                          "takenBy": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    }
-                  }
-                },
-                "price": {
-                  "type": "string"
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "subscription": {
-                  "type": "boolean"
-                },
-                "timeSlots": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "segmentSize": {
-                        "type": "string"
-                      },
-                      "startTime": {
-                        "type": "string",
-                        "format": "date"
-                      }
-                    }
-                  }
-                },
-                "title": {
-                  "type": "string"
                 }
               }
             }
           }
         }
-      },
-      "put": {
+      }
+    },
+    "/tradesperson/{tradespersonId}/email": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "description": "The fixedPrice to update.",
-            "name": "tradesperson",
+            "description": "The email request to send to tradesperson.",
+            "name": "email",
             "in": "body",
             "schema": {
               "type": "object",
               "required": [
-                "priceId",
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "images",
-                "selectPlaces",
-                "archived",
-                "cityMap",
-                "timeSlots",
-                "filters"
+                "message",
+                "customerId"
               ],
               "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
+                "customerId": {
                   "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "cities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "state": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
                 },
                 "images": {
                   "type": "array",
@@ -1047,31 +3528,13 @@ func init() {
                     "type": "string"
                   }
                 },
+                "message": {
+                  "type": "string"
+                },
                 "priceId": {
                   "type": "string"
                 },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "timeSlots": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "segmentSize": {
-                        "type": "string"
-                      },
-                      "startTime": {
-                        "type": "string",
-                        "format": "date"
-                      }
-                    }
-                  }
-                },
-                "title": {
+                "quoteId": {
                   "type": "string"
                 }
               }
@@ -1079,24 +3542,31 @@ func init() {
           }
         ],
         "responses": {
-          "201": {
-            "description": "Updated fixed-price",
+          "200": {
+            "description": "Email sent to tradesperson",
             "schema": {
               "type": "object",
               "properties": {
-                "updated": {
-                  "type": "boolean"
+                "sent": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/tradesperson/{tradespersonId}/fixed-price": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "name": "tradespersonId",
             "in": "path",
             "required": true
@@ -1106,91 +3576,7 @@ func init() {
             "name": "fixedPrice",
             "in": "body",
             "schema": {
-              "type": "object",
-              "required": [
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "price",
-                "images",
-                "subscription",
-                "interval",
-                "selectPlaces",
-                "cityMap",
-                "timeSlots",
-                "filters"
-              ],
-              "properties": {
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "cities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "state": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "interval": {
-                  "type": "string"
-                },
-                "price": {
-                  "type": "string"
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "subscription": {
-                  "type": "boolean"
-                },
-                "timeSlots": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "segmentSize": {
-                        "type": "string"
-                      },
-                      "startTime": {
-                        "type": "string",
-                        "format": "date"
-                      }
-                    }
-                  }
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/ServiceDetails"
             }
           }
         ],
@@ -1201,7 +3587,8 @@ func init() {
               "type": "object",
               "properties": {
                 "created": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1211,10 +3598,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/fixed-price/review": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1222,7 +3613,7 @@ func init() {
           },
           {
             "description": "The response to a review.",
-            "name": "reviewResponse",
+            "name": "review",
             "in": "body",
             "schema": {
               "type": "object",
@@ -1235,7 +3626,8 @@ func init() {
                   "type": "string"
                 },
                 "reviewId": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -1248,7 +3640,8 @@ func init() {
               "type": "object",
               "properties": {
                 "responded": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1258,10 +3651,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/fixed-price/reviews": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1279,25 +3676,101 @@ func init() {
                   "customer": {
                     "type": "string"
                   },
-                  "customerId": {
-                    "type": "string"
-                  },
                   "date": {
-                    "type": "string",
-                    "format": "date"
+                    "type": "string"
                   },
                   "id": {
-                    "type": "string"
+                    "type": "integer",
+                    "format": "int64"
                   },
                   "message": {
                     "type": "string"
                   },
                   "rating": {
                     "type": "integer"
-                  },
-                  "tradespersonId": {
-                    "type": "string"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/fixed-price/{priceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fixedPrice": {
+                  "$ref": "#/definitions/ServiceDetails"
+                },
+                "otherServices": {
+                  "$ref": "#/definitions/OtherServices"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The fixedPrice to update.",
+            "name": "fixedPrice",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServiceDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated fixed-price",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1307,10 +3780,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/fixed-prices": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1323,39 +3800,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "object",
-                "properties": {
-                  "availableTimeSlots": {
-                    "type": "integer"
-                  },
-                  "images": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "interval": {
-                    "type": "string"
-                  },
-                  "price": {
-                    "type": "string"
-                  },
-                  "priceId": {
-                    "type": "string"
-                  },
-                  "rating": {
-                    "type": "integer"
-                  },
-                  "reviews": {
-                    "type": "integer"
-                  },
-                  "subscription": {
-                    "type": "boolean"
-                  },
-                  "title": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/definitions/Service"
               }
             }
           }
@@ -1364,10 +3809,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/login-link": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1389,12 +3838,48 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/onboard": {
-      "get": {
+    "/tradesperson/{tradespersonId}/logout": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log tradesperson out",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "loggedOut": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/onboard": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1416,174 +3901,67 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/quote": {
-      "get": {
+    "/tradesperson/{tradespersonId}/password": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "type": "string",
-            "name": "quoteId",
-            "in": "query"
+            "description": "The tradesperson password to update.",
+            "name": "tradesperson",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "curPassword",
+                "newPassword"
+              ],
+              "properties": {
+                "curPassword": {
+                  "type": "string"
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Tradesperson fixed-price services",
+            "description": "Tradeperson password updated",
             "schema": {
               "type": "object",
               "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "cities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "state": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
           }
         }
-      },
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "description": "The quote to create.",
-            "name": "quote",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "quoteId",
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "archived",
-                "images",
-                "cityMap",
-                "filters"
-              ],
-              "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "cities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "state": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created quote",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "created": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      },
+      }
+    },
+    "/tradesperson/{tradespersonId}/quote": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "name": "tradespersonId",
             "in": "path",
             "required": true
@@ -1593,59 +3971,7 @@ func init() {
             "name": "quote",
             "in": "body",
             "schema": {
-              "type": "object",
-              "required": [
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "images",
-                "cityMap",
-                "filters"
-              ],
-              "properties": {
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "cities": {
-                        "type": "array",
-                        "items": {
-                          "type": "string"
-                        }
-                      },
-                      "state": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/ServiceDetails"
             }
           }
         ],
@@ -1656,7 +3982,8 @@ func init() {
               "type": "object",
               "properties": {
                 "created": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1666,10 +3993,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/quote/review": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1677,7 +4008,7 @@ func init() {
           },
           {
             "description": "The response to a review.",
-            "name": "response",
+            "name": "review",
             "in": "body",
             "schema": {
               "type": "object",
@@ -1687,7 +4018,8 @@ func init() {
               ],
               "properties": {
                 "quoteId": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "response": {
                   "type": "string"
@@ -1703,7 +4035,8 @@ func init() {
               "type": "object",
               "properties": {
                 "responded": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1713,10 +4046,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/quote/reviews": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1734,25 +4071,93 @@ func init() {
                   "customer": {
                     "type": "string"
                   },
-                  "customerId": {
-                    "type": "string"
-                  },
                   "date": {
-                    "type": "string",
-                    "format": "date"
+                    "type": "string"
                   },
                   "id": {
-                    "type": "string"
+                    "type": "integer",
+                    "format": "int64"
                   },
                   "message": {
                     "type": "string"
                   },
                   "rating": {
                     "type": "integer"
-                  },
-                  "tradespersonId": {
-                    "type": "string"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/quote/{quoteId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "$ref": "#/definitions/ServiceDetails"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote to create.",
+            "name": "quote",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServiceDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created quote",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1762,10 +4167,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/quotes": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1778,27 +4187,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "object",
-                "properties": {
-                  "images": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "quoteId": {
-                    "type": "string"
-                  },
-                  "rating": {
-                    "type": "integer"
-                  },
-                  "reviews": {
-                    "type": "integer"
-                  },
-                  "title": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/definitions/Service"
               }
             }
           }
@@ -1807,84 +4196,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/schedule": {
       "get": {
-        "parameters": [
+        "security": [
           {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
+            "Bearer": []
           }
         ],
-        "responses": {
-          "200": {
-            "description": "Stripe onboarding URL",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "customer": {
-                      "type": "object",
-                      "properties": {
-                        "address": {
-                          "type": "object",
-                          "properties": {
-                            "city": {
-                              "type": "string"
-                            },
-                            "line1": {
-                              "type": "string"
-                            },
-                            "line2": {
-                              "type": "string"
-                            },
-                            "postal_code": {
-                              "type": "string"
-                            },
-                            "state": {
-                              "type": "string"
-                            }
-                          }
-                        },
-                        "email": {
-                          "type": "string"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "phone": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "segmentSize": {
-                      "type": "string"
-                    },
-                    "startTime": {
-                      "type": "string",
-                      "format": "date"
-                    },
-                    "taken": {
-                      "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/{tradespersonId}/time-slots": {
-      "get": {
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -1902,8 +4221,213 @@ func init() {
                   "interval": {
                     "type": "string"
                   },
+                  "price": {
+                    "type": "number",
+                    "format": "double"
+                  },
                   "subscription": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "x-omitempty": false
+                  },
+                  "timeSlots": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "customer": {
+                          "$ref": "#/definitions/Customer"
+                        },
+                        "segmentSize": {
+                          "type": "number",
+                          "format": "double"
+                        },
+                        "startTime": {
+                          "type": "string"
+                        },
+                        "taken": {
+                          "type": "boolean",
+                          "x-omitempty": false
+                        },
+                        "takenBy": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/settings": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson settings",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "displayAddress": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayEmail": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayNumber": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "vanityURL": {
+                  "type": "string",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson settings to update.",
+            "name": "settings",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "displayAddress": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayEmail": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayNumber": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "vanityURL": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson profile",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/status": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status of tradesperson stripe account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "submitted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/time-slots": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service time slots",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "interval": {
+                    "type": "string"
+                  },
+                  "subscription": {
+                    "type": "boolean",
+                    "x-omitempty": false
                   },
                   "timeSlots": {
                     "type": "array",
@@ -1914,11 +4438,11 @@ func init() {
                           "type": "string"
                         },
                         "startTime": {
-                          "type": "string",
-                          "format": "date"
+                          "type": "string"
                         },
                         "taken": {
-                          "type": "boolean"
+                          "type": "boolean",
+                          "x-omitempty": false
                         },
                         "takenBy": {
                           "type": "string"
@@ -1932,42 +4456,375 @@ func init() {
           }
         }
       }
+    }
+  },
+  "definitions": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "lineOne": {
+          "type": "string"
+        },
+        "lineTwo": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zipCode": {
+          "type": "string"
+        }
+      }
     },
-    "/tradesperson/{tradespersonId}/update-password": {
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
+    "Customer": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "OtherServices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "interval": {
+            "type": "string"
           },
-          {
-            "type": "string",
-            "name": "currentPassword",
-            "in": "query"
+          "subscription": {
+            "type": "boolean",
+            "x-omitempty": false
           },
-          {
-            "type": "string",
-            "name": "newPassword",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tradeperson password updated",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "updated": {
-                  "type": "boolean"
-                }
-              }
-            }
+          "timeSlots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/TimeSlot"
+            },
+            "x-omitempty": false
           }
         }
       }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "price": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "QuoteDetails": {
+      "type": "object",
+      "properties": {
+        "created": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "customer": {
+          "$ref": "#/definitions/Customer"
+        },
+        "description": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "expires": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "invoiceId": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "request": {
+          "type": "string"
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "products": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Product"
+              }
+            },
+            "title": {
+              "type": "string"
+            }
+          }
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "Service": {
+      "type": "object",
+      "required": [
+        "title",
+        "image"
+      ],
+      "properties": {
+        "availableTimeSlots": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "business": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "price": {
+          "type": "number"
+        },
+        "priceId": {
+          "type": "string"
+        },
+        "quoteId": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number",
+          "format": "double",
+          "x-omitempty": false
+        },
+        "reviews": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "title": {
+          "type": "string"
+        },
+        "tradespersonId": {
+          "type": "string"
+        },
+        "vanityURL": {
+          "type": "string",
+          "x-omitempty": false
+        }
+      }
+    },
+    "ServiceDetails": {
+      "type": "object",
+      "required": [
+        "category",
+        "title",
+        "description",
+        "images",
+        "selectPlaces",
+        "filters"
+      ],
+      "properties": {
+        "archived": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interval": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "price": {
+          "type": "number"
+        },
+        "priceId": {
+          "type": "string"
+        },
+        "quoteId": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number",
+          "format": "double",
+          "x-omitempty": false
+        },
+        "reviews": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "selectPlaces": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "statesAndCities": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cities": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "state": {
+                "type": "string"
+              }
+            }
+          },
+          "x-omitempty": false
+        },
+        "subCategory": {
+          "type": "string"
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "timeSlots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimeSlot"
+          },
+          "x-omitempty": false
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "TimeSlot": {
+      "type": "object",
+      "properties": {
+        "cuStripeId": {
+          "type": "string"
+        },
+        "endTime": {
+          "type": "string"
+        },
+        "futureTime": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "segmentSize": {
+          "type": "string"
+        },
+        "startTime": {
+          "type": "string"
+        },
+        "subscriptionId": {
+          "type": "string"
+        },
+        "taken": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "takenBy": {
+          "type": "string",
+          "x-omitempty": false
+        }
+      }
+    },
+    "Tradesperson": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "description": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "email": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "jobs": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "name": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "reviews": {
+          "type": "integer",
+          "x-omitempty": false
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }`))
@@ -1979,7 +4836,7 @@ func init() {
     "application/json"
   ],
   "schemes": [
-    "https"
+    "http"
   ],
   "swagger": "2.0",
   "info": {
@@ -1990,23 +4847,88 @@ func init() {
   "host": "redbudway.com",
   "basePath": "/v1",
   "paths": {
-    "/forgot-password": {
+    "/customer": {
       "post": {
         "parameters": [
           {
-            "name": "password.",
+            "description": "The customer account to create.",
+            "name": "customer",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "name",
+                "email",
+                "password",
+                "number",
+                "address"
+              ],
+              "properties": {
+                "address": {
+                  "$ref": "#/definitions/Address"
+                },
+                "email": {
+                  "type": "string",
+                  "format": "email"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "number": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "customerId": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/login": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Log in to customer account.",
+            "name": "customer",
             "in": "body",
             "schema": {
               "type": "object",
               "required": [
                 "email",
-                "type"
+                "password"
               ],
               "properties": {
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email"
                 },
-                "type": {
+                "password": {
                   "type": "string"
                 }
               }
@@ -2015,7 +4937,1327 @@ func init() {
         ],
         "responses": {
           "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "customerId": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                },
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}": {
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid customer accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/billing-link": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stripe billing link",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/fixed-price/{priceId}/book": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The time slots to book",
+            "name": "booking",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timeSlots": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TimeSlot"
+                  },
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "If fixed price was booked",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "booked": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/fixed-price/{priceId}/review": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reviewed": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to create.",
+            "name": "review",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/logout": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log customer out",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "loggedOut": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/payment/default": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer default payment",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "defaultPayment": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer quote service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "expires": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "number": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "request": {
+                  "type": "string"
+                },
+                "service": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "products": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/definitions/Product"
+                      }
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string"
+                },
+                "tradesperson": {
+                  "$ref": "#/definitions/Tradesperson"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}/accept": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote was accepted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accepted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}/request": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote to request",
+            "name": "request",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "images": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "If quote request was created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "requested": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quote/{quoteId}/review": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote with review",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reviewed": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID with review",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote review to create.",
+            "name": "review",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/quotes": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "customer quotes",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetCustomerCustomerIDQuotesOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/reverify": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reverify customer account"
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/subscription/{priceId}/book": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The time slots to book",
+            "name": "booking",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timeSlots": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/TimeSlot"
+                  },
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "If fixed price was booked",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "booked": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/subscription/{priceId}/review": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reviewed": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to create.",
+            "name": "review",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "rating": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviewed service",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "rated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/verify": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "verified": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to create.",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "verified": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fixed-price/{priceId}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Price ID",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fixed Price Details",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "business": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "tradespersonId": {
+                      "type": "string"
+                    },
+                    "vanityURL": {
+                      "type": "string",
+                      "x-omitempty": false
+                    }
+                  }
+                },
+                "service": {
+                  "$ref": "#/definitions/ServiceDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fixed-price/{priceId}/reviews": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Fixed price ID with review",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Page of reviews",
+            "name": "page",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reviews",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fiveStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "fourStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "oneStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "reviews": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ReviewsItems0"
+                  }
+                },
+                "threeStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "twoStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/fixed-prices": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/forgot-password": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "email",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "accountType",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
             "description": "Forgot password"
+          }
+        }
+      }
+    },
+    "/location": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "latitude",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "longitude",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "City and State of end user",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/{vanityOrId}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson vanity URL or ID",
+            "name": "vanityOrId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Tradesperson"
+            }
+          }
+        }
+      }
+    },
+    "/profile/{vanityOrId}/fixed-prices": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson vanity URL or ID",
+            "name": "vanityOrId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/{vanityOrId}/quotes": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson vanity URL or ID",
+            "name": "vanityOrId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quote/{quoteId}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote details",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "business": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "tradespersonId": {
+                      "type": "string"
+                    },
+                    "vanityURL": {
+                      "type": "string",
+                      "x-omitempty": false
+                    }
+                  }
+                },
+                "service": {
+                  "$ref": "#/definitions/ServiceDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quote/{quoteId}/reviews": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Quote ID with review",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Page of reviews",
+            "name": "page",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of reviews",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetQuoteQuoteIDReviewsOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson quote services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Service"
+              }
+            }
           }
         }
       }
@@ -2029,15 +6271,15 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "token",
+                "accessToken",
                 "password",
                 "type"
               ],
               "properties": {
-                "password": {
+                "accessToken": {
                   "type": "string"
                 },
-                "token": {
+                "password": {
                   "type": "string"
                 },
                 "type": {
@@ -2054,7 +6296,8 @@ func init() {
               "type": "object",
               "properties": {
                 "updated": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -2062,7 +6305,7 @@ func init() {
         }
       }
     },
-    "/tradesperson/account": {
+    "/tradesperson": {
       "post": {
         "parameters": [
           {
@@ -2080,30 +6323,14 @@ func init() {
               ],
               "properties": {
                 "address": {
-                  "type": "object",
-                  "required": [
-                    "addressLineOne",
-                    "zipCode",
-                    "city",
-                    "state"
-                  ],
-                  "properties": {
-                    "addressLine": {
-                      "type": "string"
-                    },
-                    "city": {
-                      "type": "string"
-                    },
-                    "state": {
-                      "type": "string"
-                    },
-                    "zipCode": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/Address"
+                },
+                "description": {
+                  "type": "string"
                 },
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email"
                 },
                 "name": {
                   "type": "string"
@@ -2112,7 +6339,8 @@ func init() {
                   "type": "string"
                 },
                 "password": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "password"
                 }
               }
             }
@@ -2120,249 +6348,25 @@ func init() {
         ],
         "responses": {
           "201": {
-            "description": "True or false",
+            "description": "Created tradesperson account",
             "schema": {
               "type": "object",
               "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
                 "created": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/account/{tradespersonId}": {
-      "get": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A User object",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "object",
-                  "properties": {
-                    "city": {
-                      "type": "string"
-                    },
-                    "line1": {
-                      "type": "string"
-                    },
-                    "line2": {
-                      "type": "string"
-                    },
-                    "postal_code": {
-                      "type": "string"
-                    },
-                    "state": {
-                      "type": "string"
-                    }
-                  }
+                  "type": "boolean",
+                  "x-omitempty": false
                 },
-                "description": {
+                "refreshToken": {
                   "type": "string"
                 },
-                "email": {
+                "tradespersonId": {
                   "type": "string"
                 },
-                "image": {
+                "url": {
                   "type": "string"
-                },
-                "jobs": {
-                  "type": "integer"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "number": {
-                  "type": "string"
-                },
-                "rating": {
-                  "type": "integer"
-                },
-                "reviews": {
-                  "type": "integer"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "image",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "name": "description",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "name": "vanity",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Updates tradesperson profile",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "updated": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Deletes tradesperson account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "deleted": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/account/{tradespersonId}/settings": {
-      "get": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A tradesperson settings",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "address": {
-                  "type": "boolean"
-                },
-                "email": {
-                  "type": "boolean"
-                },
-                "number": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "boolean",
-            "name": "email",
-            "in": "query"
-          },
-          {
-            "type": "boolean",
-            "name": "number",
-            "in": "query"
-          },
-          {
-            "type": "boolean",
-            "name": "address",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Updates tradesperson profile",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "updated": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/tradesperson/account/{tradespersonId}/status": {
-      "get": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Status of tradesperson stripe account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean"
-                },
-                "expired": {
-                  "type": "boolean"
-                },
-                "submitted": {
-                  "type": "boolean"
                 }
               }
             }
@@ -2385,7 +6389,8 @@ func init() {
               ],
               "properties": {
                 "email": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "email"
                 },
                 "password": {
                   "type": "string"
@@ -2396,12 +6401,22 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Valid account",
+            "description": "Valid email and password",
             "schema": {
               "type": "object",
               "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                },
+                "tradespersonId": {
+                  "type": "string"
+                },
                 "valid": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -2409,32 +6424,201 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/billing/customer/subscription/invoice": {
+    "/tradesperson/{tradespersonId}": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Tradesperson"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson to update.",
+            "name": "tradesperson",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson profile",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deletes tradesperson account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid tradesperson accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "description": "The subscription latest invoice",
-            "name": "subscription",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "subscriptionId"
-              ],
-              "properties": {
-                "subscriptionId": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "subscriptionId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
@@ -2444,35 +6628,11 @@ func init() {
               "type": "object",
               "properties": {
                 "created": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "customer": {
-                  "type": "object",
-                  "properties": {
-                    "address": {
-                      "type": "object",
-                      "properties": {
-                        "city": {
-                          "type": "string"
-                        },
-                        "line1": {
-                          "type": "string"
-                        },
-                        "line2": {
-                          "type": "string"
-                        },
-                        "postal_code": {
-                          "type": "string"
-                        },
-                        "state": {
-                          "type": "string"
-                        }
-                      }
-                    },
-                    "name": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/Customer"
                 },
                 "description": {
                   "type": "string"
@@ -2483,11 +6643,12 @@ func init() {
                 "number": {
                   "type": "string"
                 },
-                "paid": {
+                "pdf": {
                   "type": "string"
                 },
-                "refund": {
-                  "type": "string"
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "service": {
                   "type": "object",
@@ -2503,8 +6664,12 @@ func init() {
                 "status": {
                   "type": "string"
                 },
+                "timeSlot": {
+                  "$ref": "#/definitions/TimeSlot"
+                },
                 "total": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "url": {
                   "type": "string"
@@ -2515,32 +6680,41 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/billing/customer/subscription/refund": {
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId}/refund": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "description": "The subscription latest invoice",
-            "name": "subscription",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "subscriptionId"
-              ],
-              "properties": {
-                "subscriptionId": {
-                  "type": "string"
-                }
-              }
-            }
+            "type": "string",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Subscription ID",
+            "name": "subscriptionId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
@@ -2550,7 +6724,8 @@ func init() {
               "type": "object",
               "properties": {
                 "refunded": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -2558,12 +6733,16 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/billing/customer/subscriptions": {
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -2571,37 +6750,20 @@ func init() {
           },
           {
             "type": "string",
-            "description": "Customer Stripe ID",
-            "name": "cusStripeId",
-            "in": "query",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
             "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "Quote reviews",
+            "description": "Customer subscriptions",
             "schema": {
               "type": "object",
               "properties": {
                 "address": {
-                  "type": "object",
-                  "properties": {
-                    "city": {
-                      "type": "string"
-                    },
-                    "line1": {
-                      "type": "string"
-                    },
-                    "line2": {
-                      "type": "string"
-                    },
-                    "postal_code": {
-                      "type": "string"
-                    },
-                    "state": {
-                      "type": "string"
-                    }
-                  }
+                  "$ref": "#/definitions/Address"
                 },
                 "email": {
                   "type": "string"
@@ -2612,26 +6774,50 @@ func init() {
                 "phone": {
                   "type": "string"
                 },
-                "sbuscriptions": {
+                "subscriptions": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/SbuscriptionsItems0"
+                    "$ref": "#/definitions/SubscriptionsItems0"
                   }
                 }
               }
             }
           }
         }
-      },
-      "delete": {
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions/cancel": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Customer stripe ID",
+            "name": "stripeId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The subscriptions to cancel.",
+            "name": "subscriptions",
+            "in": "body",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -2641,7 +6827,8 @@ func init() {
               "type": "object",
               "properties": {
                 "canceled": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -2651,10 +6838,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/billing/customers": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -2663,11 +6854,342 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Quote reviews",
+            "description": "Customers that've done business",
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/GetTradespersonTradespersonIDBillingCustomersOKBodyItems0"
+                "$ref": "#/definitions/Customer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "customer": {
+                  "$ref": "#/definitions/Customer"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "number": {
+                  "type": "string"
+                },
+                "pdf": {
+                  "type": "string"
+                },
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "service": {
+                  "type": "object",
+                  "properties": {
+                    "description": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "status": {
+                  "type": "string"
+                },
+                "timeSlot": {
+                  "type": "object",
+                  "properties": {
+                    "endTime": {
+                      "type": "string"
+                    },
+                    "startTime": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Invoice memo",
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice memo was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/finalize": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice was sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "finalized": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/refund": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refunded": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/uncollectible": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice was marked uncollectible",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "uncollectible": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/void": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice voided",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "voided": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
               }
             }
           }
@@ -2676,10 +7198,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/billing/invoices": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -2713,94 +7239,536 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/fixed-price": {
-      "get": {
+    "/tradesperson/{tradespersonId}/billing/manual-invoice": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Manual invoice to create",
+            "name": "invoice",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cuStripeId": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "dueDate": {
+                  "type": "string"
+                },
+                "products": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Product"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
             "type": "string",
-            "name": "priceId",
-            "in": "query"
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
           }
         ],
         "responses": {
           "200": {
-            "description": "Tradesperson fixed-price services",
+            "description": "Manual invoice",
             "schema": {
               "type": "object",
               "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
+                "cost": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/definitions/CityMapItems0"
+                    "$ref": "#/definitions/Product"
                   }
                 },
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "customer": {
+                  "$ref": "#/definitions/Customer"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "dueDate": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "number": {
+                  "type": "string"
+                },
+                "paid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "pdf": {
+                  "type": "string"
+                },
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/refund": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refunded": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/uncollectible": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice was marked uncollectible",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "uncollectible": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/void": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If manual invoice voided",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "voided": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoices": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of invoice",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manual invoices in a quarter of some year",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetTradespersonTradespersonIDBillingManualInvoicesOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson quote service",
+            "schema": {
+              "$ref": "#/definitions/QuoteDetails"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote to update.",
+            "name": "quote",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
                 "description": {
                   "type": "string"
                 },
-                "filters": {
+                "products": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/definitions/Product"
                   }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated quote",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/cancel": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cancelled quote",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "canceled": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/finalize": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote was sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "finalized": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invoice",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "integer",
+                  "format": "int64"
                 },
-                "images": {
+                "customer": {
+                  "$ref": "#/definitions/Customer"
+                },
+                "description": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "number": {
+                  "type": "string"
+                },
+                "pdf": {
+                  "type": "string"
+                },
+                "products": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "$ref": "#/definitions/Product"
                   }
                 },
-                "interval": {
+                "refunded": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "status": {
                   "type": "string"
                 },
-                "otherProducts": {
-                  "type": "object",
-                  "properties": {
-                    "interval": {
-                      "type": "string"
-                    },
-                    "subscription": {
-                      "type": "boolean"
-                    },
-                    "timeSlots": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/definitions/GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0"
-                      }
-                    }
-                  }
+                "total": {
+                  "type": "integer",
+                  "format": "int64"
                 },
-                "price": {
-                  "type": "string"
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "subscription": {
-                  "type": "boolean"
-                },
-                "timeSlots": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/TimeSlotsItems0"
-                  }
-                },
-                "title": {
+                "url": {
                   "type": "string"
                 }
               }
@@ -2809,77 +7777,41 @@ func init() {
         }
       },
       "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "description": "The fixedPrice to update.",
-            "name": "tradesperson",
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Invoice memo",
+            "name": "body",
             "in": "body",
             "schema": {
               "type": "object",
-              "required": [
-                "priceId",
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "images",
-                "selectPlaces",
-                "archived",
-                "cityMap",
-                "timeSlots",
-                "filters"
-              ],
               "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/CityMapItems0"
-                  }
-                },
                 "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "priceId": {
-                  "type": "string"
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "timeSlots": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/TimeSlotsItems0"
-                  }
-                },
-                "title": {
                   "type": "string"
                 }
               }
@@ -2887,24 +7819,393 @@ func init() {
           }
         ],
         "responses": {
-          "201": {
-            "description": "Updated fixed-price",
+          "200": {
+            "description": "If invoice memo was updated",
             "schema": {
               "type": "object",
               "properties": {
                 "updated": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/finalize": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote invoice was finalized",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "finalized": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/refund": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice refunded",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refunded": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/uncollectible": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice was marked uncollectible",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "uncollectible": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/void": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Invoice ID",
+            "name": "invoiceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If invoice voided",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "voided": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/revise": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quote ID",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If quote was revised",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "quoteId": {
+                  "type": "string"
+                },
+                "revised": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quotes": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of quote",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "quotes in a quarter of some year",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetTradespersonTradespersonIDBillingQuotesOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/subscriptions": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customers active, canceled, incomplete subscriptions",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetTradespersonTradespersonIDBillingSubscriptionsOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/email": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The email request to send to tradesperson.",
+            "name": "email",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "message",
+                "customerId"
+              ],
+              "properties": {
+                "customerId": {
+                  "type": "string"
+                },
+                "images": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "message": {
+                  "type": "string"
+                },
+                "priceId": {
+                  "type": "string"
+                },
+                "quoteId": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email sent to tradesperson",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "sent": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/fixed-price": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "name": "tradespersonId",
             "in": "path",
             "required": true
@@ -2914,71 +8215,7 @@ func init() {
             "name": "fixedPrice",
             "in": "body",
             "schema": {
-              "type": "object",
-              "required": [
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "price",
-                "images",
-                "subscription",
-                "interval",
-                "selectPlaces",
-                "cityMap",
-                "timeSlots",
-                "filters"
-              ],
-              "properties": {
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/CityMapItems0"
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "interval": {
-                  "type": "string"
-                },
-                "price": {
-                  "type": "string"
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "subscription": {
-                  "type": "boolean"
-                },
-                "timeSlots": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/TimeSlotsItems0"
-                  }
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/ServiceDetails"
             }
           }
         ],
@@ -2989,7 +8226,8 @@ func init() {
               "type": "object",
               "properties": {
                 "created": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -2999,10 +8237,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/fixed-price/review": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3010,7 +8252,7 @@ func init() {
           },
           {
             "description": "The response to a review.",
-            "name": "reviewResponse",
+            "name": "review",
             "in": "body",
             "schema": {
               "type": "object",
@@ -3023,7 +8265,8 @@ func init() {
                   "type": "string"
                 },
                 "reviewId": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -3036,7 +8279,8 @@ func init() {
               "type": "object",
               "properties": {
                 "responded": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -3046,10 +8290,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/fixed-price/reviews": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3069,12 +8317,98 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/fixed-prices": {
+    "/tradesperson/{tradespersonId}/fixed-price/{priceId}": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fixedPrice": {
+                  "$ref": "#/definitions/ServiceDetails"
+                },
+                "otherServices": {
+                  "$ref": "#/definitions/OtherServices"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "priceId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The fixedPrice to update.",
+            "name": "fixedPrice",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServiceDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated fixed-price",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/fixed-prices": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3087,7 +8421,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/GetTradespersonTradespersonIDFixedPricesOKBodyItems0"
+                "$ref": "#/definitions/Service"
               }
             }
           }
@@ -3096,10 +8430,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/login-link": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3121,12 +8459,48 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/onboard": {
-      "get": {
+    "/tradesperson/{tradespersonId}/logout": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log tradesperson out",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "loggedOut": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/onboard": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3148,152 +8522,67 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/quote": {
-      "get": {
+    "/tradesperson/{tradespersonId}/password": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "name": "tradespersonId",
             "in": "path",
             "required": true
           },
           {
-            "type": "string",
-            "name": "quoteId",
-            "in": "query"
+            "description": "The tradesperson password to update.",
+            "name": "tradesperson",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "curPassword",
+                "newPassword"
+              ],
+              "properties": {
+                "curPassword": {
+                  "type": "string"
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Tradesperson fixed-price services",
+            "description": "Tradeperson password updated",
             "schema": {
               "type": "object",
               "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/CityMapItems0"
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "selectPlaces": {
-                  "type": "boolean"
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
           }
         }
-      },
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "description": "The quote to create.",
-            "name": "quote",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "quoteId",
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "archived",
-                "images",
-                "cityMap",
-                "filters"
-              ],
-              "properties": {
-                "archived": {
-                  "type": "boolean"
-                },
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/CityMapItems0"
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created quote",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "created": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      },
+      }
+    },
+    "/tradesperson/{tradespersonId}/quote": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "name": "tradespersonId",
             "in": "path",
             "required": true
@@ -3303,48 +8592,7 @@ func init() {
             "name": "quote",
             "in": "body",
             "schema": {
-              "type": "object",
-              "required": [
-                "category",
-                "subCategory",
-                "title",
-                "description",
-                "images",
-                "cityMap",
-                "filters"
-              ],
-              "properties": {
-                "category": {
-                  "type": "string"
-                },
-                "cityMap": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/CityMapItems0"
-                  }
-                },
-                "description": {
-                  "type": "string"
-                },
-                "filters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "images": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "subCategory": {
-                  "type": "string"
-                },
-                "title": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/ServiceDetails"
             }
           }
         ],
@@ -3355,7 +8603,8 @@ func init() {
               "type": "object",
               "properties": {
                 "created": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -3365,10 +8614,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/quote/review": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3376,7 +8629,7 @@ func init() {
           },
           {
             "description": "The response to a review.",
-            "name": "response",
+            "name": "review",
             "in": "body",
             "schema": {
               "type": "object",
@@ -3386,7 +8639,8 @@ func init() {
               ],
               "properties": {
                 "quoteId": {
-                  "type": "string"
+                  "type": "integer",
+                  "format": "int64"
                 },
                 "response": {
                   "type": "string"
@@ -3402,7 +8656,8 @@ func init() {
               "type": "object",
               "properties": {
                 "responded": {
-                  "type": "boolean"
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -3412,10 +8667,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/quote/reviews": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3435,12 +8694,90 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/quotes": {
+    "/tradesperson/{tradespersonId}/quote/{quoteId}": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson fixed-price services",
+            "schema": {
+              "$ref": "#/definitions/ServiceDetails"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The quote to create.",
+            "name": "quote",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ServiceDetails"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created quote",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/quotes": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3453,7 +8790,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/GetTradespersonTradespersonIDQuotesOKBodyItems0"
+                "$ref": "#/definitions/Service"
               }
             }
           }
@@ -3462,10 +8799,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/schedule": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3478,9 +8819,140 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/definitions/GetTradespersonTradespersonIDScheduleOKBodyItems0"
+                "$ref": "#/definitions/GetTradespersonTradespersonIDScheduleOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/settings": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson settings",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "displayAddress": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayEmail": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayNumber": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "vanityURL": {
+                  "type": "string",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson settings to update.",
+            "name": "settings",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "displayAddress": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayEmail": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "displayNumber": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "vanityURL": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson profile",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/status": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status of tradesperson stripe account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "submitted": {
+                  "type": "boolean",
+                  "x-omitempty": false
                 }
               }
             }
@@ -3490,10 +8962,14 @@ func init() {
     },
     "/tradesperson/{tradespersonId}/time-slots": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "type": "integer",
-            "format": "int64",
+            "type": "string",
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
@@ -3502,7 +8978,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Stripe onboarding URL",
+            "description": "Service time slots",
             "schema": {
               "type": "array",
               "items": {
@@ -3512,180 +8988,34 @@ func init() {
           }
         }
       }
-    },
-    "/tradesperson/{tradespersonId}/update-password": {
-      "put": {
-        "parameters": [
-          {
-            "type": "integer",
-            "format": "int64",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "currentPassword",
-            "in": "query"
-          },
-          {
-            "type": "string",
-            "name": "newPassword",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Tradeperson password updated",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "updated": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        }
-      }
     }
   },
   "definitions": {
-    "CityMapItems0": {
-      "type": "object",
-      "properties": {
-        "cities": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "state": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonAccountTradespersonIDOKBodyAddress": {
+    "Address": {
       "type": "object",
       "properties": {
         "city": {
           "type": "string"
         },
-        "line1": {
+        "lineOne": {
           "type": "string"
         },
-        "line2": {
-          "type": "string"
-        },
-        "postal_code": {
+        "lineTwo": {
           "type": "string"
         },
         "state": {
           "type": "string"
+        },
+        "zipCode": {
+          "type": "string"
         }
       }
     },
-    "GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomer": {
+    "Customer": {
       "type": "object",
       "properties": {
         "address": {
-          "type": "object",
-          "properties": {
-            "city": {
-              "type": "string"
-            },
-            "line1": {
-              "type": "string"
-            },
-            "line2": {
-              "type": "string"
-            },
-            "postal_code": {
-              "type": "string"
-            },
-            "state": {
-              "type": "string"
-            }
-          }
-        },
-        "name": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyCustomerAddress": {
-      "type": "object",
-      "properties": {
-        "city": {
-          "type": "string"
-        },
-        "line1": {
-          "type": "string"
-        },
-        "line2": {
-          "type": "string"
-        },
-        "postal_code": {
-          "type": "string"
-        },
-        "state": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceOKBodyService": {
-      "type": "object",
-      "properties": {
-        "description": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDBillingCustomerSubscriptionsOKBodyAddress": {
-      "type": "object",
-      "properties": {
-        "city": {
-          "type": "string"
-        },
-        "line1": {
-          "type": "string"
-        },
-        "line2": {
-          "type": "string"
-        },
-        "postal_code": {
-          "type": "string"
-        },
-        "state": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDBillingCustomersOKBodyItems0": {
-      "type": "object",
-      "properties": {
-        "address": {
-          "type": "object",
-          "properties": {
-            "city": {
-              "type": "string"
-            },
-            "line1": {
-              "type": "string"
-            },
-            "line2": {
-              "type": "string"
-            },
-            "postal_code": {
-              "type": "string"
-            },
-            "state": {
-              "type": "string"
-            }
-          }
+          "$ref": "#/definitions/Address"
         },
         "email": {
           "type": "string"
@@ -3701,22 +9031,122 @@ func init() {
         }
       }
     },
-    "GetTradespersonTradespersonIDBillingCustomersOKBodyItems0Address": {
+    "GetCustomerCustomerIDQuoteQuoteIDOKBodyService": {
       "type": "object",
       "properties": {
-        "city": {
+        "description": {
           "type": "string"
         },
-        "line1": {
+        "products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Product"
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "GetCustomerCustomerIDQuotesOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "quoteId": {
           "type": "string"
         },
-        "line2": {
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "GetFixedPricePriceIDOKBodyBusiness": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         },
-        "postal_code": {
+        "tradespersonId": {
           "type": "string"
         },
-        "state": {
+        "vanityURL": {
+          "type": "string",
+          "x-omitempty": false
+        }
+      }
+    },
+    "GetQuoteQuoteIDOKBodyBusiness": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "tradespersonId": {
+          "type": "string"
+        },
+        "vanityURL": {
+          "type": "string",
+          "x-omitempty": false
+        }
+      }
+    },
+    "GetQuoteQuoteIDReviewsOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "respDate": {
+          "type": "string"
+        },
+        "respMsg": {
+          "type": "string"
+        },
+        "responded": {
+          "type": "boolean",
+          "x-omitempty": false
+        }
+      }
+    },
+    "GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOKBodyService": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBodyService": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBodyTimeSlot": {
+      "type": "object",
+      "properties": {
+        "endTime": {
+          "type": "string"
+        },
+        "startTime": {
           "type": "string"
         }
       }
@@ -3731,6 +9161,46 @@ func init() {
           "type": "string"
         },
         "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "GetTradespersonTradespersonIDBillingManualInvoicesOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "GetTradespersonTradespersonIDBillingQuotesOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "quoteId": {
           "type": "string"
         },
         "status": {
@@ -3738,37 +9208,28 @@ func init() {
         }
       }
     },
-    "GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts": {
+    "GetTradespersonTradespersonIDBillingSubscriptionsOKBodyItems0": {
       "type": "object",
       "properties": {
-        "interval": {
+        "active": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "canceled": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "incomplete": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "name": {
           "type": "string"
         },
-        "subscription": {
-          "type": "boolean"
-        },
-        "timeSlots": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0"
-          }
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0": {
-      "type": "object",
-      "properties": {
-        "segmentSize": {
-          "type": "string"
-        },
-        "startTime": {
-          "type": "string",
-          "format": "date"
-        },
-        "taken": {
-          "type": "boolean"
-        },
-        "takenBy": {
+        "stripeId": {
           "type": "string"
         }
       }
@@ -3779,59 +9240,18 @@ func init() {
         "customer": {
           "type": "string"
         },
-        "customerId": {
-          "type": "string"
-        },
         "date": {
-          "type": "string",
-          "format": "date"
+          "type": "string"
         },
         "id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int64"
         },
         "message": {
           "type": "string"
         },
         "rating": {
           "type": "integer"
-        },
-        "tradespersonId": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDFixedPricesOKBodyItems0": {
-      "type": "object",
-      "properties": {
-        "availableTimeSlots": {
-          "type": "integer"
-        },
-        "images": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "interval": {
-          "type": "string"
-        },
-        "price": {
-          "type": "string"
-        },
-        "priceId": {
-          "type": "string"
-        },
-        "rating": {
-          "type": "integer"
-        },
-        "reviews": {
-          "type": "integer"
-        },
-        "subscription": {
-          "type": "boolean"
-        },
-        "title": {
-          "type": "string"
         }
       }
     },
@@ -3841,149 +9261,64 @@ func init() {
         "customer": {
           "type": "string"
         },
-        "customerId": {
-          "type": "string"
-        },
         "date": {
-          "type": "string",
-          "format": "date"
+          "type": "string"
         },
         "id": {
-          "type": "string"
+          "type": "integer",
+          "format": "int64"
         },
         "message": {
           "type": "string"
         },
         "rating": {
           "type": "integer"
-        },
-        "tradespersonId": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDQuotesOKBodyItems0": {
-      "type": "object",
-      "properties": {
-        "images": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "quoteId": {
-          "type": "string"
-        },
-        "rating": {
-          "type": "integer"
-        },
-        "reviews": {
-          "type": "integer"
-        },
-        "title": {
-          "type": "string"
         }
       }
     },
     "GetTradespersonTradespersonIDScheduleOKBodyItems0": {
       "type": "object",
       "properties": {
-        "customer": {
-          "type": "object",
-          "properties": {
-            "address": {
-              "type": "object",
-              "properties": {
-                "city": {
-                  "type": "string"
-                },
-                "line1": {
-                  "type": "string"
-                },
-                "line2": {
-                  "type": "string"
-                },
-                "postal_code": {
-                  "type": "string"
-                },
-                "state": {
-                  "type": "string"
-                }
-              }
-            },
-            "email": {
-              "type": "string"
-            },
-            "name": {
-              "type": "string"
-            },
-            "phone": {
-              "type": "string"
-            }
+        "interval": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number",
+          "format": "double"
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "timeSlots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0"
           }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0": {
+      "type": "object",
+      "properties": {
+        "customer": {
+          "$ref": "#/definitions/Customer"
         },
         "segmentSize": {
-          "type": "string"
+          "type": "number",
+          "format": "double"
         },
         "startTime": {
-          "type": "string",
-          "format": "date"
+          "type": "string"
         },
         "taken": {
-          "type": "boolean"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDScheduleOKBodyItems0Customer": {
-      "type": "object",
-      "properties": {
-        "address": {
-          "type": "object",
-          "properties": {
-            "city": {
-              "type": "string"
-            },
-            "line1": {
-              "type": "string"
-            },
-            "line2": {
-              "type": "string"
-            },
-            "postal_code": {
-              "type": "string"
-            },
-            "state": {
-              "type": "string"
-            }
-          }
+          "type": "boolean",
+          "x-omitempty": false
         },
-        "email": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "phone": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress": {
-      "type": "object",
-      "properties": {
-        "city": {
-          "type": "string"
-        },
-        "line1": {
-          "type": "string"
-        },
-        "line2": {
-          "type": "string"
-        },
-        "postal_code": {
-          "type": "string"
-        },
-        "state": {
+        "takenBy": {
           "type": "string"
         }
       }
@@ -3995,7 +9330,8 @@ func init() {
           "type": "string"
         },
         "subscription": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-omitempty": false
         },
         "timeSlots": {
           "type": "array",
@@ -4012,47 +9348,333 @@ func init() {
           "type": "string"
         },
         "startTime": {
-          "type": "string",
-          "format": "date"
+          "type": "string"
         },
         "taken": {
-          "type": "boolean"
+          "type": "boolean",
+          "x-omitempty": false
         },
         "takenBy": {
           "type": "string"
         }
       }
     },
-    "PostTradespersonAccountParamsBodyAddress": {
+    "OtherServices": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/OtherServicesItems0"
+      }
+    },
+    "OtherServicesItems0": {
       "type": "object",
-      "required": [
-        "addressLineOne",
-        "zipCode",
-        "city",
-        "state"
-      ],
       "properties": {
-        "addressLine": {
+        "interval": {
           "type": "string"
         },
-        "city": {
-          "type": "string"
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
         },
-        "state": {
-          "type": "string"
+        "timeSlots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimeSlot"
+          },
+          "x-omitempty": false
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "properties": {
+        "price": {
+          "type": "integer",
+          "format": "int64"
         },
-        "zipCode": {
+        "quantity": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "title": {
           "type": "string"
         }
       }
     },
-    "SbuscriptionsItems0": {
+    "QuoteDetails": {
       "type": "object",
       "properties": {
+        "created": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "customer": {
+          "$ref": "#/definitions/Customer"
+        },
+        "description": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "expires": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "invoiceId": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "request": {
+          "type": "string"
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "products": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Product"
+              }
+            },
+            "title": {
+              "type": "string"
+            }
+          }
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "QuoteDetailsService": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "products": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Product"
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "ReviewsItems0": {
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "respDate": {
+          "type": "string"
+        },
+        "respMsg": {
+          "type": "string"
+        },
+        "responded": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "tradesperson": {
+          "type": "string"
+        }
+      }
+    },
+    "Service": {
+      "type": "object",
+      "required": [
+        "title",
+        "image"
+      ],
+      "properties": {
+        "availableTimeSlots": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "business": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "price": {
+          "type": "number"
+        },
+        "priceId": {
+          "type": "string"
+        },
+        "quoteId": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number",
+          "format": "double",
+          "x-omitempty": false
+        },
+        "reviews": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "title": {
+          "type": "string"
+        },
+        "tradespersonId": {
+          "type": "string"
+        },
+        "vanityURL": {
+          "type": "string",
+          "x-omitempty": false
+        }
+      }
+    },
+    "ServiceDetails": {
+      "type": "object",
+      "required": [
+        "category",
+        "title",
+        "description",
+        "images",
+        "selectPlaces",
+        "filters"
+      ],
+      "properties": {
+        "archived": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interval": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "price": {
+          "type": "number"
+        },
+        "priceId": {
+          "type": "string"
+        },
+        "quoteId": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number",
+          "format": "double",
+          "x-omitempty": false
+        },
+        "reviews": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "selectPlaces": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "statesAndCities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServiceDetailsStatesAndCitiesItems0"
+          },
+          "x-omitempty": false
+        },
+        "subCategory": {
+          "type": "string"
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "timeSlots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimeSlot"
+          },
+          "x-omitempty": false
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "ServiceDetailsStatesAndCitiesItems0": {
+      "type": "object",
+      "properties": {
+        "cities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServiceDetailsStatesAndCitiesItems0CitiesItems0"
+          }
+        },
+        "state": {
+          "type": "string"
+        }
+      }
+    },
+    "ServiceDetailsStatesAndCitiesItems0CitiesItems0": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "SubscriptionsItems0": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
         "details": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/SbuscriptionsItems0DetailsItems0"
+            "$ref": "#/definitions/SubscriptionsItems0DetailsItems0"
           }
         },
         "interval": {
@@ -4060,10 +9682,14 @@ func init() {
         },
         "title": {
           "type": "string"
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
-    "SbuscriptionsItems0DetailsItems0": {
+    "SubscriptionsItems0DetailsItems0": {
       "type": "object",
       "properties": {
         "invoiceId": {
@@ -4078,37 +9704,89 @@ func init() {
         "timeSlots": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/SbuscriptionsItems0DetailsItems0TimeSlotsItems0"
-          }
+            "$ref": "#/definitions/TimeSlot"
+          },
+          "x-omitempty": false
         }
       }
     },
-    "SbuscriptionsItems0DetailsItems0TimeSlotsItems0": {
+    "TimeSlot": {
       "type": "object",
       "properties": {
+        "cuStripeId": {
+          "type": "string"
+        },
         "endTime": {
           "type": "string"
         },
-        "segmentSize": {
-          "type": "integer"
+        "futureTime": {
+          "type": "string"
         },
-        "startTime": {
-          "type": "string",
-          "format": "date"
-        }
-      }
-    },
-    "TimeSlotsItems0": {
-      "type": "object",
-      "properties": {
+        "invoiceId": {
+          "type": "string"
+        },
         "segmentSize": {
           "type": "string"
         },
         "startTime": {
+          "type": "string"
+        },
+        "subscriptionId": {
+          "type": "string"
+        },
+        "taken": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "takenBy": {
           "type": "string",
-          "format": "date"
+          "x-omitempty": false
         }
       }
+    },
+    "Tradesperson": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "$ref": "#/definitions/Address"
+        },
+        "description": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "email": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "jobs": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "name": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "reviews": {
+          "type": "integer",
+          "x-omitempty": false
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }`))

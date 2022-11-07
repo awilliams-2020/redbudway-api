@@ -14,20 +14,19 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // GetTradespersonTradespersonIDTimeSlotsHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID time slots handler
-type GetTradespersonTradespersonIDTimeSlotsHandlerFunc func(GetTradespersonTradespersonIDTimeSlotsParams) middleware.Responder
+type GetTradespersonTradespersonIDTimeSlotsHandlerFunc func(GetTradespersonTradespersonIDTimeSlotsParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDTimeSlotsHandlerFunc) Handle(params GetTradespersonTradespersonIDTimeSlotsParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDTimeSlotsHandlerFunc) Handle(params GetTradespersonTradespersonIDTimeSlotsParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDTimeSlotsHandler interface for that can handle valid get tradesperson tradesperson ID time slots params
 type GetTradespersonTradespersonIDTimeSlotsHandler interface {
-	Handle(GetTradespersonTradespersonIDTimeSlotsParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDTimeSlotsParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDTimeSlots creates a new http.Handler for the get tradesperson tradesperson ID time slots operation
@@ -51,12 +50,25 @@ func (o *GetTradespersonTradespersonIDTimeSlots) ServeHTTP(rw http.ResponseWrite
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDTimeSlotsParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -70,7 +82,7 @@ type GetTradespersonTradespersonIDTimeSlotsOKBodyItems0 struct {
 	Interval string `json:"interval,omitempty"`
 
 	// subscription
-	Subscription bool `json:"subscription,omitempty"`
+	Subscription bool `json:"subscription"`
 
 	// time slots
 	TimeSlots []*GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0 `json:"timeSlots"`
@@ -177,11 +189,10 @@ type GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0 struct {
 	SegmentSize string `json:"segmentSize,omitempty"`
 
 	// start time
-	// Format: date
-	StartTime strfmt.Date `json:"startTime,omitempty"`
+	StartTime string `json:"startTime,omitempty"`
 
 	// taken
-	Taken bool `json:"taken,omitempty"`
+	Taken bool `json:"taken"`
 
 	// taken by
 	TakenBy string `json:"takenBy,omitempty"`
@@ -189,27 +200,6 @@ type GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0 struct {
 
 // Validate validates this get tradesperson tradesperson ID time slots o k body items0 time slots items0
 func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateStartTime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) validateStartTime(formats strfmt.Registry) error {
-	if swag.IsZero(o.StartTime) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("startTime", "body", "date", o.StartTime.String(), formats); err != nil {
-		return err
-	}
-
 	return nil
 }
 

@@ -15,16 +15,16 @@ import (
 )
 
 // GetTradespersonTradespersonIDOnboardHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID onboard handler
-type GetTradespersonTradespersonIDOnboardHandlerFunc func(GetTradespersonTradespersonIDOnboardParams) middleware.Responder
+type GetTradespersonTradespersonIDOnboardHandlerFunc func(GetTradespersonTradespersonIDOnboardParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDOnboardHandlerFunc) Handle(params GetTradespersonTradespersonIDOnboardParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDOnboardHandlerFunc) Handle(params GetTradespersonTradespersonIDOnboardParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDOnboardHandler interface for that can handle valid get tradesperson tradesperson ID onboard params
 type GetTradespersonTradespersonIDOnboardHandler interface {
-	Handle(GetTradespersonTradespersonIDOnboardParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDOnboardParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDOnboard creates a new http.Handler for the get tradesperson tradesperson ID onboard operation
@@ -48,12 +48,25 @@ func (o *GetTradespersonTradespersonIDOnboard) ServeHTTP(rw http.ResponseWriter,
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDOnboardParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }

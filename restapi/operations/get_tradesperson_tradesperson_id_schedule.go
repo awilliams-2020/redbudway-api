@@ -8,25 +8,27 @@ package operations
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDScheduleHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID schedule handler
-type GetTradespersonTradespersonIDScheduleHandlerFunc func(GetTradespersonTradespersonIDScheduleParams) middleware.Responder
+type GetTradespersonTradespersonIDScheduleHandlerFunc func(GetTradespersonTradespersonIDScheduleParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDScheduleHandlerFunc) Handle(params GetTradespersonTradespersonIDScheduleParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDScheduleHandlerFunc) Handle(params GetTradespersonTradespersonIDScheduleParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDScheduleHandler interface for that can handle valid get tradesperson tradesperson ID schedule params
 type GetTradespersonTradespersonIDScheduleHandler interface {
-	Handle(GetTradespersonTradespersonIDScheduleParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDScheduleParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDSchedule creates a new http.Handler for the get tradesperson tradesperson ID schedule operation
@@ -50,12 +52,25 @@ func (o *GetTradespersonTradespersonIDSchedule) ServeHTTP(rw http.ResponseWriter
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDScheduleParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -65,29 +80,27 @@ func (o *GetTradespersonTradespersonIDSchedule) ServeHTTP(rw http.ResponseWriter
 // swagger:model GetTradespersonTradespersonIDScheduleOKBodyItems0
 type GetTradespersonTradespersonIDScheduleOKBodyItems0 struct {
 
-	// customer
-	Customer *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer `json:"customer,omitempty"`
+	// interval
+	Interval string `json:"interval,omitempty"`
 
-	// segment size
-	SegmentSize string `json:"segmentSize,omitempty"`
+	// price
+	Price float64 `json:"price,omitempty"`
 
-	// start time
-	// Format: date
-	StartTime strfmt.Date `json:"startTime,omitempty"`
+	// subscription
+	Subscription bool `json:"subscription"`
 
-	// taken
-	Taken bool `json:"taken,omitempty"`
+	// time slots
+	TimeSlots []*GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0 `json:"timeSlots"`
+
+	// title
+	Title string `json:"title,omitempty"`
 }
 
 // Validate validates this get tradesperson tradesperson ID schedule o k body items0
 func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateCustomer(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateStartTime(formats); err != nil {
+	if err := o.validateTimeSlots(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -97,32 +110,27 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) Validate(formats str
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) validateCustomer(formats strfmt.Registry) error {
-	if swag.IsZero(o.Customer) { // not required
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) validateTimeSlots(formats strfmt.Registry) error {
+	if swag.IsZero(o.TimeSlots) { // not required
 		return nil
 	}
 
-	if o.Customer != nil {
-		if err := o.Customer.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("customer")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("customer")
-			}
-			return err
+	for i := 0; i < len(o.TimeSlots); i++ {
+		if swag.IsZero(o.TimeSlots[i]) { // not required
+			continue
 		}
-	}
 
-	return nil
-}
+		if o.TimeSlots[i] != nil {
+			if err := o.TimeSlots[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("timeSlots" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) validateStartTime(formats strfmt.Registry) error {
-	if swag.IsZero(o.StartTime) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("startTime", "body", "date", o.StartTime.String(), formats); err != nil {
-		return err
 	}
 
 	return nil
@@ -132,7 +140,7 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) validateStartTime(fo
 func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.contextValidateCustomer(ctx, formats); err != nil {
+	if err := o.contextValidateTimeSlots(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -142,17 +150,21 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) ContextValidate(ctx 
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) contextValidateTimeSlots(ctx context.Context, formats strfmt.Registry) error {
 
-	if o.Customer != nil {
-		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("customer")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("customer")
+	for i := 0; i < len(o.TimeSlots); i++ {
+
+		if o.TimeSlots[i] != nil {
+			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("timeSlots" + "." + strconv.Itoa(i))
+				}
+				return err
 			}
-			return err
 		}
+
 	}
 
 	return nil
@@ -176,29 +188,32 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) UnmarshalBinary(b []
 	return nil
 }
 
-// GetTradespersonTradespersonIDScheduleOKBodyItems0Customer get tradesperson tradesperson ID schedule o k body items0 customer
+// GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0 get tradesperson tradesperson ID schedule o k body items0 time slots items0
 //
-// swagger:model GetTradespersonTradespersonIDScheduleOKBodyItems0Customer
-type GetTradespersonTradespersonIDScheduleOKBodyItems0Customer struct {
+// swagger:model GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0
+type GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0 struct {
 
-	// address
-	Address *GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress `json:"address,omitempty"`
+	// customer
+	Customer *models.Customer `json:"customer,omitempty"`
 
-	// email
-	Email string `json:"email,omitempty"`
+	// segment size
+	SegmentSize float64 `json:"segmentSize,omitempty"`
 
-	// name
-	Name string `json:"name,omitempty"`
+	// start time
+	StartTime string `json:"startTime,omitempty"`
 
-	// phone
-	Phone string `json:"phone,omitempty"`
+	// taken
+	Taken bool `json:"taken"`
+
+	// taken by
+	TakenBy string `json:"takenBy,omitempty"`
 }
 
-// Validate validates this get tradesperson tradesperson ID schedule o k body items0 customer
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) Validate(formats strfmt.Registry) error {
+// Validate validates this get tradesperson tradesperson ID schedule o k body items0 time slots items0
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateAddress(formats); err != nil {
+	if err := o.validateCustomer(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -208,17 +223,17 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) Validate(for
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) validateAddress(formats strfmt.Registry) error {
-	if swag.IsZero(o.Address) { // not required
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) validateCustomer(formats strfmt.Registry) error {
+	if swag.IsZero(o.Customer) { // not required
 		return nil
 	}
 
-	if o.Address != nil {
-		if err := o.Address.Validate(formats); err != nil {
+	if o.Customer != nil {
+		if err := o.Customer.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("customer" + "." + "address")
+				return ve.ValidateName("customer")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("customer" + "." + "address")
+				return ce.ValidateName("customer")
 			}
 			return err
 		}
@@ -227,11 +242,11 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) validateAddr
 	return nil
 }
 
-// ContextValidate validate this get tradesperson tradesperson ID schedule o k body items0 customer based on the context it is used
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this get tradesperson tradesperson ID schedule o k body items0 time slots items0 based on the context it is used
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.contextValidateAddress(ctx, formats); err != nil {
+	if err := o.contextValidateCustomer(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -241,14 +256,14 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) ContextValid
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) contextValidateAddress(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
 
-	if o.Address != nil {
-		if err := o.Address.ContextValidate(ctx, formats); err != nil {
+	if o.Customer != nil {
+		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("customer" + "." + "address")
+				return ve.ValidateName("customer")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("customer" + "." + "address")
+				return ce.ValidateName("customer")
 			}
 			return err
 		}
@@ -258,7 +273,7 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) contextValid
 }
 
 // MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) MarshalBinary() ([]byte, error) {
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -266,57 +281,8 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) MarshalBinar
 }
 
 // UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0Customer) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDScheduleOKBodyItems0Customer
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress get tradesperson tradesperson ID schedule o k body items0 customer address
-//
-// swagger:model GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress
-type GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress struct {
-
-	// city
-	City string `json:"city,omitempty"`
-
-	// line1
-	Line1 string `json:"line1,omitempty"`
-
-	// line2
-	Line2 string `json:"line2,omitempty"`
-
-	// postal code
-	PostalCode string `json:"postal_code,omitempty"`
-
-	// state
-	State string `json:"state,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID schedule o k body items0 customer address
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID schedule o k body items0 customer address based on context it is used
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDScheduleOKBodyItems0CustomerAddress
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) UnmarshalBinary(b []byte) error {
+	var res GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -15,16 +15,16 @@ import (
 )
 
 // GetTradespersonTradespersonIDBillingInvoicesHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID billing invoices handler
-type GetTradespersonTradespersonIDBillingInvoicesHandlerFunc func(GetTradespersonTradespersonIDBillingInvoicesParams) middleware.Responder
+type GetTradespersonTradespersonIDBillingInvoicesHandlerFunc func(GetTradespersonTradespersonIDBillingInvoicesParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDBillingInvoicesHandlerFunc) Handle(params GetTradespersonTradespersonIDBillingInvoicesParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDBillingInvoicesHandlerFunc) Handle(params GetTradespersonTradespersonIDBillingInvoicesParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDBillingInvoicesHandler interface for that can handle valid get tradesperson tradesperson ID billing invoices params
 type GetTradespersonTradespersonIDBillingInvoicesHandler interface {
-	Handle(GetTradespersonTradespersonIDBillingInvoicesParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDBillingInvoicesParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDBillingInvoices creates a new http.Handler for the get tradesperson tradesperson ID billing invoices operation
@@ -48,12 +48,25 @@ func (o *GetTradespersonTradespersonIDBillingInvoices) ServeHTTP(rw http.Respons
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDBillingInvoicesParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -70,7 +83,7 @@ type GetTradespersonTradespersonIDBillingInvoicesOKBodyItems0 struct {
 	InvoiceID string `json:"invoiceId,omitempty"`
 
 	// number
-	Number string `json:"number,omitempty"`
+	Number string `json:"number"`
 
 	// status
 	Status string `json:"status,omitempty"`

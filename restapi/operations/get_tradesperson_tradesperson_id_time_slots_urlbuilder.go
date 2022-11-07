@@ -10,13 +10,11 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 	"strings"
-
-	"github.com/go-openapi/swag"
 )
 
 // GetTradespersonTradespersonIDTimeSlotsURL generates an URL for the get tradesperson tradesperson ID time slots operation
 type GetTradespersonTradespersonIDTimeSlotsURL struct {
-	TradespersonID int64
+	TradespersonID string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -44,7 +42,7 @@ func (o *GetTradespersonTradespersonIDTimeSlotsURL) Build() (*url.URL, error) {
 
 	var _path = "/tradesperson/{tradespersonId}/time-slots"
 
-	tradespersonID := swag.FormatInt64(o.TradespersonID)
+	tradespersonID := o.TradespersonID
 	if tradespersonID != "" {
 		_path = strings.Replace(_path, "{tradespersonId}", tradespersonID, -1)
 	} else {

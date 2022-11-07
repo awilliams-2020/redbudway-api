@@ -10,13 +10,11 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 	"strings"
-
-	"github.com/go-openapi/swag"
 )
 
 // GetTradespersonTradespersonIDBillingInvoicesURL generates an URL for the get tradesperson tradesperson ID billing invoices operation
 type GetTradespersonTradespersonIDBillingInvoicesURL struct {
-	TradespersonID int64
+	TradespersonID string
 
 	Quarter string
 	Year    string
@@ -47,7 +45,7 @@ func (o *GetTradespersonTradespersonIDBillingInvoicesURL) Build() (*url.URL, err
 
 	var _path = "/tradesperson/{tradespersonId}/billing/invoices"
 
-	tradespersonID := swag.FormatInt64(o.TradespersonID)
+	tradespersonID := o.TradespersonID
 	if tradespersonID != "" {
 		_path = strings.Replace(_path, "{tradespersonId}", tradespersonID, -1)
 	} else {

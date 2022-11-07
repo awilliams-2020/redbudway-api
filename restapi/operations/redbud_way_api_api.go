@@ -42,105 +42,301 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		DeleteTradespersonAccountTradespersonIDHandler: DeleteTradespersonAccountTradespersonIDHandlerFunc(func(params DeleteTradespersonAccountTradespersonIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation DeleteTradespersonAccountTradespersonID has not yet been implemented")
+		DeleteCustomerCustomerIDHandler: DeleteCustomerCustomerIDHandlerFunc(func(params DeleteCustomerCustomerIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteCustomerCustomerID has not yet been implemented")
 		}),
-		DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler: DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandlerFunc(func(params DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsParams) middleware.Responder {
-			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDBillingCustomerSubscriptions has not yet been implemented")
+		DeleteTradespersonTradespersonIDHandler: DeleteTradespersonTradespersonIDHandlerFunc(func(params DeleteTradespersonTradespersonIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteTradespersonTradespersonID has not yet been implemented")
 		}),
-		GetTradespersonAccountTradespersonIDHandler: GetTradespersonAccountTradespersonIDHandlerFunc(func(params GetTradespersonAccountTradespersonIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonAccountTradespersonID has not yet been implemented")
+		DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler: DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(func(params DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID has not yet been implemented")
 		}),
-		GetTradespersonAccountTradespersonIDSettingsHandler: GetTradespersonAccountTradespersonIDSettingsHandlerFunc(func(params GetTradespersonAccountTradespersonIDSettingsParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonAccountTradespersonIDSettings has not yet been implemented")
+		GetCustomerCustomerIDAccessTokenHandler: GetCustomerCustomerIDAccessTokenHandlerFunc(func(params GetCustomerCustomerIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDAccessToken has not yet been implemented")
 		}),
-		GetTradespersonAccountTradespersonIDStatusHandler: GetTradespersonAccountTradespersonIDStatusHandlerFunc(func(params GetTradespersonAccountTradespersonIDStatusParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonAccountTradespersonIDStatus has not yet been implemented")
+		GetCustomerCustomerIDBillingLinkHandler: GetCustomerCustomerIDBillingLinkHandlerFunc(func(params GetCustomerCustomerIDBillingLinkParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDBillingLink has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler: GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandlerFunc(func(params GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoice has not yet been implemented")
+		GetCustomerCustomerIDFixedPricePriceIDReviewHandler: GetCustomerCustomerIDFixedPricePriceIDReviewHandlerFunc(func(params GetCustomerCustomerIDFixedPricePriceIDReviewParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDFixedPricePriceIDReview has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler: GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandlerFunc(func(params GetTradespersonTradespersonIDBillingCustomerSubscriptionsParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingCustomerSubscriptions has not yet been implemented")
+		GetCustomerCustomerIDPaymentDefaultHandler: GetCustomerCustomerIDPaymentDefaultHandlerFunc(func(params GetCustomerCustomerIDPaymentDefaultParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDPaymentDefault has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDBillingCustomersHandler: GetTradespersonTradespersonIDBillingCustomersHandlerFunc(func(params GetTradespersonTradespersonIDBillingCustomersParams) middleware.Responder {
+		GetCustomerCustomerIDQuoteQuoteIDHandler: GetCustomerCustomerIDQuoteQuoteIDHandlerFunc(func(params GetCustomerCustomerIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDQuoteQuoteID has not yet been implemented")
+		}),
+		GetCustomerCustomerIDQuoteQuoteIDReviewHandler: GetCustomerCustomerIDQuoteQuoteIDReviewHandlerFunc(func(params GetCustomerCustomerIDQuoteQuoteIDReviewParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDQuoteQuoteIDReview has not yet been implemented")
+		}),
+		GetCustomerCustomerIDQuotesHandler: GetCustomerCustomerIDQuotesHandlerFunc(func(params GetCustomerCustomerIDQuotesParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDQuotes has not yet been implemented")
+		}),
+		GetCustomerCustomerIDReverifyHandler: GetCustomerCustomerIDReverifyHandlerFunc(func(params GetCustomerCustomerIDReverifyParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDReverify has not yet been implemented")
+		}),
+		GetCustomerCustomerIDSubscriptionPriceIDReviewHandler: GetCustomerCustomerIDSubscriptionPriceIDReviewHandlerFunc(func(params GetCustomerCustomerIDSubscriptionPriceIDReviewParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDSubscriptionPriceIDReview has not yet been implemented")
+		}),
+		GetCustomerCustomerIDVerifyHandler: GetCustomerCustomerIDVerifyHandlerFunc(func(params GetCustomerCustomerIDVerifyParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetCustomerCustomerIDVerify has not yet been implemented")
+		}),
+		GetFixedPricePriceIDHandler: GetFixedPricePriceIDHandlerFunc(func(params GetFixedPricePriceIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetFixedPricePriceID has not yet been implemented")
+		}),
+		GetFixedPricePriceIDReviewsHandler: GetFixedPricePriceIDReviewsHandlerFunc(func(params GetFixedPricePriceIDReviewsParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetFixedPricePriceIDReviews has not yet been implemented")
+		}),
+		GetFixedPricesHandler: GetFixedPricesHandlerFunc(func(params GetFixedPricesParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetFixedPrices has not yet been implemented")
+		}),
+		GetForgotPasswordHandler: GetForgotPasswordHandlerFunc(func(params GetForgotPasswordParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetForgotPassword has not yet been implemented")
+		}),
+		GetLocationHandler: GetLocationHandlerFunc(func(params GetLocationParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetLocation has not yet been implemented")
+		}),
+		GetProfileVanityOrIDHandler: GetProfileVanityOrIDHandlerFunc(func(params GetProfileVanityOrIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetProfileVanityOrID has not yet been implemented")
+		}),
+		GetProfileVanityOrIDFixedPricesHandler: GetProfileVanityOrIDFixedPricesHandlerFunc(func(params GetProfileVanityOrIDFixedPricesParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetProfileVanityOrIDFixedPrices has not yet been implemented")
+		}),
+		GetProfileVanityOrIDQuotesHandler: GetProfileVanityOrIDQuotesHandlerFunc(func(params GetProfileVanityOrIDQuotesParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetProfileVanityOrIDQuotes has not yet been implemented")
+		}),
+		GetQuoteQuoteIDHandler: GetQuoteQuoteIDHandlerFunc(func(params GetQuoteQuoteIDParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetQuoteQuoteID has not yet been implemented")
+		}),
+		GetQuoteQuoteIDReviewsHandler: GetQuoteQuoteIDReviewsHandlerFunc(func(params GetQuoteQuoteIDReviewsParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetQuoteQuoteIDReviews has not yet been implemented")
+		}),
+		GetQuotesHandler: GetQuotesHandlerFunc(func(params GetQuotesParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetQuotes has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDHandler: GetTradespersonTradespersonIDHandlerFunc(func(params GetTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonID has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDAccessTokenHandler: GetTradespersonTradespersonIDAccessTokenHandlerFunc(func(params GetTradespersonTradespersonIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDAccessToken has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler: GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandlerFunc(func(params GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler: GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandlerFunc(func(params GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingCustomersHandler: GetTradespersonTradespersonIDBillingCustomersHandlerFunc(func(params GetTradespersonTradespersonIDBillingCustomersParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingCustomers has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDBillingInvoicesHandler: GetTradespersonTradespersonIDBillingInvoicesHandlerFunc(func(params GetTradespersonTradespersonIDBillingInvoicesParams) middleware.Responder {
+		GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler: GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(func(params GetTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingInvoiceInvoiceID has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingInvoicesHandler: GetTradespersonTradespersonIDBillingInvoicesHandlerFunc(func(params GetTradespersonTradespersonIDBillingInvoicesParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingInvoices has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDFixedPriceHandler: GetTradespersonTradespersonIDFixedPriceHandlerFunc(func(params GetTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonTradespersonIDFixedPrice has not yet been implemented")
+		GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler: GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandlerFunc(func(params GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingManualInvoiceInvoiceID has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDFixedPriceReviewsHandler: GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc(func(params GetTradespersonTradespersonIDFixedPriceReviewsParams) middleware.Responder {
+		GetTradespersonTradespersonIDBillingManualInvoicesHandler: GetTradespersonTradespersonIDBillingManualInvoicesHandlerFunc(func(params GetTradespersonTradespersonIDBillingManualInvoicesParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingManualInvoices has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler: GetTradespersonTradespersonIDBillingQuoteQuoteIDHandlerFunc(func(params GetTradespersonTradespersonIDBillingQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingQuoteQuoteID has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler: GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandlerFunc(func(params GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingQuotesHandler: GetTradespersonTradespersonIDBillingQuotesHandlerFunc(func(params GetTradespersonTradespersonIDBillingQuotesParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingQuotes has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDBillingSubscriptionsHandler: GetTradespersonTradespersonIDBillingSubscriptionsHandlerFunc(func(params GetTradespersonTradespersonIDBillingSubscriptionsParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingSubscriptions has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDFixedPricePriceIDHandler: GetTradespersonTradespersonIDFixedPricePriceIDHandlerFunc(func(params GetTradespersonTradespersonIDFixedPricePriceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDFixedPricePriceID has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDFixedPriceReviewsHandler: GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc(func(params GetTradespersonTradespersonIDFixedPriceReviewsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDFixedPriceReviews has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDFixedPricesHandler: GetTradespersonTradespersonIDFixedPricesHandlerFunc(func(params GetTradespersonTradespersonIDFixedPricesParams) middleware.Responder {
+		GetTradespersonTradespersonIDFixedPricesHandler: GetTradespersonTradespersonIDFixedPricesHandlerFunc(func(params GetTradespersonTradespersonIDFixedPricesParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDFixedPrices has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDLoginLinkHandler: GetTradespersonTradespersonIDLoginLinkHandlerFunc(func(params GetTradespersonTradespersonIDLoginLinkParams) middleware.Responder {
+		GetTradespersonTradespersonIDLoginLinkHandler: GetTradespersonTradespersonIDLoginLinkHandlerFunc(func(params GetTradespersonTradespersonIDLoginLinkParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDLoginLink has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDOnboardHandler: GetTradespersonTradespersonIDOnboardHandlerFunc(func(params GetTradespersonTradespersonIDOnboardParams) middleware.Responder {
+		GetTradespersonTradespersonIDOnboardHandler: GetTradespersonTradespersonIDOnboardHandlerFunc(func(params GetTradespersonTradespersonIDOnboardParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDOnboard has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDQuoteHandler: GetTradespersonTradespersonIDQuoteHandlerFunc(func(params GetTradespersonTradespersonIDQuoteParams) middleware.Responder {
-			return middleware.NotImplemented("operation GetTradespersonTradespersonIDQuote has not yet been implemented")
+		GetTradespersonTradespersonIDQuoteQuoteIDHandler: GetTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(func(params GetTradespersonTradespersonIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDQuoteQuoteID has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDQuoteReviewsHandler: GetTradespersonTradespersonIDQuoteReviewsHandlerFunc(func(params GetTradespersonTradespersonIDQuoteReviewsParams) middleware.Responder {
+		GetTradespersonTradespersonIDQuoteReviewsHandler: GetTradespersonTradespersonIDQuoteReviewsHandlerFunc(func(params GetTradespersonTradespersonIDQuoteReviewsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDQuoteReviews has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDQuotesHandler: GetTradespersonTradespersonIDQuotesHandlerFunc(func(params GetTradespersonTradespersonIDQuotesParams) middleware.Responder {
+		GetTradespersonTradespersonIDQuotesHandler: GetTradespersonTradespersonIDQuotesHandlerFunc(func(params GetTradespersonTradespersonIDQuotesParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDQuotes has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDScheduleHandler: GetTradespersonTradespersonIDScheduleHandlerFunc(func(params GetTradespersonTradespersonIDScheduleParams) middleware.Responder {
+		GetTradespersonTradespersonIDScheduleHandler: GetTradespersonTradespersonIDScheduleHandlerFunc(func(params GetTradespersonTradespersonIDScheduleParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDSchedule has not yet been implemented")
 		}),
-		GetTradespersonTradespersonIDTimeSlotsHandler: GetTradespersonTradespersonIDTimeSlotsHandlerFunc(func(params GetTradespersonTradespersonIDTimeSlotsParams) middleware.Responder {
+		GetTradespersonTradespersonIDSettingsHandler: GetTradespersonTradespersonIDSettingsHandlerFunc(func(params GetTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDSettings has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDStatusHandler: GetTradespersonTradespersonIDStatusHandlerFunc(func(params GetTradespersonTradespersonIDStatusParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDStatus has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDTimeSlotsHandler: GetTradespersonTradespersonIDTimeSlotsHandlerFunc(func(params GetTradespersonTradespersonIDTimeSlotsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDTimeSlots has not yet been implemented")
 		}),
-		PostForgotPasswordHandler: PostForgotPasswordHandlerFunc(func(params PostForgotPasswordParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostForgotPassword has not yet been implemented")
+		PostCustomerHandler: PostCustomerHandlerFunc(func(params PostCustomerParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomer has not yet been implemented")
+		}),
+		PostCustomerCustomerIDAccessTokenHandler: PostCustomerCustomerIDAccessTokenHandlerFunc(func(params PostCustomerCustomerIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDAccessToken has not yet been implemented")
+		}),
+		PostCustomerCustomerIDFixedPricePriceIDBookHandler: PostCustomerCustomerIDFixedPricePriceIDBookHandlerFunc(func(params PostCustomerCustomerIDFixedPricePriceIDBookParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDFixedPricePriceIDBook has not yet been implemented")
+		}),
+		PostCustomerCustomerIDFixedPricePriceIDReviewHandler: PostCustomerCustomerIDFixedPricePriceIDReviewHandlerFunc(func(params PostCustomerCustomerIDFixedPricePriceIDReviewParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDFixedPricePriceIDReview has not yet been implemented")
+		}),
+		PostCustomerCustomerIDLogoutHandler: PostCustomerCustomerIDLogoutHandlerFunc(func(params PostCustomerCustomerIDLogoutParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDLogout has not yet been implemented")
+		}),
+		PostCustomerCustomerIDQuoteQuoteIDAcceptHandler: PostCustomerCustomerIDQuoteQuoteIDAcceptHandlerFunc(func(params PostCustomerCustomerIDQuoteQuoteIDAcceptParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDQuoteQuoteIDAccept has not yet been implemented")
+		}),
+		PostCustomerCustomerIDQuoteQuoteIDRequestHandler: PostCustomerCustomerIDQuoteQuoteIDRequestHandlerFunc(func(params PostCustomerCustomerIDQuoteQuoteIDRequestParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDQuoteQuoteIDRequest has not yet been implemented")
+		}),
+		PostCustomerCustomerIDQuoteQuoteIDReviewHandler: PostCustomerCustomerIDQuoteQuoteIDReviewHandlerFunc(func(params PostCustomerCustomerIDQuoteQuoteIDReviewParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDQuoteQuoteIDReview has not yet been implemented")
+		}),
+		PostCustomerCustomerIDSubscriptionPriceIDBookHandler: PostCustomerCustomerIDSubscriptionPriceIDBookHandlerFunc(func(params PostCustomerCustomerIDSubscriptionPriceIDBookParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDSubscriptionPriceIDBook has not yet been implemented")
+		}),
+		PostCustomerCustomerIDSubscriptionPriceIDReviewHandler: PostCustomerCustomerIDSubscriptionPriceIDReviewHandlerFunc(func(params PostCustomerCustomerIDSubscriptionPriceIDReviewParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDSubscriptionPriceIDReview has not yet been implemented")
+		}),
+		PostCustomerCustomerIDVerifyHandler: PostCustomerCustomerIDVerifyHandlerFunc(func(params PostCustomerCustomerIDVerifyParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerCustomerIDVerify has not yet been implemented")
+		}),
+		PostCustomerLoginHandler: PostCustomerLoginHandlerFunc(func(params PostCustomerLoginParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostCustomerLogin has not yet been implemented")
 		}),
 		PostResetPasswordHandler: PostResetPasswordHandlerFunc(func(params PostResetPasswordParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostResetPassword has not yet been implemented")
 		}),
-		PostTradespersonAccountHandler: PostTradespersonAccountHandlerFunc(func(params PostTradespersonAccountParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostTradespersonAccount has not yet been implemented")
+		PostTradespersonHandler: PostTradespersonHandlerFunc(func(params PostTradespersonParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradesperson has not yet been implemented")
 		}),
 		PostTradespersonLoginHandler: PostTradespersonLoginHandlerFunc(func(params PostTradespersonLoginParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonLogin has not yet been implemented")
 		}),
-		PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler: PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandlerFunc(func(params PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingCustomerSubscriptionRefund has not yet been implemented")
+		PostTradespersonTradespersonIDAccessTokenHandler: PostTradespersonTradespersonIDAccessTokenHandlerFunc(func(params PostTradespersonTradespersonIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDAccessToken has not yet been implemented")
 		}),
-		PostTradespersonTradespersonIDFixedPriceHandler: PostTradespersonTradespersonIDFixedPriceHandlerFunc(func(params PostTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
+		PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler: PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandlerFunc(func(params PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefund has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler: PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandlerFunc(func(params PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler: PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandlerFunc(func(params PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalize has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler: PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandlerFunc(func(params PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler: PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandlerFunc(func(params PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler: PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandlerFunc(func(params PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoid has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingManualInvoiceHandler: PostTradespersonTradespersonIDBillingManualInvoiceHandlerFunc(func(params PostTradespersonTradespersonIDBillingManualInvoiceParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingManualInvoice has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler: PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandlerFunc(func(params PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefund has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler: PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandlerFunc(func(params PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectible has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler: PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandlerFunc(func(params PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoid has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDCancel has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalize has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectible has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoid has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDRevise has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDEmailHandler: PostTradespersonTradespersonIDEmailHandlerFunc(func(params PostTradespersonTradespersonIDEmailParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDEmail has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDFixedPriceHandler: PostTradespersonTradespersonIDFixedPriceHandlerFunc(func(params PostTradespersonTradespersonIDFixedPriceParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDFixedPrice has not yet been implemented")
 		}),
-		PostTradespersonTradespersonIDFixedPriceReviewHandler: PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc(func(params PostTradespersonTradespersonIDFixedPriceReviewParams) middleware.Responder {
+		PostTradespersonTradespersonIDFixedPriceReviewHandler: PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc(func(params PostTradespersonTradespersonIDFixedPriceReviewParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDFixedPriceReview has not yet been implemented")
 		}),
-		PostTradespersonTradespersonIDQuoteHandler: PostTradespersonTradespersonIDQuoteHandlerFunc(func(params PostTradespersonTradespersonIDQuoteParams) middleware.Responder {
+		PostTradespersonTradespersonIDLogoutHandler: PostTradespersonTradespersonIDLogoutHandlerFunc(func(params PostTradespersonTradespersonIDLogoutParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDLogout has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDQuoteHandler: PostTradespersonTradespersonIDQuoteHandlerFunc(func(params PostTradespersonTradespersonIDQuoteParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDQuote has not yet been implemented")
 		}),
-		PostTradespersonTradespersonIDQuoteReviewHandler: PostTradespersonTradespersonIDQuoteReviewHandlerFunc(func(params PostTradespersonTradespersonIDQuoteReviewParams) middleware.Responder {
+		PostTradespersonTradespersonIDQuoteReviewHandler: PostTradespersonTradespersonIDQuoteReviewHandlerFunc(func(params PostTradespersonTradespersonIDQuoteReviewParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDQuoteReview has not yet been implemented")
 		}),
-		PutTradespersonAccountTradespersonIDHandler: PutTradespersonAccountTradespersonIDHandlerFunc(func(params PutTradespersonAccountTradespersonIDParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutTradespersonAccountTradespersonID has not yet been implemented")
+		PutTradespersonTradespersonIDHandler: PutTradespersonTradespersonIDHandlerFunc(func(params PutTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonID has not yet been implemented")
 		}),
-		PutTradespersonAccountTradespersonIDSettingsHandler: PutTradespersonAccountTradespersonIDSettingsHandlerFunc(func(params PutTradespersonAccountTradespersonIDSettingsParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutTradespersonAccountTradespersonIDSettings has not yet been implemented")
+		PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler: PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(func(params PutTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDBillingInvoiceInvoiceID has not yet been implemented")
 		}),
-		PutTradespersonTradespersonIDFixedPriceHandler: PutTradespersonTradespersonIDFixedPriceHandlerFunc(func(params PutTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutTradespersonTradespersonIDFixedPrice has not yet been implemented")
+		PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler: PutTradespersonTradespersonIDBillingQuoteQuoteIDHandlerFunc(func(params PutTradespersonTradespersonIDBillingQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDBillingQuoteQuoteID has not yet been implemented")
 		}),
-		PutTradespersonTradespersonIDQuoteHandler: PutTradespersonTradespersonIDQuoteHandlerFunc(func(params PutTradespersonTradespersonIDQuoteParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutTradespersonTradespersonIDQuote has not yet been implemented")
+		PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler: PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandlerFunc(func(params PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID has not yet been implemented")
 		}),
-		PutTradespersonTradespersonIDUpdatePasswordHandler: PutTradespersonTradespersonIDUpdatePasswordHandlerFunc(func(params PutTradespersonTradespersonIDUpdatePasswordParams) middleware.Responder {
-			return middleware.NotImplemented("operation PutTradespersonTradespersonIDUpdatePassword has not yet been implemented")
+		PutTradespersonTradespersonIDFixedPricePriceIDHandler: PutTradespersonTradespersonIDFixedPricePriceIDHandlerFunc(func(params PutTradespersonTradespersonIDFixedPricePriceIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDFixedPricePriceID has not yet been implemented")
 		}),
+		PutTradespersonTradespersonIDPasswordHandler: PutTradespersonTradespersonIDPasswordHandlerFunc(func(params PutTradespersonTradespersonIDPasswordParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDPassword has not yet been implemented")
+		}),
+		PutTradespersonTradespersonIDQuoteQuoteIDHandler: PutTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(func(params PutTradespersonTradespersonIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDQuoteQuoteID has not yet been implemented")
+		}),
+		PutTradespersonTradespersonIDSettingsHandler: PutTradespersonTradespersonIDSettingsHandlerFunc(func(params PutTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDSettings has not yet been implemented")
+		}),
+
+		// Applies when the "Authorization" header is set
+		BearerAuth: func(token string) (interface{}, error) {
+			return nil, errors.NotImplemented("api key auth (Bearer) Authorization from header param [Authorization] has not yet been implemented")
+		},
+		// default authorizer is authorized meaning no requests are blocked
+		APIAuthorizer: security.Authorized(),
 	}
 }
 
@@ -177,26 +373,89 @@ type RedbudWayAPIAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
-	// DeleteTradespersonAccountTradespersonIDHandler sets the operation handler for the delete tradesperson account tradesperson ID operation
-	DeleteTradespersonAccountTradespersonIDHandler DeleteTradespersonAccountTradespersonIDHandler
-	// DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler sets the operation handler for the delete tradesperson tradesperson ID billing customer subscriptions operation
-	DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler
-	// GetTradespersonAccountTradespersonIDHandler sets the operation handler for the get tradesperson account tradesperson ID operation
-	GetTradespersonAccountTradespersonIDHandler GetTradespersonAccountTradespersonIDHandler
-	// GetTradespersonAccountTradespersonIDSettingsHandler sets the operation handler for the get tradesperson account tradesperson ID settings operation
-	GetTradespersonAccountTradespersonIDSettingsHandler GetTradespersonAccountTradespersonIDSettingsHandler
-	// GetTradespersonAccountTradespersonIDStatusHandler sets the operation handler for the get tradesperson account tradesperson ID status operation
-	GetTradespersonAccountTradespersonIDStatusHandler GetTradespersonAccountTradespersonIDStatusHandler
-	// GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler sets the operation handler for the get tradesperson tradesperson ID billing customer subscription invoice operation
-	GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler
-	// GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler sets the operation handler for the get tradesperson tradesperson ID billing customer subscriptions operation
-	GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler
+	// BearerAuth registers a function that takes a token and returns a principal
+	// it performs authentication based on an api key Authorization provided in the header
+	BearerAuth func(string) (interface{}, error)
+
+	// APIAuthorizer provides access control (ACL/RBAC/ABAC) by providing access to the request and authenticated principal
+	APIAuthorizer runtime.Authorizer
+
+	// DeleteCustomerCustomerIDHandler sets the operation handler for the delete customer customer ID operation
+	DeleteCustomerCustomerIDHandler DeleteCustomerCustomerIDHandler
+	// DeleteTradespersonTradespersonIDHandler sets the operation handler for the delete tradesperson tradesperson ID operation
+	DeleteTradespersonTradespersonIDHandler DeleteTradespersonTradespersonIDHandler
+	// DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler sets the operation handler for the delete tradesperson tradesperson ID billing invoice invoice ID operation
+	DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler
+	// GetCustomerCustomerIDAccessTokenHandler sets the operation handler for the get customer customer ID access token operation
+	GetCustomerCustomerIDAccessTokenHandler GetCustomerCustomerIDAccessTokenHandler
+	// GetCustomerCustomerIDBillingLinkHandler sets the operation handler for the get customer customer ID billing link operation
+	GetCustomerCustomerIDBillingLinkHandler GetCustomerCustomerIDBillingLinkHandler
+	// GetCustomerCustomerIDFixedPricePriceIDReviewHandler sets the operation handler for the get customer customer ID fixed price price ID review operation
+	GetCustomerCustomerIDFixedPricePriceIDReviewHandler GetCustomerCustomerIDFixedPricePriceIDReviewHandler
+	// GetCustomerCustomerIDPaymentDefaultHandler sets the operation handler for the get customer customer ID payment default operation
+	GetCustomerCustomerIDPaymentDefaultHandler GetCustomerCustomerIDPaymentDefaultHandler
+	// GetCustomerCustomerIDQuoteQuoteIDHandler sets the operation handler for the get customer customer ID quote quote ID operation
+	GetCustomerCustomerIDQuoteQuoteIDHandler GetCustomerCustomerIDQuoteQuoteIDHandler
+	// GetCustomerCustomerIDQuoteQuoteIDReviewHandler sets the operation handler for the get customer customer ID quote quote ID review operation
+	GetCustomerCustomerIDQuoteQuoteIDReviewHandler GetCustomerCustomerIDQuoteQuoteIDReviewHandler
+	// GetCustomerCustomerIDQuotesHandler sets the operation handler for the get customer customer ID quotes operation
+	GetCustomerCustomerIDQuotesHandler GetCustomerCustomerIDQuotesHandler
+	// GetCustomerCustomerIDReverifyHandler sets the operation handler for the get customer customer ID reverify operation
+	GetCustomerCustomerIDReverifyHandler GetCustomerCustomerIDReverifyHandler
+	// GetCustomerCustomerIDSubscriptionPriceIDReviewHandler sets the operation handler for the get customer customer ID subscription price ID review operation
+	GetCustomerCustomerIDSubscriptionPriceIDReviewHandler GetCustomerCustomerIDSubscriptionPriceIDReviewHandler
+	// GetCustomerCustomerIDVerifyHandler sets the operation handler for the get customer customer ID verify operation
+	GetCustomerCustomerIDVerifyHandler GetCustomerCustomerIDVerifyHandler
+	// GetFixedPricePriceIDHandler sets the operation handler for the get fixed price price ID operation
+	GetFixedPricePriceIDHandler GetFixedPricePriceIDHandler
+	// GetFixedPricePriceIDReviewsHandler sets the operation handler for the get fixed price price ID reviews operation
+	GetFixedPricePriceIDReviewsHandler GetFixedPricePriceIDReviewsHandler
+	// GetFixedPricesHandler sets the operation handler for the get fixed prices operation
+	GetFixedPricesHandler GetFixedPricesHandler
+	// GetForgotPasswordHandler sets the operation handler for the get forgot password operation
+	GetForgotPasswordHandler GetForgotPasswordHandler
+	// GetLocationHandler sets the operation handler for the get location operation
+	GetLocationHandler GetLocationHandler
+	// GetProfileVanityOrIDHandler sets the operation handler for the get profile vanity or ID operation
+	GetProfileVanityOrIDHandler GetProfileVanityOrIDHandler
+	// GetProfileVanityOrIDFixedPricesHandler sets the operation handler for the get profile vanity or ID fixed prices operation
+	GetProfileVanityOrIDFixedPricesHandler GetProfileVanityOrIDFixedPricesHandler
+	// GetProfileVanityOrIDQuotesHandler sets the operation handler for the get profile vanity or ID quotes operation
+	GetProfileVanityOrIDQuotesHandler GetProfileVanityOrIDQuotesHandler
+	// GetQuoteQuoteIDHandler sets the operation handler for the get quote quote ID operation
+	GetQuoteQuoteIDHandler GetQuoteQuoteIDHandler
+	// GetQuoteQuoteIDReviewsHandler sets the operation handler for the get quote quote ID reviews operation
+	GetQuoteQuoteIDReviewsHandler GetQuoteQuoteIDReviewsHandler
+	// GetQuotesHandler sets the operation handler for the get quotes operation
+	GetQuotesHandler GetQuotesHandler
+	// GetTradespersonTradespersonIDHandler sets the operation handler for the get tradesperson tradesperson ID operation
+	GetTradespersonTradespersonIDHandler GetTradespersonTradespersonIDHandler
+	// GetTradespersonTradespersonIDAccessTokenHandler sets the operation handler for the get tradesperson tradesperson ID access token operation
+	GetTradespersonTradespersonIDAccessTokenHandler GetTradespersonTradespersonIDAccessTokenHandler
+	// GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler sets the operation handler for the get tradesperson tradesperson ID billing customer stripe ID subscription subscription ID invoice invoice ID operation
+	GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler
+	// GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler sets the operation handler for the get tradesperson tradesperson ID billing customer stripe ID subscriptions operation
+	GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler
 	// GetTradespersonTradespersonIDBillingCustomersHandler sets the operation handler for the get tradesperson tradesperson ID billing customers operation
 	GetTradespersonTradespersonIDBillingCustomersHandler GetTradespersonTradespersonIDBillingCustomersHandler
+	// GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler sets the operation handler for the get tradesperson tradesperson ID billing invoice invoice ID operation
+	GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler
 	// GetTradespersonTradespersonIDBillingInvoicesHandler sets the operation handler for the get tradesperson tradesperson ID billing invoices operation
 	GetTradespersonTradespersonIDBillingInvoicesHandler GetTradespersonTradespersonIDBillingInvoicesHandler
-	// GetTradespersonTradespersonIDFixedPriceHandler sets the operation handler for the get tradesperson tradesperson ID fixed price operation
-	GetTradespersonTradespersonIDFixedPriceHandler GetTradespersonTradespersonIDFixedPriceHandler
+	// GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler sets the operation handler for the get tradesperson tradesperson ID billing manual invoice invoice ID operation
+	GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler
+	// GetTradespersonTradespersonIDBillingManualInvoicesHandler sets the operation handler for the get tradesperson tradesperson ID billing manual invoices operation
+	GetTradespersonTradespersonIDBillingManualInvoicesHandler GetTradespersonTradespersonIDBillingManualInvoicesHandler
+	// GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler sets the operation handler for the get tradesperson tradesperson ID billing quote quote ID operation
+	GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler
+	// GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler sets the operation handler for the get tradesperson tradesperson ID billing quote quote ID invoice invoice ID operation
+	GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler
+	// GetTradespersonTradespersonIDBillingQuotesHandler sets the operation handler for the get tradesperson tradesperson ID billing quotes operation
+	GetTradespersonTradespersonIDBillingQuotesHandler GetTradespersonTradespersonIDBillingQuotesHandler
+	// GetTradespersonTradespersonIDBillingSubscriptionsHandler sets the operation handler for the get tradesperson tradesperson ID billing subscriptions operation
+	GetTradespersonTradespersonIDBillingSubscriptionsHandler GetTradespersonTradespersonIDBillingSubscriptionsHandler
+	// GetTradespersonTradespersonIDFixedPricePriceIDHandler sets the operation handler for the get tradesperson tradesperson ID fixed price price ID operation
+	GetTradespersonTradespersonIDFixedPricePriceIDHandler GetTradespersonTradespersonIDFixedPricePriceIDHandler
 	// GetTradespersonTradespersonIDFixedPriceReviewsHandler sets the operation handler for the get tradesperson tradesperson ID fixed price reviews operation
 	GetTradespersonTradespersonIDFixedPriceReviewsHandler GetTradespersonTradespersonIDFixedPriceReviewsHandler
 	// GetTradespersonTradespersonIDFixedPricesHandler sets the operation handler for the get tradesperson tradesperson ID fixed prices operation
@@ -205,44 +464,114 @@ type RedbudWayAPIAPI struct {
 	GetTradespersonTradespersonIDLoginLinkHandler GetTradespersonTradespersonIDLoginLinkHandler
 	// GetTradespersonTradespersonIDOnboardHandler sets the operation handler for the get tradesperson tradesperson ID onboard operation
 	GetTradespersonTradespersonIDOnboardHandler GetTradespersonTradespersonIDOnboardHandler
-	// GetTradespersonTradespersonIDQuoteHandler sets the operation handler for the get tradesperson tradesperson ID quote operation
-	GetTradespersonTradespersonIDQuoteHandler GetTradespersonTradespersonIDQuoteHandler
+	// GetTradespersonTradespersonIDQuoteQuoteIDHandler sets the operation handler for the get tradesperson tradesperson ID quote quote ID operation
+	GetTradespersonTradespersonIDQuoteQuoteIDHandler GetTradespersonTradespersonIDQuoteQuoteIDHandler
 	// GetTradespersonTradespersonIDQuoteReviewsHandler sets the operation handler for the get tradesperson tradesperson ID quote reviews operation
 	GetTradespersonTradespersonIDQuoteReviewsHandler GetTradespersonTradespersonIDQuoteReviewsHandler
 	// GetTradespersonTradespersonIDQuotesHandler sets the operation handler for the get tradesperson tradesperson ID quotes operation
 	GetTradespersonTradespersonIDQuotesHandler GetTradespersonTradespersonIDQuotesHandler
 	// GetTradespersonTradespersonIDScheduleHandler sets the operation handler for the get tradesperson tradesperson ID schedule operation
 	GetTradespersonTradespersonIDScheduleHandler GetTradespersonTradespersonIDScheduleHandler
+	// GetTradespersonTradespersonIDSettingsHandler sets the operation handler for the get tradesperson tradesperson ID settings operation
+	GetTradespersonTradespersonIDSettingsHandler GetTradespersonTradespersonIDSettingsHandler
+	// GetTradespersonTradespersonIDStatusHandler sets the operation handler for the get tradesperson tradesperson ID status operation
+	GetTradespersonTradespersonIDStatusHandler GetTradespersonTradespersonIDStatusHandler
 	// GetTradespersonTradespersonIDTimeSlotsHandler sets the operation handler for the get tradesperson tradesperson ID time slots operation
 	GetTradespersonTradespersonIDTimeSlotsHandler GetTradespersonTradespersonIDTimeSlotsHandler
-	// PostForgotPasswordHandler sets the operation handler for the post forgot password operation
-	PostForgotPasswordHandler PostForgotPasswordHandler
+	// PostCustomerHandler sets the operation handler for the post customer operation
+	PostCustomerHandler PostCustomerHandler
+	// PostCustomerCustomerIDAccessTokenHandler sets the operation handler for the post customer customer ID access token operation
+	PostCustomerCustomerIDAccessTokenHandler PostCustomerCustomerIDAccessTokenHandler
+	// PostCustomerCustomerIDFixedPricePriceIDBookHandler sets the operation handler for the post customer customer ID fixed price price ID book operation
+	PostCustomerCustomerIDFixedPricePriceIDBookHandler PostCustomerCustomerIDFixedPricePriceIDBookHandler
+	// PostCustomerCustomerIDFixedPricePriceIDReviewHandler sets the operation handler for the post customer customer ID fixed price price ID review operation
+	PostCustomerCustomerIDFixedPricePriceIDReviewHandler PostCustomerCustomerIDFixedPricePriceIDReviewHandler
+	// PostCustomerCustomerIDLogoutHandler sets the operation handler for the post customer customer ID logout operation
+	PostCustomerCustomerIDLogoutHandler PostCustomerCustomerIDLogoutHandler
+	// PostCustomerCustomerIDQuoteQuoteIDAcceptHandler sets the operation handler for the post customer customer ID quote quote ID accept operation
+	PostCustomerCustomerIDQuoteQuoteIDAcceptHandler PostCustomerCustomerIDQuoteQuoteIDAcceptHandler
+	// PostCustomerCustomerIDQuoteQuoteIDRequestHandler sets the operation handler for the post customer customer ID quote quote ID request operation
+	PostCustomerCustomerIDQuoteQuoteIDRequestHandler PostCustomerCustomerIDQuoteQuoteIDRequestHandler
+	// PostCustomerCustomerIDQuoteQuoteIDReviewHandler sets the operation handler for the post customer customer ID quote quote ID review operation
+	PostCustomerCustomerIDQuoteQuoteIDReviewHandler PostCustomerCustomerIDQuoteQuoteIDReviewHandler
+	// PostCustomerCustomerIDSubscriptionPriceIDBookHandler sets the operation handler for the post customer customer ID subscription price ID book operation
+	PostCustomerCustomerIDSubscriptionPriceIDBookHandler PostCustomerCustomerIDSubscriptionPriceIDBookHandler
+	// PostCustomerCustomerIDSubscriptionPriceIDReviewHandler sets the operation handler for the post customer customer ID subscription price ID review operation
+	PostCustomerCustomerIDSubscriptionPriceIDReviewHandler PostCustomerCustomerIDSubscriptionPriceIDReviewHandler
+	// PostCustomerCustomerIDVerifyHandler sets the operation handler for the post customer customer ID verify operation
+	PostCustomerCustomerIDVerifyHandler PostCustomerCustomerIDVerifyHandler
+	// PostCustomerLoginHandler sets the operation handler for the post customer login operation
+	PostCustomerLoginHandler PostCustomerLoginHandler
 	// PostResetPasswordHandler sets the operation handler for the post reset password operation
 	PostResetPasswordHandler PostResetPasswordHandler
-	// PostTradespersonAccountHandler sets the operation handler for the post tradesperson account operation
-	PostTradespersonAccountHandler PostTradespersonAccountHandler
+	// PostTradespersonHandler sets the operation handler for the post tradesperson operation
+	PostTradespersonHandler PostTradespersonHandler
 	// PostTradespersonLoginHandler sets the operation handler for the post tradesperson login operation
 	PostTradespersonLoginHandler PostTradespersonLoginHandler
-	// PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler sets the operation handler for the post tradesperson tradesperson ID billing customer subscription refund operation
-	PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler
+	// PostTradespersonTradespersonIDAccessTokenHandler sets the operation handler for the post tradesperson tradesperson ID access token operation
+	PostTradespersonTradespersonIDAccessTokenHandler PostTradespersonTradespersonIDAccessTokenHandler
+	// PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler sets the operation handler for the post tradesperson tradesperson ID billing customer stripe ID subscription subscription ID invoice invoice ID refund operation
+	PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler
+	// PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler sets the operation handler for the post tradesperson tradesperson ID billing customer stripe ID subscriptions cancel operation
+	PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler
+	// PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler sets the operation handler for the post tradesperson tradesperson ID billing invoice invoice ID finalize operation
+	PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler
+	// PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler sets the operation handler for the post tradesperson tradesperson ID billing invoice invoice ID refund operation
+	PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler
+	// PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler sets the operation handler for the post tradesperson tradesperson ID billing invoice invoice ID uncollectible operation
+	PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler
+	// PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler sets the operation handler for the post tradesperson tradesperson ID billing invoice invoice ID void operation
+	PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler
+	// PostTradespersonTradespersonIDBillingManualInvoiceHandler sets the operation handler for the post tradesperson tradesperson ID billing manual invoice operation
+	PostTradespersonTradespersonIDBillingManualInvoiceHandler PostTradespersonTradespersonIDBillingManualInvoiceHandler
+	// PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler sets the operation handler for the post tradesperson tradesperson ID billing manual invoice invoice ID refund operation
+	PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler
+	// PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler sets the operation handler for the post tradesperson tradesperson ID billing manual invoice invoice ID uncollectible operation
+	PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler
+	// PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler sets the operation handler for the post tradesperson tradesperson ID billing manual invoice invoice ID void operation
+	PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID cancel operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID finalize operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID invoice invoice ID finalize operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID invoice invoice ID refund operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID invoice invoice ID uncollectible operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID invoice invoice ID void operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID revise operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler
+	// PostTradespersonTradespersonIDEmailHandler sets the operation handler for the post tradesperson tradesperson ID email operation
+	PostTradespersonTradespersonIDEmailHandler PostTradespersonTradespersonIDEmailHandler
 	// PostTradespersonTradespersonIDFixedPriceHandler sets the operation handler for the post tradesperson tradesperson ID fixed price operation
 	PostTradespersonTradespersonIDFixedPriceHandler PostTradespersonTradespersonIDFixedPriceHandler
 	// PostTradespersonTradespersonIDFixedPriceReviewHandler sets the operation handler for the post tradesperson tradesperson ID fixed price review operation
 	PostTradespersonTradespersonIDFixedPriceReviewHandler PostTradespersonTradespersonIDFixedPriceReviewHandler
+	// PostTradespersonTradespersonIDLogoutHandler sets the operation handler for the post tradesperson tradesperson ID logout operation
+	PostTradespersonTradespersonIDLogoutHandler PostTradespersonTradespersonIDLogoutHandler
 	// PostTradespersonTradespersonIDQuoteHandler sets the operation handler for the post tradesperson tradesperson ID quote operation
 	PostTradespersonTradespersonIDQuoteHandler PostTradespersonTradespersonIDQuoteHandler
 	// PostTradespersonTradespersonIDQuoteReviewHandler sets the operation handler for the post tradesperson tradesperson ID quote review operation
 	PostTradespersonTradespersonIDQuoteReviewHandler PostTradespersonTradespersonIDQuoteReviewHandler
-	// PutTradespersonAccountTradespersonIDHandler sets the operation handler for the put tradesperson account tradesperson ID operation
-	PutTradespersonAccountTradespersonIDHandler PutTradespersonAccountTradespersonIDHandler
-	// PutTradespersonAccountTradespersonIDSettingsHandler sets the operation handler for the put tradesperson account tradesperson ID settings operation
-	PutTradespersonAccountTradespersonIDSettingsHandler PutTradespersonAccountTradespersonIDSettingsHandler
-	// PutTradespersonTradespersonIDFixedPriceHandler sets the operation handler for the put tradesperson tradesperson ID fixed price operation
-	PutTradespersonTradespersonIDFixedPriceHandler PutTradespersonTradespersonIDFixedPriceHandler
-	// PutTradespersonTradespersonIDQuoteHandler sets the operation handler for the put tradesperson tradesperson ID quote operation
-	PutTradespersonTradespersonIDQuoteHandler PutTradespersonTradespersonIDQuoteHandler
-	// PutTradespersonTradespersonIDUpdatePasswordHandler sets the operation handler for the put tradesperson tradesperson ID update password operation
-	PutTradespersonTradespersonIDUpdatePasswordHandler PutTradespersonTradespersonIDUpdatePasswordHandler
+	// PutTradespersonTradespersonIDHandler sets the operation handler for the put tradesperson tradesperson ID operation
+	PutTradespersonTradespersonIDHandler PutTradespersonTradespersonIDHandler
+	// PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler sets the operation handler for the put tradesperson tradesperson ID billing invoice invoice ID operation
+	PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler
+	// PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler sets the operation handler for the put tradesperson tradesperson ID billing quote quote ID operation
+	PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler
+	// PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler sets the operation handler for the put tradesperson tradesperson ID billing quote quote ID invoice invoice ID operation
+	PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler
+	// PutTradespersonTradespersonIDFixedPricePriceIDHandler sets the operation handler for the put tradesperson tradesperson ID fixed price price ID operation
+	PutTradespersonTradespersonIDFixedPricePriceIDHandler PutTradespersonTradespersonIDFixedPricePriceIDHandler
+	// PutTradespersonTradespersonIDPasswordHandler sets the operation handler for the put tradesperson tradesperson ID password operation
+	PutTradespersonTradespersonIDPasswordHandler PutTradespersonTradespersonIDPasswordHandler
+	// PutTradespersonTradespersonIDQuoteQuoteIDHandler sets the operation handler for the put tradesperson tradesperson ID quote quote ID operation
+	PutTradespersonTradespersonIDQuoteQuoteIDHandler PutTradespersonTradespersonIDQuoteQuoteIDHandler
+	// PutTradespersonTradespersonIDSettingsHandler sets the operation handler for the put tradesperson tradesperson ID settings operation
+	PutTradespersonTradespersonIDSettingsHandler PutTradespersonTradespersonIDSettingsHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -320,35 +649,123 @@ func (o *RedbudWayAPIAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
-	if o.DeleteTradespersonAccountTradespersonIDHandler == nil {
-		unregistered = append(unregistered, "DeleteTradespersonAccountTradespersonIDHandler")
+	if o.BearerAuth == nil {
+		unregistered = append(unregistered, "AuthorizationAuth")
 	}
-	if o.DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler == nil {
-		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler")
+
+	if o.DeleteCustomerCustomerIDHandler == nil {
+		unregistered = append(unregistered, "DeleteCustomerCustomerIDHandler")
 	}
-	if o.GetTradespersonAccountTradespersonIDHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonAccountTradespersonIDHandler")
+	if o.DeleteTradespersonTradespersonIDHandler == nil {
+		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDHandler")
 	}
-	if o.GetTradespersonAccountTradespersonIDSettingsHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonAccountTradespersonIDSettingsHandler")
+	if o.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler")
 	}
-	if o.GetTradespersonAccountTradespersonIDStatusHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonAccountTradespersonIDStatusHandler")
+	if o.GetCustomerCustomerIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDAccessTokenHandler")
 	}
-	if o.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler")
+	if o.GetCustomerCustomerIDBillingLinkHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDBillingLinkHandler")
 	}
-	if o.GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler")
+	if o.GetCustomerCustomerIDFixedPricePriceIDReviewHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDFixedPricePriceIDReviewHandler")
+	}
+	if o.GetCustomerCustomerIDPaymentDefaultHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDPaymentDefaultHandler")
+	}
+	if o.GetCustomerCustomerIDQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDQuoteQuoteIDHandler")
+	}
+	if o.GetCustomerCustomerIDQuoteQuoteIDReviewHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDQuoteQuoteIDReviewHandler")
+	}
+	if o.GetCustomerCustomerIDQuotesHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDQuotesHandler")
+	}
+	if o.GetCustomerCustomerIDReverifyHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDReverifyHandler")
+	}
+	if o.GetCustomerCustomerIDSubscriptionPriceIDReviewHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDSubscriptionPriceIDReviewHandler")
+	}
+	if o.GetCustomerCustomerIDVerifyHandler == nil {
+		unregistered = append(unregistered, "GetCustomerCustomerIDVerifyHandler")
+	}
+	if o.GetFixedPricePriceIDHandler == nil {
+		unregistered = append(unregistered, "GetFixedPricePriceIDHandler")
+	}
+	if o.GetFixedPricePriceIDReviewsHandler == nil {
+		unregistered = append(unregistered, "GetFixedPricePriceIDReviewsHandler")
+	}
+	if o.GetFixedPricesHandler == nil {
+		unregistered = append(unregistered, "GetFixedPricesHandler")
+	}
+	if o.GetForgotPasswordHandler == nil {
+		unregistered = append(unregistered, "GetForgotPasswordHandler")
+	}
+	if o.GetLocationHandler == nil {
+		unregistered = append(unregistered, "GetLocationHandler")
+	}
+	if o.GetProfileVanityOrIDHandler == nil {
+		unregistered = append(unregistered, "GetProfileVanityOrIDHandler")
+	}
+	if o.GetProfileVanityOrIDFixedPricesHandler == nil {
+		unregistered = append(unregistered, "GetProfileVanityOrIDFixedPricesHandler")
+	}
+	if o.GetProfileVanityOrIDQuotesHandler == nil {
+		unregistered = append(unregistered, "GetProfileVanityOrIDQuotesHandler")
+	}
+	if o.GetQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "GetQuoteQuoteIDHandler")
+	}
+	if o.GetQuoteQuoteIDReviewsHandler == nil {
+		unregistered = append(unregistered, "GetQuoteQuoteIDReviewsHandler")
+	}
+	if o.GetQuotesHandler == nil {
+		unregistered = append(unregistered, "GetQuotesHandler")
+	}
+	if o.GetTradespersonTradespersonIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDHandler")
+	}
+	if o.GetTradespersonTradespersonIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDAccessTokenHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler")
 	}
 	if o.GetTradespersonTradespersonIDBillingCustomersHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingCustomersHandler")
 	}
+	if o.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler")
+	}
 	if o.GetTradespersonTradespersonIDBillingInvoicesHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingInvoicesHandler")
 	}
-	if o.GetTradespersonTradespersonIDFixedPriceHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonTradespersonIDFixedPriceHandler")
+	if o.GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingManualInvoicesHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingManualInvoicesHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingQuotesHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingQuotesHandler")
+	}
+	if o.GetTradespersonTradespersonIDBillingSubscriptionsHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingSubscriptionsHandler")
+	}
+	if o.GetTradespersonTradespersonIDFixedPricePriceIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDFixedPricePriceIDHandler")
 	}
 	if o.GetTradespersonTradespersonIDFixedPriceReviewsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDFixedPriceReviewsHandler")
@@ -362,8 +779,8 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.GetTradespersonTradespersonIDOnboardHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDOnboardHandler")
 	}
-	if o.GetTradespersonTradespersonIDQuoteHandler == nil {
-		unregistered = append(unregistered, "GetTradespersonTradespersonIDQuoteHandler")
+	if o.GetTradespersonTradespersonIDQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDQuoteQuoteIDHandler")
 	}
 	if o.GetTradespersonTradespersonIDQuoteReviewsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDQuoteReviewsHandler")
@@ -374,23 +791,116 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.GetTradespersonTradespersonIDScheduleHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDScheduleHandler")
 	}
+	if o.GetTradespersonTradespersonIDSettingsHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDSettingsHandler")
+	}
+	if o.GetTradespersonTradespersonIDStatusHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDStatusHandler")
+	}
 	if o.GetTradespersonTradespersonIDTimeSlotsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDTimeSlotsHandler")
 	}
-	if o.PostForgotPasswordHandler == nil {
-		unregistered = append(unregistered, "PostForgotPasswordHandler")
+	if o.PostCustomerHandler == nil {
+		unregistered = append(unregistered, "PostCustomerHandler")
+	}
+	if o.PostCustomerCustomerIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDAccessTokenHandler")
+	}
+	if o.PostCustomerCustomerIDFixedPricePriceIDBookHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDFixedPricePriceIDBookHandler")
+	}
+	if o.PostCustomerCustomerIDFixedPricePriceIDReviewHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDFixedPricePriceIDReviewHandler")
+	}
+	if o.PostCustomerCustomerIDLogoutHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDLogoutHandler")
+	}
+	if o.PostCustomerCustomerIDQuoteQuoteIDAcceptHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDQuoteQuoteIDAcceptHandler")
+	}
+	if o.PostCustomerCustomerIDQuoteQuoteIDRequestHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDQuoteQuoteIDRequestHandler")
+	}
+	if o.PostCustomerCustomerIDQuoteQuoteIDReviewHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDQuoteQuoteIDReviewHandler")
+	}
+	if o.PostCustomerCustomerIDSubscriptionPriceIDBookHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDSubscriptionPriceIDBookHandler")
+	}
+	if o.PostCustomerCustomerIDSubscriptionPriceIDReviewHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDSubscriptionPriceIDReviewHandler")
+	}
+	if o.PostCustomerCustomerIDVerifyHandler == nil {
+		unregistered = append(unregistered, "PostCustomerCustomerIDVerifyHandler")
+	}
+	if o.PostCustomerLoginHandler == nil {
+		unregistered = append(unregistered, "PostCustomerLoginHandler")
 	}
 	if o.PostResetPasswordHandler == nil {
 		unregistered = append(unregistered, "PostResetPasswordHandler")
 	}
-	if o.PostTradespersonAccountHandler == nil {
-		unregistered = append(unregistered, "PostTradespersonAccountHandler")
+	if o.PostTradespersonHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonHandler")
 	}
 	if o.PostTradespersonLoginHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonLoginHandler")
 	}
-	if o.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler == nil {
-		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler")
+	if o.PostTradespersonTradespersonIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDAccessTokenHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingManualInvoiceHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingManualInvoiceHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler")
+	}
+	if o.PostTradespersonTradespersonIDEmailHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDEmailHandler")
 	}
 	if o.PostTradespersonTradespersonIDFixedPriceHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDFixedPriceHandler")
@@ -398,26 +908,38 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.PostTradespersonTradespersonIDFixedPriceReviewHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDFixedPriceReviewHandler")
 	}
+	if o.PostTradespersonTradespersonIDLogoutHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDLogoutHandler")
+	}
 	if o.PostTradespersonTradespersonIDQuoteHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDQuoteHandler")
 	}
 	if o.PostTradespersonTradespersonIDQuoteReviewHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDQuoteReviewHandler")
 	}
-	if o.PutTradespersonAccountTradespersonIDHandler == nil {
-		unregistered = append(unregistered, "PutTradespersonAccountTradespersonIDHandler")
+	if o.PutTradespersonTradespersonIDHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDHandler")
 	}
-	if o.PutTradespersonAccountTradespersonIDSettingsHandler == nil {
-		unregistered = append(unregistered, "PutTradespersonAccountTradespersonIDSettingsHandler")
+	if o.PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler")
 	}
-	if o.PutTradespersonTradespersonIDFixedPriceHandler == nil {
-		unregistered = append(unregistered, "PutTradespersonTradespersonIDFixedPriceHandler")
+	if o.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler")
 	}
-	if o.PutTradespersonTradespersonIDQuoteHandler == nil {
-		unregistered = append(unregistered, "PutTradespersonTradespersonIDQuoteHandler")
+	if o.PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler")
 	}
-	if o.PutTradespersonTradespersonIDUpdatePasswordHandler == nil {
-		unregistered = append(unregistered, "PutTradespersonTradespersonIDUpdatePasswordHandler")
+	if o.PutTradespersonTradespersonIDFixedPricePriceIDHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDFixedPricePriceIDHandler")
+	}
+	if o.PutTradespersonTradespersonIDPasswordHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDPasswordHandler")
+	}
+	if o.PutTradespersonTradespersonIDQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDQuoteQuoteIDHandler")
+	}
+	if o.PutTradespersonTradespersonIDSettingsHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDSettingsHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -434,12 +956,21 @@ func (o *RedbudWayAPIAPI) ServeErrorFor(operationID string) func(http.ResponseWr
 
 // AuthenticatorsFor gets the authenticators for the specified security schemes
 func (o *RedbudWayAPIAPI) AuthenticatorsFor(schemes map[string]spec.SecurityScheme) map[string]runtime.Authenticator {
-	return nil
+	result := make(map[string]runtime.Authenticator)
+	for name := range schemes {
+		switch name {
+		case "Bearer":
+			scheme := schemes[name]
+			result[name] = o.APIKeyAuthenticator(scheme.Name, scheme.In, o.BearerAuth)
+
+		}
+	}
+	return result
 }
 
 // Authorizer returns the registered authorizer
 func (o *RedbudWayAPIAPI) Authorizer() runtime.Authorizer {
-	return nil
+	return o.APIAuthorizer
 }
 
 // ConsumersFor gets the consumers for the specified media types.
@@ -510,31 +1041,115 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/tradesperson/account/{tradespersonId}"] = NewDeleteTradespersonAccountTradespersonID(o.context, o.DeleteTradespersonAccountTradespersonIDHandler)
+	o.handlers["DELETE"]["/customer/{customerId}"] = NewDeleteCustomerCustomerID(o.context, o.DeleteCustomerCustomerIDHandler)
 	if o.handlers["DELETE"] == nil {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
-	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/billing/customer/subscriptions"] = NewDeleteTradespersonTradespersonIDBillingCustomerSubscriptions(o.context, o.DeleteTradespersonTradespersonIDBillingCustomerSubscriptionsHandler)
+	o.handlers["DELETE"]["/tradesperson/{tradespersonId}"] = NewDeleteTradespersonTradespersonID(o.context, o.DeleteTradespersonTradespersonIDHandler)
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}"] = NewDeleteTradespersonTradespersonIDBillingInvoiceInvoiceID(o.context, o.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/account/{tradespersonId}"] = NewGetTradespersonAccountTradespersonID(o.context, o.GetTradespersonAccountTradespersonIDHandler)
+	o.handlers["GET"]["/customer/{customerId}/access-token"] = NewGetCustomerCustomerIDAccessToken(o.context, o.GetCustomerCustomerIDAccessTokenHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/account/{tradespersonId}/settings"] = NewGetTradespersonAccountTradespersonIDSettings(o.context, o.GetTradespersonAccountTradespersonIDSettingsHandler)
+	o.handlers["GET"]["/customer/{customerId}/billing-link"] = NewGetCustomerCustomerIDBillingLink(o.context, o.GetCustomerCustomerIDBillingLinkHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/account/{tradespersonId}/status"] = NewGetTradespersonAccountTradespersonIDStatus(o.context, o.GetTradespersonAccountTradespersonIDStatusHandler)
+	o.handlers["GET"]["/customer/{customerId}/fixed-price/{priceId}/review"] = NewGetCustomerCustomerIDFixedPricePriceIDReview(o.context, o.GetCustomerCustomerIDFixedPricePriceIDReviewHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/customer/subscription/invoice"] = NewGetTradespersonTradespersonIDBillingCustomerSubscriptionInvoice(o.context, o.GetTradespersonTradespersonIDBillingCustomerSubscriptionInvoiceHandler)
+	o.handlers["GET"]["/customer/{customerId}/payment/default"] = NewGetCustomerCustomerIDPaymentDefault(o.context, o.GetCustomerCustomerIDPaymentDefaultHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/customer/subscriptions"] = NewGetTradespersonTradespersonIDBillingCustomerSubscriptions(o.context, o.GetTradespersonTradespersonIDBillingCustomerSubscriptionsHandler)
+	o.handlers["GET"]["/customer/{customerId}/quote/{quoteId}"] = NewGetCustomerCustomerIDQuoteQuoteID(o.context, o.GetCustomerCustomerIDQuoteQuoteIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/customer/{customerId}/quote/{quoteId}/review"] = NewGetCustomerCustomerIDQuoteQuoteIDReview(o.context, o.GetCustomerCustomerIDQuoteQuoteIDReviewHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/customer/{customerId}/quotes"] = NewGetCustomerCustomerIDQuotes(o.context, o.GetCustomerCustomerIDQuotesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/customer/{customerId}/reverify"] = NewGetCustomerCustomerIDReverify(o.context, o.GetCustomerCustomerIDReverifyHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/customer/{customerId}/subscription/{priceId}/review"] = NewGetCustomerCustomerIDSubscriptionPriceIDReview(o.context, o.GetCustomerCustomerIDSubscriptionPriceIDReviewHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/customer/{customerId}/verify"] = NewGetCustomerCustomerIDVerify(o.context, o.GetCustomerCustomerIDVerifyHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/fixed-price/{priceId}"] = NewGetFixedPricePriceID(o.context, o.GetFixedPricePriceIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/fixed-price/{priceId}/reviews"] = NewGetFixedPricePriceIDReviews(o.context, o.GetFixedPricePriceIDReviewsHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/fixed-prices"] = NewGetFixedPrices(o.context, o.GetFixedPricesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/forgot-password"] = NewGetForgotPassword(o.context, o.GetForgotPasswordHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/location"] = NewGetLocation(o.context, o.GetLocationHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/profile/{vanityOrId}"] = NewGetProfileVanityOrID(o.context, o.GetProfileVanityOrIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/profile/{vanityOrId}/fixed-prices"] = NewGetProfileVanityOrIDFixedPrices(o.context, o.GetProfileVanityOrIDFixedPricesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/profile/{vanityOrId}/quotes"] = NewGetProfileVanityOrIDQuotes(o.context, o.GetProfileVanityOrIDQuotesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/quote/{quoteId}"] = NewGetQuoteQuoteID(o.context, o.GetQuoteQuoteIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/quote/{quoteId}/reviews"] = NewGetQuoteQuoteIDReviews(o.context, o.GetQuoteQuoteIDReviewsHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/quotes"] = NewGetQuotes(o.context, o.GetQuotesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}"] = NewGetTradespersonTradespersonID(o.context, o.GetTradespersonTradespersonIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/access-token"] = NewGetTradespersonTradespersonIDAccessToken(o.context, o.GetTradespersonTradespersonIDAccessTokenHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId}"] = NewGetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID(o.context, o.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions"] = NewGetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions(o.context, o.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -542,11 +1157,39 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}"] = NewGetTradespersonTradespersonIDBillingInvoiceInvoiceID(o.context, o.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/invoices"] = NewGetTradespersonTradespersonIDBillingInvoices(o.context, o.GetTradespersonTradespersonIDBillingInvoicesHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/{tradespersonId}/fixed-price"] = NewGetTradespersonTradespersonIDFixedPrice(o.context, o.GetTradespersonTradespersonIDFixedPriceHandler)
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}"] = NewGetTradespersonTradespersonIDBillingManualInvoiceInvoiceID(o.context, o.GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/manual-invoices"] = NewGetTradespersonTradespersonIDBillingManualInvoices(o.context, o.GetTradespersonTradespersonIDBillingManualInvoicesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}"] = NewGetTradespersonTradespersonIDBillingQuoteQuoteID(o.context, o.GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}"] = NewGetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID(o.context, o.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/quotes"] = NewGetTradespersonTradespersonIDBillingQuotes(o.context, o.GetTradespersonTradespersonIDBillingQuotesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/subscriptions"] = NewGetTradespersonTradespersonIDBillingSubscriptions(o.context, o.GetTradespersonTradespersonIDBillingSubscriptionsHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/fixed-price/{priceId}"] = NewGetTradespersonTradespersonIDFixedPricePriceID(o.context, o.GetTradespersonTradespersonIDFixedPricePriceIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -566,7 +1209,7 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/tradesperson/{tradespersonId}/quote"] = NewGetTradespersonTradespersonIDQuote(o.context, o.GetTradespersonTradespersonIDQuoteHandler)
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/quote/{quoteId}"] = NewGetTradespersonTradespersonIDQuoteQuoteID(o.context, o.GetTradespersonTradespersonIDQuoteQuoteIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -582,11 +1225,63 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/settings"] = NewGetTradespersonTradespersonIDSettings(o.context, o.GetTradespersonTradespersonIDSettingsHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/status"] = NewGetTradespersonTradespersonIDStatus(o.context, o.GetTradespersonTradespersonIDStatusHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/time-slots"] = NewGetTradespersonTradespersonIDTimeSlots(o.context, o.GetTradespersonTradespersonIDTimeSlotsHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/forgot-password"] = NewPostForgotPassword(o.context, o.PostForgotPasswordHandler)
+	o.handlers["POST"]["/customer"] = NewPostCustomer(o.context, o.PostCustomerHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/access-token"] = NewPostCustomerCustomerIDAccessToken(o.context, o.PostCustomerCustomerIDAccessTokenHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/fixed-price/{priceId}/book"] = NewPostCustomerCustomerIDFixedPricePriceIDBook(o.context, o.PostCustomerCustomerIDFixedPricePriceIDBookHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/fixed-price/{priceId}/review"] = NewPostCustomerCustomerIDFixedPricePriceIDReview(o.context, o.PostCustomerCustomerIDFixedPricePriceIDReviewHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/logout"] = NewPostCustomerCustomerIDLogout(o.context, o.PostCustomerCustomerIDLogoutHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/quote/{quoteId}/accept"] = NewPostCustomerCustomerIDQuoteQuoteIDAccept(o.context, o.PostCustomerCustomerIDQuoteQuoteIDAcceptHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/quote/{quoteId}/request"] = NewPostCustomerCustomerIDQuoteQuoteIDRequest(o.context, o.PostCustomerCustomerIDQuoteQuoteIDRequestHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/quote/{quoteId}/review"] = NewPostCustomerCustomerIDQuoteQuoteIDReview(o.context, o.PostCustomerCustomerIDQuoteQuoteIDReviewHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/subscription/{priceId}/book"] = NewPostCustomerCustomerIDSubscriptionPriceIDBook(o.context, o.PostCustomerCustomerIDSubscriptionPriceIDBookHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/subscription/{priceId}/review"] = NewPostCustomerCustomerIDSubscriptionPriceIDReview(o.context, o.PostCustomerCustomerIDSubscriptionPriceIDReviewHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/{customerId}/verify"] = NewPostCustomerCustomerIDVerify(o.context, o.PostCustomerCustomerIDVerifyHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/customer/login"] = NewPostCustomerLogin(o.context, o.PostCustomerLoginHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -594,7 +1289,7 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/tradesperson/account"] = NewPostTradespersonAccount(o.context, o.PostTradespersonAccountHandler)
+	o.handlers["POST"]["/tradesperson"] = NewPostTradesperson(o.context, o.PostTradespersonHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -602,7 +1297,79 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/customer/subscription/refund"] = NewPostTradespersonTradespersonIDBillingCustomerSubscriptionRefund(o.context, o.PostTradespersonTradespersonIDBillingCustomerSubscriptionRefundHandler)
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/access-token"] = NewPostTradespersonTradespersonIDAccessToken(o.context, o.PostTradespersonTradespersonIDAccessTokenHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId}/refund"] = NewPostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefund(o.context, o.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions/cancel"] = NewPostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel(o.context, o.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/finalize"] = NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalize(o.context, o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/refund"] = NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund(o.context, o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/uncollectible"] = NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible(o.context, o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/void"] = NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoid(o.context, o.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/manual-invoice"] = NewPostTradespersonTradespersonIDBillingManualInvoice(o.context, o.PostTradespersonTradespersonIDBillingManualInvoiceHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/refund"] = NewPostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefund(o.context, o.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/uncollectible"] = NewPostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectible(o.context, o.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId}/void"] = NewPostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoid(o.context, o.PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/cancel"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDCancel(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/finalize"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDFinalize(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/finalize"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalizeHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/refund"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/uncollectible"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectible(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/void"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoid(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/revise"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDRevise(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/email"] = NewPostTradespersonTradespersonIDEmail(o.context, o.PostTradespersonTradespersonIDEmailHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -614,6 +1381,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/logout"] = NewPostTradespersonTradespersonIDLogout(o.context, o.PostTradespersonTradespersonIDLogoutHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
 	o.handlers["POST"]["/tradesperson/{tradespersonId}/quote"] = NewPostTradespersonTradespersonIDQuote(o.context, o.PostTradespersonTradespersonIDQuoteHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
@@ -622,23 +1393,35 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/tradesperson/account/{tradespersonId}"] = NewPutTradespersonAccountTradespersonID(o.context, o.PutTradespersonAccountTradespersonIDHandler)
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}"] = NewPutTradespersonTradespersonID(o.context, o.PutTradespersonTradespersonIDHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/tradesperson/account/{tradespersonId}/settings"] = NewPutTradespersonAccountTradespersonIDSettings(o.context, o.PutTradespersonAccountTradespersonIDSettingsHandler)
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}"] = NewPutTradespersonTradespersonIDBillingInvoiceInvoiceID(o.context, o.PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/tradesperson/{tradespersonId}/fixed-price"] = NewPutTradespersonTradespersonIDFixedPrice(o.context, o.PutTradespersonTradespersonIDFixedPriceHandler)
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}"] = NewPutTradespersonTradespersonIDBillingQuoteQuoteID(o.context, o.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/tradesperson/{tradespersonId}/quote"] = NewPutTradespersonTradespersonIDQuote(o.context, o.PutTradespersonTradespersonIDQuoteHandler)
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}"] = NewPutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID(o.context, o.PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
-	o.handlers["PUT"]["/tradesperson/{tradespersonId}/update-password"] = NewPutTradespersonTradespersonIDUpdatePassword(o.context, o.PutTradespersonTradespersonIDUpdatePasswordHandler)
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/fixed-price/{priceId}"] = NewPutTradespersonTradespersonIDFixedPricePriceID(o.context, o.PutTradespersonTradespersonIDFixedPricePriceIDHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/password"] = NewPutTradespersonTradespersonIDPassword(o.context, o.PutTradespersonTradespersonIDPasswordHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/quote/{quoteId}"] = NewPutTradespersonTradespersonIDQuoteQuoteID(o.context, o.PutTradespersonTradespersonIDQuoteQuoteIDHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/settings"] = NewPutTradespersonTradespersonIDSettings(o.context, o.PutTradespersonTradespersonIDSettingsHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

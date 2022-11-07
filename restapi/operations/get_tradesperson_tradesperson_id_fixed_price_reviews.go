@@ -9,24 +9,22 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID fixed price reviews handler
-type GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc func(GetTradespersonTradespersonIDFixedPriceReviewsParams) middleware.Responder
+type GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc func(GetTradespersonTradespersonIDFixedPriceReviewsParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc) Handle(params GetTradespersonTradespersonIDFixedPriceReviewsParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDFixedPriceReviewsHandlerFunc) Handle(params GetTradespersonTradespersonIDFixedPriceReviewsParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDFixedPriceReviewsHandler interface for that can handle valid get tradesperson tradesperson ID fixed price reviews params
 type GetTradespersonTradespersonIDFixedPriceReviewsHandler interface {
-	Handle(GetTradespersonTradespersonIDFixedPriceReviewsParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDFixedPriceReviewsParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDFixedPriceReviews creates a new http.Handler for the get tradesperson tradesperson ID fixed price reviews operation
@@ -50,12 +48,25 @@ func (o *GetTradespersonTradespersonIDFixedPriceReviews) ServeHTTP(rw http.Respo
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDFixedPriceReviewsParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -68,49 +79,21 @@ type GetTradespersonTradespersonIDFixedPriceReviewsOKBodyItems0 struct {
 	// customer
 	Customer string `json:"customer,omitempty"`
 
-	// customer Id
-	CustomerID string `json:"customerId,omitempty"`
-
 	// date
-	// Format: date
-	Date strfmt.Date `json:"date,omitempty"`
+	Date string `json:"date,omitempty"`
 
 	// id
-	ID string `json:"id,omitempty"`
+	ID int64 `json:"id,omitempty"`
 
 	// message
 	Message string `json:"message,omitempty"`
 
 	// rating
 	Rating int64 `json:"rating,omitempty"`
-
-	// tradesperson Id
-	TradespersonID string `json:"tradespersonId,omitempty"`
 }
 
 // Validate validates this get tradesperson tradesperson ID fixed price reviews o k body items0
 func (o *GetTradespersonTradespersonIDFixedPriceReviewsOKBodyItems0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateDate(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceReviewsOKBodyItems0) validateDate(formats strfmt.Registry) error {
-	if swag.IsZero(o.Date) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("date", "body", "date", o.Date.String(), formats); err != nil {
-		return err
-	}
-
 	return nil
 }
 

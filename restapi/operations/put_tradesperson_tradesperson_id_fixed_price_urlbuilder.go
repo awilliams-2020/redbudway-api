@@ -10,13 +10,11 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 	"strings"
-
-	"github.com/go-openapi/swag"
 )
 
 // PutTradespersonTradespersonIDFixedPriceURL generates an URL for the put tradesperson tradesperson ID fixed price operation
 type PutTradespersonTradespersonIDFixedPriceURL struct {
-	TradespersonID int64
+	TradespersonID string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -44,7 +42,7 @@ func (o *PutTradespersonTradespersonIDFixedPriceURL) Build() (*url.URL, error) {
 
 	var _path = "/tradesperson/{tradespersonId}/fixed-price"
 
-	tradespersonID := swag.FormatInt64(o.TradespersonID)
+	tradespersonID := o.TradespersonID
 	if tradespersonID != "" {
 		_path = strings.Replace(_path, "{tradespersonId}", tradespersonID, -1)
 	} else {

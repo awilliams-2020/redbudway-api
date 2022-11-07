@@ -11,42 +11,42 @@ import (
 	"github.com/go-openapi/runtime"
 )
 
-// PutTradespersonTradespersonIDFixedPriceCreatedCode is the HTTP code returned for type PutTradespersonTradespersonIDFixedPriceCreated
-const PutTradespersonTradespersonIDFixedPriceCreatedCode int = 201
+// PutTradespersonTradespersonIDFixedPriceOKCode is the HTTP code returned for type PutTradespersonTradespersonIDFixedPriceOK
+const PutTradespersonTradespersonIDFixedPriceOKCode int = 200
 
-/*PutTradespersonTradespersonIDFixedPriceCreated Updated fixed-price
+/*PutTradespersonTradespersonIDFixedPriceOK Updated fixed-price
 
-swagger:response putTradespersonTradespersonIdFixedPriceCreated
+swagger:response putTradespersonTradespersonIdFixedPriceOK
 */
-type PutTradespersonTradespersonIDFixedPriceCreated struct {
+type PutTradespersonTradespersonIDFixedPriceOK struct {
 
 	/*
 	  In: Body
 	*/
-	Payload *PutTradespersonTradespersonIDFixedPriceCreatedBody `json:"body,omitempty"`
+	Payload *PutTradespersonTradespersonIDFixedPriceOKBody `json:"body,omitempty"`
 }
 
-// NewPutTradespersonTradespersonIDFixedPriceCreated creates PutTradespersonTradespersonIDFixedPriceCreated with default headers values
-func NewPutTradespersonTradespersonIDFixedPriceCreated() *PutTradespersonTradespersonIDFixedPriceCreated {
+// NewPutTradespersonTradespersonIDFixedPriceOK creates PutTradespersonTradespersonIDFixedPriceOK with default headers values
+func NewPutTradespersonTradespersonIDFixedPriceOK() *PutTradespersonTradespersonIDFixedPriceOK {
 
-	return &PutTradespersonTradespersonIDFixedPriceCreated{}
+	return &PutTradespersonTradespersonIDFixedPriceOK{}
 }
 
-// WithPayload adds the payload to the put tradesperson tradesperson Id fixed price created response
-func (o *PutTradespersonTradespersonIDFixedPriceCreated) WithPayload(payload *PutTradespersonTradespersonIDFixedPriceCreatedBody) *PutTradespersonTradespersonIDFixedPriceCreated {
+// WithPayload adds the payload to the put tradesperson tradesperson Id fixed price o k response
+func (o *PutTradespersonTradespersonIDFixedPriceOK) WithPayload(payload *PutTradespersonTradespersonIDFixedPriceOKBody) *PutTradespersonTradespersonIDFixedPriceOK {
 	o.Payload = payload
 	return o
 }
 
-// SetPayload sets the payload to the put tradesperson tradesperson Id fixed price created response
-func (o *PutTradespersonTradespersonIDFixedPriceCreated) SetPayload(payload *PutTradespersonTradespersonIDFixedPriceCreatedBody) {
+// SetPayload sets the payload to the put tradesperson tradesperson Id fixed price o k response
+func (o *PutTradespersonTradespersonIDFixedPriceOK) SetPayload(payload *PutTradespersonTradespersonIDFixedPriceOKBody) {
 	o.Payload = payload
 }
 
 // WriteResponse to the client
-func (o *PutTradespersonTradespersonIDFixedPriceCreated) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
+func (o *PutTradespersonTradespersonIDFixedPriceOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
-	rw.WriteHeader(201)
+	rw.WriteHeader(200)
 	if o.Payload != nil {
 		payload := o.Payload
 		if err := producer.Produce(rw, payload); err != nil {

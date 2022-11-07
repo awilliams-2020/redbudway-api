@@ -8,26 +8,26 @@ package operations
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDFixedPriceHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID fixed price handler
-type GetTradespersonTradespersonIDFixedPriceHandlerFunc func(GetTradespersonTradespersonIDFixedPriceParams) middleware.Responder
+type GetTradespersonTradespersonIDFixedPriceHandlerFunc func(GetTradespersonTradespersonIDFixedPriceParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn GetTradespersonTradespersonIDFixedPriceHandlerFunc) Handle(params GetTradespersonTradespersonIDFixedPriceParams) middleware.Responder {
-	return fn(params)
+func (fn GetTradespersonTradespersonIDFixedPriceHandlerFunc) Handle(params GetTradespersonTradespersonIDFixedPriceParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // GetTradespersonTradespersonIDFixedPriceHandler interface for that can handle valid get tradesperson tradesperson ID fixed price params
 type GetTradespersonTradespersonIDFixedPriceHandler interface {
-	Handle(GetTradespersonTradespersonIDFixedPriceParams) middleware.Responder
+	Handle(GetTradespersonTradespersonIDFixedPriceParams, interface{}) middleware.Responder
 }
 
 // NewGetTradespersonTradespersonIDFixedPrice creates a new http.Handler for the get tradesperson tradesperson ID fixed price operation
@@ -51,12 +51,25 @@ func (o *GetTradespersonTradespersonIDFixedPrice) ServeHTTP(rw http.ResponseWrit
 		*r = *rCtx
 	}
 	var Params = NewGetTradespersonTradespersonIDFixedPriceParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -66,62 +79,22 @@ func (o *GetTradespersonTradespersonIDFixedPrice) ServeHTTP(rw http.ResponseWrit
 // swagger:model GetTradespersonTradespersonIDFixedPriceOKBody
 type GetTradespersonTradespersonIDFixedPriceOKBody struct {
 
-	// archived
-	Archived bool `json:"archived,omitempty"`
+	// fixed price
+	FixedPrice *models.ServiceDetails `json:"fixedPrice,omitempty"`
 
-	// category
-	Category string `json:"category,omitempty"`
-
-	// city map
-	CityMap []*GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0 `json:"cityMap"`
-
-	// description
-	Description string `json:"description,omitempty"`
-
-	// filters
-	Filters []string `json:"filters"`
-
-	// images
-	Images []string `json:"images"`
-
-	// interval
-	Interval string `json:"interval,omitempty"`
-
-	// other products
-	OtherProducts *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts `json:"otherProducts,omitempty"`
-
-	// price
-	Price string `json:"price,omitempty"`
-
-	// select places
-	SelectPlaces bool `json:"selectPlaces,omitempty"`
-
-	// sub category
-	SubCategory string `json:"subCategory,omitempty"`
-
-	// subscription
-	Subscription bool `json:"subscription,omitempty"`
-
-	// time slots
-	TimeSlots []*GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0 `json:"timeSlots"`
-
-	// title
-	Title string `json:"title,omitempty"`
+	// other services
+	OtherServices models.OtherServices `json:"otherServices"`
 }
 
 // Validate validates this get tradesperson tradesperson ID fixed price o k body
 func (o *GetTradespersonTradespersonIDFixedPriceOKBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateCityMap(formats); err != nil {
+	if err := o.validateFixedPrice(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := o.validateOtherProducts(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateTimeSlots(formats); err != nil {
+	if err := o.validateOtherServices(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -131,43 +104,17 @@ func (o *GetTradespersonTradespersonIDFixedPriceOKBody) Validate(formats strfmt.
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateCityMap(formats strfmt.Registry) error {
-	if swag.IsZero(o.CityMap) { // not required
+func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateFixedPrice(formats strfmt.Registry) error {
+	if swag.IsZero(o.FixedPrice) { // not required
 		return nil
 	}
 
-	for i := 0; i < len(o.CityMap); i++ {
-		if swag.IsZero(o.CityMap[i]) { // not required
-			continue
-		}
-
-		if o.CityMap[i] != nil {
-			if err := o.CityMap[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "cityMap" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "cityMap" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateOtherProducts(formats strfmt.Registry) error {
-	if swag.IsZero(o.OtherProducts) { // not required
-		return nil
-	}
-
-	if o.OtherProducts != nil {
-		if err := o.OtherProducts.Validate(formats); err != nil {
+	if o.FixedPrice != nil {
+		if err := o.FixedPrice.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts")
+				return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "fixedPrice")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts")
+				return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "fixedPrice")
 			}
 			return err
 		}
@@ -176,27 +123,18 @@ func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateOtherProducts(fo
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateTimeSlots(formats strfmt.Registry) error {
-	if swag.IsZero(o.TimeSlots) { // not required
+func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateOtherServices(formats strfmt.Registry) error {
+	if swag.IsZero(o.OtherServices) { // not required
 		return nil
 	}
 
-	for i := 0; i < len(o.TimeSlots); i++ {
-		if swag.IsZero(o.TimeSlots[i]) { // not required
-			continue
+	if err := o.OtherServices.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherServices")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherServices")
 		}
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
+		return err
 	}
 
 	return nil
@@ -206,15 +144,11 @@ func (o *GetTradespersonTradespersonIDFixedPriceOKBody) validateTimeSlots(format
 func (o *GetTradespersonTradespersonIDFixedPriceOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.contextValidateCityMap(ctx, formats); err != nil {
+	if err := o.contextValidateFixedPrice(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := o.contextValidateOtherProducts(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.contextValidateTimeSlots(ctx, formats); err != nil {
+	if err := o.contextValidateOtherServices(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -224,34 +158,14 @@ func (o *GetTradespersonTradespersonIDFixedPriceOKBody) ContextValidate(ctx cont
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDFixedPriceOKBody) contextValidateCityMap(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDFixedPriceOKBody) contextValidateFixedPrice(ctx context.Context, formats strfmt.Registry) error {
 
-	for i := 0; i < len(o.CityMap); i++ {
-
-		if o.CityMap[i] != nil {
-			if err := o.CityMap[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "cityMap" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "cityMap" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceOKBody) contextValidateOtherProducts(ctx context.Context, formats strfmt.Registry) error {
-
-	if o.OtherProducts != nil {
-		if err := o.OtherProducts.ContextValidate(ctx, formats); err != nil {
+	if o.FixedPrice != nil {
+		if err := o.FixedPrice.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts")
+				return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "fixedPrice")
 			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts")
+				return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "fixedPrice")
 			}
 			return err
 		}
@@ -260,21 +174,15 @@ func (o *GetTradespersonTradespersonIDFixedPriceOKBody) contextValidateOtherProd
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDFixedPriceOKBody) contextValidateTimeSlots(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDFixedPriceOKBody) contextValidateOtherServices(ctx context.Context, formats strfmt.Registry) error {
 
-	for i := 0; i < len(o.TimeSlots); i++ {
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
+	if err := o.OtherServices.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherServices")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherServices")
 		}
-
+		return err
 	}
 
 	return nil
@@ -291,283 +199,6 @@ func (o *GetTradespersonTradespersonIDFixedPriceOKBody) MarshalBinary() ([]byte,
 // UnmarshalBinary interface implementation
 func (o *GetTradespersonTradespersonIDFixedPriceOKBody) UnmarshalBinary(b []byte) error {
 	var res GetTradespersonTradespersonIDFixedPriceOKBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0 get tradesperson tradesperson ID fixed price o k body city map items0
-//
-// swagger:model GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0
-type GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0 struct {
-
-	// cities
-	Cities []string `json:"cities"`
-
-	// state
-	State string `json:"state,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID fixed price o k body city map items0
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID fixed price o k body city map items0 based on context it is used
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDFixedPriceOKBodyCityMapItems0
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts get tradesperson tradesperson ID fixed price o k body other products
-//
-// swagger:model GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts
-type GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts struct {
-
-	// interval
-	Interval string `json:"interval,omitempty"`
-
-	// subscription
-	Subscription bool `json:"subscription,omitempty"`
-
-	// time slots
-	TimeSlots []*GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0 `json:"timeSlots"`
-}
-
-// Validate validates this get tradesperson tradesperson ID fixed price o k body other products
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateTimeSlots(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts) validateTimeSlots(formats strfmt.Registry) error {
-	if swag.IsZero(o.TimeSlots) { // not required
-		return nil
-	}
-
-	for i := 0; i < len(o.TimeSlots); i++ {
-		if swag.IsZero(o.TimeSlots[i]) { // not required
-			continue
-		}
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// ContextValidate validate this get tradesperson tradesperson ID fixed price o k body other products based on the context it is used
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.contextValidateTimeSlots(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts) contextValidateTimeSlots(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(o.TimeSlots); i++ {
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("getTradespersonTradespersonIdFixedPriceOK" + "." + "otherProducts" + "." + "timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDFixedPriceOKBodyOtherProducts
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0 get tradesperson tradesperson ID fixed price o k body other products time slots items0
-//
-// swagger:model GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0
-type GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0 struct {
-
-	// segment size
-	SegmentSize string `json:"segmentSize,omitempty"`
-
-	// start time
-	// Format: date
-	StartTime strfmt.Date `json:"startTime,omitempty"`
-
-	// taken
-	Taken bool `json:"taken,omitempty"`
-
-	// taken by
-	TakenBy string `json:"takenBy,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID fixed price o k body other products time slots items0
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateStartTime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0) validateStartTime(formats strfmt.Registry) error {
-	if swag.IsZero(o.StartTime) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("startTime", "body", "date", o.StartTime.String(), formats); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID fixed price o k body other products time slots items0 based on context it is used
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDFixedPriceOKBodyOtherProductsTimeSlotsItems0
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0 get tradesperson tradesperson ID fixed price o k body time slots items0
-//
-// swagger:model GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0
-type GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0 struct {
-
-	// segment size
-	SegmentSize string `json:"segmentSize,omitempty"`
-
-	// start time
-	// Format: date
-	StartTime strfmt.Date `json:"startTime,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID fixed price o k body time slots items0
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateStartTime(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0) validateStartTime(formats strfmt.Registry) error {
-	if swag.IsZero(o.StartTime) { // not required
-		return nil
-	}
-
-	if err := validate.FormatOf("startTime", "body", "date", o.StartTime.String(), formats); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID fixed price o k body time slots items0 based on context it is used
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDFixedPriceOKBodyTimeSlotsItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

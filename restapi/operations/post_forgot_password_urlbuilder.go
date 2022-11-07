@@ -13,7 +13,12 @@ import (
 
 // PostForgotPasswordURL generates an URL for the post forgot password operation
 type PostForgotPasswordURL struct {
+	Email string
+	Type  string
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
@@ -42,6 +47,20 @@ func (o *PostForgotPasswordURL) Build() (*url.URL, error) {
 		_basePath = "/v1"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	emailQ := o.Email
+	if emailQ != "" {
+		qs.Set("email", emailQ)
+	}
+
+	typeVarQ := o.Type
+	if typeVarQ != "" {
+		qs.Set("type", typeVarQ)
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

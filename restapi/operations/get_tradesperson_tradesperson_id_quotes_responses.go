@@ -9,6 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDQuotesOKCode is the HTTP code returned for type GetTradespersonTradespersonIDQuotesOK
@@ -23,7 +25,7 @@ type GetTradespersonTradespersonIDQuotesOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []*GetTradespersonTradespersonIDQuotesOKBodyItems0 `json:"body,omitempty"`
+	Payload []*models.Service `json:"body,omitempty"`
 }
 
 // NewGetTradespersonTradespersonIDQuotesOK creates GetTradespersonTradespersonIDQuotesOK with default headers values
@@ -33,13 +35,13 @@ func NewGetTradespersonTradespersonIDQuotesOK() *GetTradespersonTradespersonIDQu
 }
 
 // WithPayload adds the payload to the get tradesperson tradesperson Id quotes o k response
-func (o *GetTradespersonTradespersonIDQuotesOK) WithPayload(payload []*GetTradespersonTradespersonIDQuotesOKBodyItems0) *GetTradespersonTradespersonIDQuotesOK {
+func (o *GetTradespersonTradespersonIDQuotesOK) WithPayload(payload []*models.Service) *GetTradespersonTradespersonIDQuotesOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get tradesperson tradesperson Id quotes o k response
-func (o *GetTradespersonTradespersonIDQuotesOK) SetPayload(payload []*GetTradespersonTradespersonIDQuotesOKBodyItems0) {
+func (o *GetTradespersonTradespersonIDQuotesOK) SetPayload(payload []*models.Service) {
 	o.Payload = payload
 }
 
@@ -50,7 +52,7 @@ func (o *GetTradespersonTradespersonIDQuotesOK) WriteResponse(rw http.ResponseWr
 	payload := o.Payload
 	if payload == nil {
 		// return empty array
-		payload = make([]*GetTradespersonTradespersonIDQuotesOKBodyItems0, 0, 50)
+		payload = make([]*models.Service, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {
