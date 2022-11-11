@@ -11,4 +11,3 @@ RUN go build -v -o /usr/local/bin/app ./cmd/redbud-way-api-server/main.go
 EXPOSE 80
 
 CMD ["app", "--host", "0.0.0.0", "--port", "80"]
-#CMD ["app"]

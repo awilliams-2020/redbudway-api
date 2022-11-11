@@ -24,12 +24,13 @@ func email(email, name, subject, body string) error {
 	return d.DialAndSend(m)
 }
 
-func ForgotPassword(userEmail, name, token, accountType string) error {
+func ForgotPassword(userEmail, name, token, accountType, userID string) error {
 	body := password
 
 	body = strings.Replace(body, "{SUB_DOMAIN}", os.Getenv("SUBDOMAIN"), -1)
 	body = strings.Replace(body, "{TOKEN}", token, -1)
 	body = strings.Replace(body, "{ACCOUNT_TYPE}", accountType, -1)
+	body = strings.Replace(body, "{USER_ID}", userID, -1)
 
 	return email(userEmail, name, "Reset Password", body)
 }

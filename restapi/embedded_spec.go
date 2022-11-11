@@ -1517,23 +1517,27 @@ func init() {
       "post": {
         "parameters": [
           {
-            "name": "password.",
+            "name": "user",
             "in": "body",
             "schema": {
               "type": "object",
               "required": [
-                "accessToken",
+                "accountType",
                 "password",
-                "type"
+                "token",
+                "userId"
               ],
               "properties": {
-                "accessToken": {
+                "accountType": {
                   "type": "string"
                 },
                 "password": {
                   "type": "string"
                 },
-                "type": {
+                "token": {
+                  "type": "string"
+                },
+                "userId": {
                   "type": "string"
                 }
               }
@@ -6266,23 +6270,27 @@ func init() {
       "post": {
         "parameters": [
           {
-            "name": "password.",
+            "name": "user",
             "in": "body",
             "schema": {
               "type": "object",
               "required": [
-                "accessToken",
+                "accountType",
                 "password",
-                "type"
+                "token",
+                "userId"
               ],
               "properties": {
-                "accessToken": {
+                "accountType": {
                   "type": "string"
                 },
                 "password": {
                   "type": "string"
                 },
-                "type": {
+                "token": {
+                  "type": "string"
+                },
+                "userId": {
                   "type": "string"
                 }
               }

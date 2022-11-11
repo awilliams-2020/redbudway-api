@@ -173,11 +173,7 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.PostCustomerCustomerIDVerifyHandler = operations.PostCustomerCustomerIDVerifyHandlerFunc(handlers.PostCustomerCustomerIDVerifyHandler)
 
-	if api.PostResetPasswordHandler == nil {
-		api.PostResetPasswordHandler = operations.PostResetPasswordHandlerFunc(func(params operations.PostResetPasswordParams) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostResetPassword has not yet been implemented")
-		})
-	}
+	api.PostResetPasswordHandler = operations.PostResetPasswordHandlerFunc(handlers.PostResetPasswordHandler)
 
 	api.PostTradespersonHandler = operations.PostTradespersonHandlerFunc(handlers.PostTradespersonHandler)
 

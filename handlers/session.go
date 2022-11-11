@@ -555,7 +555,7 @@ func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middlew
 				log.Printf("Failed to get stripe customer, %v", err)
 				return response
 			}
-			if err := email.ForgotPassword(stripeCustomer.Email, stripeCustomer.Name, token, accountType); err != nil {
+			if err := email.ForgotPassword(stripeCustomer.Email, stripeCustomer.Name, token, accountType, userID); err != nil {
 				log.Printf("Failed to send customer email, %v", err)
 				return response
 			}
@@ -570,7 +570,7 @@ func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middlew
 				log.Printf("Failed to get stripe customer, %v", err)
 				return response
 			}
-			if err := email.ForgotPassword(stripeAccount.Email, tradesperson.Name, token, accountType); err != nil {
+			if err := email.ForgotPassword(stripeAccount.Email, tradesperson.Name, token, accountType, userID); err != nil {
 				log.Printf("Failed to send tradesperson email, %v", err)
 				return response
 			}
@@ -578,6 +578,50 @@ func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middlew
 	default:
 		log.Printf("Unknown %v", err)
 	}
+
+	return response
+}
+
+func PostResetPasswordHandler(params operations.PostResetPasswordParams) middleware.Responder {
+	userID := params.User.UserID
+	accountType := params.User.AccountType
+	password := params.User.Password
+
+	payload := operations.PostResetPasswordOKBody{Updated: false}
+	response := operations.NewPostResetPasswordOK().WithPayload(&payload)
+
+	db := database.GetConnection()
+
+	var sqlStmt string
+	if *accountType == "customer" {
+		sqlStmt = "UPDATE customer_account set password=? WHERE customerId=?"
+	} else {
+		sqlStmt = "UPDATE tradesperson_account set password=? WHERE tradespersonId=?"
+	}
+
+	stmt, err := db.Prepare(sqlStmt)
+	if err != nil {
+		return response
+	}
+	defer stmt.Close()
+
+	passwordHash, err := internal.HashPassword(*password)
+	if err != nil {
+		return response
+	}
+
+	results, err := stmt.Exec(passwordHash, userID)
+	if err != nil {
+		return response
+	}
+
+	rowsAffected, err := results.RowsAffected()
+	if err != nil {
+		return response
+	}
+
+	payload.Updated = rowsAffected == 1
+	response.SetPayload(&payload)
 
 	return response
 }

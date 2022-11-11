@@ -5,9 +5,9 @@ import (
 	"log"
 )
 
-func CustomerReviewedQuote(customerID, quoteID string) (bool, error) {
+func CustomerReviewedQuote(customerID string, ID int64) (bool, error) {
 	reviewed := true
-	stmt, err := db.Prepare("SELECT qr.rating FROM quote_reviews qr INNER JOIN quotes q ON q.id=qr.quoteId WHERE qr.customerId=? AND q.quote=?")
+	stmt, err := db.Prepare("SELECT qr.rating FROM quote_reviews qr INNER JOIN quotes q ON q.id=qr.quoteId WHERE qr.customerId=? AND qr.quoteId=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return reviewed, err
@@ -15,7 +15,7 @@ func CustomerReviewedQuote(customerID, quoteID string) (bool, error) {
 	defer stmt.Close()
 
 	var rating int64
-	row := stmt.QueryRow(customerID, quoteID)
+	row := stmt.QueryRow(customerID, ID)
 	switch err = row.Scan(&rating); err {
 	case sql.ErrNoRows:
 		reviewed = false

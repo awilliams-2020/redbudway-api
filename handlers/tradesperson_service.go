@@ -30,8 +30,8 @@ func PostTradespersonTradespersonIDFixedPriceHandler(params operations.PostTrade
 	defer stmt.Close()
 
 	row := stmt.QueryRow(tradespersonID)
-	var stripeId string
-	switch err = row.Scan(&stripeId); err {
+	var stripeID string
+	switch err = row.Scan(&stripeID); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with id %s doesn't exist", tradespersonID)
 	case nil:

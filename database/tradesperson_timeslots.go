@@ -25,7 +25,7 @@ func ResetTakenTimeSlotByCustomer(cuStripeID string) error {
 }
 
 func ResetTakenTimeSlotBySubscription(cuStripeID, subscriptionID string) error {
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=False, takenBy=NULL, cuStripeId=NULL WHERE takenBy=? AND cuStripeId=? and startTime < CURDATE()")
+	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=False, takenBy=NULL, cuStripeId=NULL WHERE takenBy=? AND cuStripeId=?")
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func UpdateYearlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPr
 	return rowsAffected == 1, nil
 }
 
-func getScheduleTimeSlots(db *sql.DB, service operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0, fixedPriceId int) ([]*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0, error) {
+func getScheduleTimeSlots(fixedPriceId int) ([]*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0, error) {
 	timeSlots := []*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0{}
 
 	stmt, err := db.Prepare("SELECT startTime, segmentSize, taken, takenBy FROM fixed_price_time_slots WHERE fixedPriceId=?")
@@ -180,7 +180,8 @@ func getScheduleTimeSlots(db *sql.DB, service operations.GetTradespersonTradespe
 	}
 
 	var taken bool
-	var startTime, segmentSize, takenBy string
+	var startTime, segmentSize string
+	var takenBy sql.NullString
 	for rows.Next() {
 		if err := rows.Scan(&startTime, &segmentSize, &taken, &takenBy); err != nil {
 			return timeSlots, err
@@ -189,7 +190,9 @@ func getScheduleTimeSlots(db *sql.DB, service operations.GetTradespersonTradespe
 		timeSlot.StartTime = startTime
 		timeSlot.SegmentSize = segmentSize
 		timeSlot.Taken = taken
-		timeSlot.TakenBy = takenBy
+		if takenBy.Valid {
+			timeSlot.TakenBy = takenBy.String
+		}
 		timeSlots = append(timeSlots, timeSlot)
 	}
 
@@ -200,8 +203,8 @@ func GetTradespersonTimeslots(tradespersonID string) (*operations.GetTradesperso
 	db := GetConnection()
 
 	response := operations.NewGetTradespersonTradespersonIDTimeSlotsOK()
-	payload := []*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0{}
-	response.SetPayload(payload)
+	services := []*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0{}
+	response.SetPayload(services)
 
 	stmt, err := db.Prepare("SELECT id, subscription, subInterval FROM fixed_prices WHERE tradespersonId=?")
 	if err != nil {
@@ -226,11 +229,13 @@ func GetTradespersonTimeslots(tradespersonID string) (*operations.GetTradesperso
 		service := operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0{}
 		service.Interval = interval
 		service.Subscription = subscription
-		service.TimeSlots, err = getScheduleTimeSlots(db, service, id)
+		service.TimeSlots, err = getScheduleTimeSlots(id)
 		if err != nil {
 			log.Printf("Failed to get service timeslots %s", err)
 		}
+		services = append(services, &service)
 	}
+	response.SetPayload(services)
 
 	return response, nil
 }

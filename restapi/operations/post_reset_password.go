@@ -65,24 +65,28 @@ func (o *PostResetPassword) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // swagger:model PostResetPasswordBody
 type PostResetPasswordBody struct {
 
-	// access token
+	// account type
 	// Required: true
-	AccessToken *string `json:"accessToken"`
+	AccountType *string `json:"accountType"`
 
 	// password
 	// Required: true
 	Password *string `json:"password"`
 
-	// type
+	// token
 	// Required: true
-	Type *string `json:"type"`
+	Token *string `json:"token"`
+
+	// user Id
+	// Required: true
+	UserID *string `json:"userId"`
 }
 
 // Validate validates this post reset password body
 func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateAccessToken(formats); err != nil {
+	if err := o.validateAccountType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -90,7 +94,11 @@ func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := o.validateType(formats); err != nil {
+	if err := o.validateToken(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateUserID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,9 +108,9 @@ func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *PostResetPasswordBody) validateAccessToken(formats strfmt.Registry) error {
+func (o *PostResetPasswordBody) validateAccountType(formats strfmt.Registry) error {
 
-	if err := validate.Required("password."+"."+"accessToken", "body", o.AccessToken); err != nil {
+	if err := validate.Required("user"+"."+"accountType", "body", o.AccountType); err != nil {
 		return err
 	}
 
@@ -111,16 +119,25 @@ func (o *PostResetPasswordBody) validateAccessToken(formats strfmt.Registry) err
 
 func (o *PostResetPasswordBody) validatePassword(formats strfmt.Registry) error {
 
-	if err := validate.Required("password."+"."+"password", "body", o.Password); err != nil {
+	if err := validate.Required("user"+"."+"password", "body", o.Password); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (o *PostResetPasswordBody) validateType(formats strfmt.Registry) error {
+func (o *PostResetPasswordBody) validateToken(formats strfmt.Registry) error {
 
-	if err := validate.Required("password."+"."+"type", "body", o.Type); err != nil {
+	if err := validate.Required("user"+"."+"token", "body", o.Token); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *PostResetPasswordBody) validateUserID(formats strfmt.Registry) error {
+
+	if err := validate.Required("user"+"."+"userId", "body", o.UserID); err != nil {
 		return err
 	}
 

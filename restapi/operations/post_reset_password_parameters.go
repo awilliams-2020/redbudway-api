@@ -35,7 +35,7 @@ type PostResetPasswordParams struct {
 	/*
 	  In: body
 	*/
-	Password PostResetPasswordBody
+	User PostResetPasswordBody
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -51,7 +51,7 @@ func (o *PostResetPasswordParams) BindRequest(r *http.Request, route *middleware
 		defer r.Body.Close()
 		var body PostResetPasswordBody
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("password", "body", "", err))
+			res = append(res, errors.NewParseError("user", "body", "", err))
 		} else {
 			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
@@ -64,7 +64,7 @@ func (o *PostResetPasswordParams) BindRequest(r *http.Request, route *middleware
 			}
 
 			if len(res) == 0 {
-				o.Password = body
+				o.User = body
 			}
 		}
 	}

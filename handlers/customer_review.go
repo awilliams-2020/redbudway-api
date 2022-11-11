@@ -18,43 +18,46 @@ func GetCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.GetCustome
 	customerID := params.CustomerID
 	quoteID := params.QuoteID
 
-	response := operations.NewGetCustomerCustomerIDQuoteQuoteIDReviewOK()
-	payload := operations.GetCustomerCustomerIDQuoteQuoteIDReviewOKBody{}
-	reviewed := true
-	payload.Reviewed = reviewed
+	payload := operations.GetCustomerCustomerIDQuoteQuoteIDReviewOKBody{Reviewed: true}
+	response := operations.NewGetCustomerCustomerIDQuoteQuoteIDReviewOK().WithPayload(&payload)
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT quoteId FROM tradesperson_quotes WHERE customerId=? AND quote=?")
+	stmt, err := db.Prepare("SELECT q.id, tq.quote FROM quotes q INNER JOIN tradesperson_quotes tq ON q.id=tq.quoteId WHERE q.quote=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	var ID int64
-	row := stmt.QueryRow(customerID, quoteID)
-	switch err = row.Scan(&ID); err {
-	case sql.ErrNoRows:
-		//
-	case nil:
-		var err error
-		stripeQuote, err := quote.Get(quoteID, nil)
-		if err != nil {
-			log.Printf("Failed to get stripe quote, %v", err)
-			return response
-		}
-		if stripeQuote.Status == "accepted" {
-			payload.Reviewed, err = database.CustomerReviewedQuote(customerID, quoteID)
-			if err != nil {
-				log.Printf("Failed to get customer review, %v", err)
-			}
-		}
-	default:
-		log.Printf("Unknown %v", err)
+	rows, err := stmt.Query(quoteID)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return response
 	}
 
-	response.SetPayload(&payload)
+	var ID int64
+	var _quote string
+	for rows.Next() {
+		if err := rows.Scan(&ID, &_quote); err != nil {
+			return response
+		}
+		stripeQuote, err := quote.Get(_quote, nil)
+		if err != nil {
+			return response
+		}
+
+		if stripeQuote.Invoice != nil {
+			payload.Reviewed, err = database.CustomerReviewedQuote(customerID, ID)
+			if err != nil {
+				return response
+			}
+			if payload.Reviewed {
+				response.SetPayload(&payload)
+				break
+			}
+		}
+	}
 	return response
 }
 
