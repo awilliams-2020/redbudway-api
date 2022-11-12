@@ -368,3 +368,22 @@ func GetTradespersonStripeID(tradespersonID string) (string, error) {
 
 	return stripeID, nil
 }
+
+func DeleteTradespersonAccount(tradepersonID, stripeID string) (bool, error) {
+	stmt, err := db.Prepare("DELETE FROM tradesperson_account WHERE tradespersonId=? AND stripeId=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	results, err := stmt.Exec(tradepersonID, stripeID)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := results.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return rowsAffected == 1, nil
+}

@@ -102,8 +102,8 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 			return response
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Title = &stripeProduct.Name
-		fixedPrice.Image = &stripeProduct.Images[0]
+		fixedPrice.Title = stripeProduct.Name
+		fixedPrice.Image = stripeProduct.Images[0]
 
 		if !fixedPrice.Subscription {
 			fixedPrice.AvailableTimeSlots, err = database.GetAvailableTimeSlots(id, subscription)
@@ -166,7 +166,7 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 			return response
 		}
 		quote := &models.Service{}
-		quote.Title = &title
+		quote.Title = title
 		quote.QuoteID = quoteID
 		quote.Reviews, quote.Rating, err = database.GetQuoteRating(ID)
 		if err != nil {

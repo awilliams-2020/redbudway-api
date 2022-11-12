@@ -23,7 +23,7 @@ func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service, city
 		}
 		quote := &models.Service{}
 		quote.Business = name
-		quote.Title = &title
+		quote.Title = title
 		quote.QuoteID = quoteID
 		quote.TradespersonID = tradespersonID
 		if vanityURL.Valid {

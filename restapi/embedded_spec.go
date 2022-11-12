@@ -174,6 +174,12 @@ func init() {
                 "deleted": {
                   "type": "boolean",
                   "x-omitempty": false
+                },
+                "tradespeople": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -4594,10 +4600,6 @@ func init() {
     },
     "Service": {
       "type": "object",
-      "required": [
-        "title",
-        "image"
-      ],
       "properties": {
         "availableTimeSlots": {
           "type": "integer",
@@ -4989,6 +4991,12 @@ func init() {
                 "deleted": {
                   "type": "boolean",
                   "x-omitempty": false
+                },
+                "tradespeople": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
             }
@@ -9509,10 +9517,6 @@ func init() {
     },
     "Service": {
       "type": "object",
-      "required": [
-        "title",
-        "image"
-      ],
       "properties": {
         "availableTimeSlots": {
           "type": "integer",

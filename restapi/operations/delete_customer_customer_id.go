@@ -78,6 +78,9 @@ type DeleteCustomerCustomerIDOKBody struct {
 
 	// deleted
 	Deleted bool `json:"deleted"`
+
+	// tradespeople
+	Tradespeople []string `json:"tradespeople"`
 }
 
 // Validate validates this delete customer customer ID o k body

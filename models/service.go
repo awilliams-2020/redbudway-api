@@ -8,10 +8,8 @@ package models
 import (
 	"context"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // Service service
@@ -26,8 +24,7 @@ type Service struct {
 	Business string `json:"business,omitempty"`
 
 	// image
-	// Required: true
-	Image *string `json:"image"`
+	Image string `json:"image,omitempty"`
 
 	// interval
 	Interval string `json:"interval"`
@@ -51,8 +48,7 @@ type Service struct {
 	Subscription bool `json:"subscription"`
 
 	// title
-	// Required: true
-	Title *string `json:"title"`
+	Title string `json:"title,omitempty"`
 
 	// tradesperson Id
 	TradespersonID string `json:"tradespersonId,omitempty"`
@@ -63,37 +59,6 @@ type Service struct {
 
 // Validate validates this service
 func (m *Service) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateImage(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateTitle(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *Service) validateImage(formats strfmt.Registry) error {
-
-	if err := validate.Required("image", "body", m.Image); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *Service) validateTitle(formats strfmt.Registry) error {
-
-	if err := validate.Required("title", "body", m.Title); err != nil {
-		return err
-	}
-
 	return nil
 }
 

@@ -1,6 +1,9 @@
 package database
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 func SaveInvoice(stripeInvoiceID, customerID, tradpespersonID string, fixedPriceID, created int64) (int64, error) {
 	invoiceCreate := time.Unix(created, 0)
@@ -58,4 +61,29 @@ func SaveManualInvoice(stripeInvoiceID, customerID, tradpespersonID string, crea
 	}
 
 	return nil
+}
+
+func OpenInvoices(tradespersonID string) (bool, error) {
+	stmt, err := db.Prepare("SELECT invoiceId FROM tradesperson_invoices WHERE tradespersonId=? AND QUARTER(created) = ? AND YEAR(created) = ? GROUP BY id ORDER BY created DESC")
+	if err != nil {
+		log.Printf("Failed to create prepare statement, %v", err)
+		return false, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(tradespersonID)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return false, err
+	}
+
+	var cuStripeID string
+	for rows.Next() {
+		if err := rows.Scan(&cuStripeID); err != nil {
+			log.Printf("Failed to scan row %v", err)
+			return false, err
+		}
+	}
+
+	return false, nil
 }

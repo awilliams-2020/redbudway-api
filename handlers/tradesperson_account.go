@@ -12,6 +12,8 @@ import (
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"redbudway-api/stripe"
+
+	"github.com/stripe/stripe-go/v72/account"
 )
 
 func PostTradespersonHandler(params operations.PostTradespersonParams) middleware.Responder {
@@ -51,6 +53,7 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 		payload.Created = true
 		payload.TradespersonID = tradespersonID.String()
 		payload.URL = onBoarding.URL
+
 		accessToken, err := internal.GenerateToken(tradespersonID.String(), "tradesperson", "access", time.Minute*15)
 		if err != nil {
 			log.Printf("Failed to generate JWT, %s", err)
@@ -65,11 +68,49 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 		}
 		payload.RefreshToken = refreshToken
 
+		saved, err := database.SaveTradespersonTokens(tradespersonID.String(), refreshToken, accessToken)
+		if err != nil {
+			log.Printf("Failed to save tradesperson tokens, %s", err)
+			return response
+		}
+		if !saved {
+			log.Printf("No issues, but failed to save tradesperson")
+		}
 		response.SetPayload(&payload)
 	case nil:
 		log.Printf("Tradesperson with email %s already exist", email)
 	default:
 		log.Printf("Unknown %v", err)
+	}
+
+	return response
+}
+
+func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradespersonTradespersonIDParams) middleware.Responder {
+	tradespersonID := params.TradespersonID
+
+	payload := operations.DeleteTradespersonTradespersonIDOKBody{Deleted: false}
+	response := operations.NewDeleteTradespersonTradespersonIDOK().WithPayload(&payload)
+
+	//Handle open invoices, subscriptions, quotes?
+
+	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
+	if err != nil {
+		log.Printf("Failed to get tradesperson %s stripe ID, %v", tradespersonID, err)
+		return response
+	}
+	stripeAccount, err := account.Del(stripeID, nil)
+	if err != nil {
+		log.Printf("Failed to delete tradesperson %s stripe account, %v", &stripeID, err)
+		return response
+	}
+	if stripeAccount.Deleted {
+		payload.Deleted, err = database.DeleteTradespersonAccount(tradespersonID, stripeID)
+		if err != nil {
+			log.Printf("Failed to delete tradesperson database account, %v", tradespersonID, err)
+			return response
+		}
+		response.SetPayload(&payload)
 	}
 
 	return response

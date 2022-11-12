@@ -122,7 +122,7 @@ func GetCustomerCustomerIDSubscriptionPriceIDReviewHandler(params operations.Get
 	row := stmt.QueryRow(cuStripeID, priceID)
 	switch err = row.Scan(&subscriptionID); err {
 	case sql.ErrNoRows:
-		log.Printf("Customer %v doesn't have subscription to review", cuStripeID)
+		//
 	case nil:
 		var err error
 		stripeSubscription, err := sub.Get(subscriptionID, nil)
@@ -229,7 +229,7 @@ func PostCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.PostCusto
 	var ID int64
 	var tradespersonID string
 	row := stmt.QueryRow(quoteID)
-	switch err = row.Scan(&quoteID, &tradespersonID); err {
+	switch err = row.Scan(&ID, &tradespersonID); err {
 	case sql.ErrNoRows:
 		log.Printf("Customer %v doesn't have invoice to review", customerID)
 	case nil:

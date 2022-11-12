@@ -2284,6 +2284,10 @@ paths:
               deleted:
                 type: boolean
                 x-omitempty: false
+              tradespeople:
+                type: array
+                items:
+                  type: string
   /customer/{customerId}/access-token:
     get:
       security:
@@ -2791,9 +2795,6 @@ paths:
 definitions:
   Service:
     type: object
-    required:
-      - title
-      - image
     properties:
       quoteId:
         type: string

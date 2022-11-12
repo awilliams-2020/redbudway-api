@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"bytes"
 	"database/sql"
 	"log"
 	"redbudway-api/database"
 	"redbudway-api/email"
-	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 
@@ -455,26 +453,6 @@ func PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHan
 
 	db := database.GetConnection()
 
-	stripeSubscription, err := sub.Get(subscriptions[0], nil)
-	if err != nil {
-		log.Printf("Failed to get subscription %s, %v", subscriptions[0], err)
-	}
-
-	stripePrice, err := price.Get(stripeSubscription.Items.Data[0].Price.ID, nil)
-	if err != nil {
-		log.Printf("Failed to retrieve stripe price, %s", stripeSubscription.Items.Data[0].Price.ID)
-		return response
-	}
-
-	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
-	if err != nil {
-		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
-		return response
-	}
-
-	decimalPrice := stripePrice.UnitAmountDecimal / float64(100.00)
-
-	var body bytes.Buffer
 	for _, subscriptionID := range subscriptions {
 		stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize FROM tradesperson_subscriptions ts INNER JOIN fixed_price_time_slots fpts ON fpts.cuStripeId=ts.cuStripeId WHERE ts.tradespersonId=? AND ts.cuStripeId=? AND ts.subscriptionId=?")
 		if err != nil {
@@ -489,36 +467,11 @@ func PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHan
 		case sql.ErrNoRows:
 			log.Printf("Tradesperson %s has no subscription %s", tradespersonID, subscriptionID)
 		case nil:
-			if err := database.ResetTakenTimeSlotBySubscription(cuStripeID, subscriptions[0]); err != nil {
-				log.Printf("Failed to reset time slots, %v", err)
-				return response
-			}
-
-			endTime, err := internal.CreateEndTime(startTime, segmentSize)
-			if err != nil {
-				log.Printf("Failed to create endTime, %v", err)
-				return response
-			}
-
-			timeAndPrice, err := internal.CreateSubscriptionTimeAndPriceFrmDB(string(stripePrice.Recurring.Interval), startTime, endTime, decimalPrice)
-			if err != nil {
-				log.Printf("Failed to create time and price, %v", err)
-				return response
-			}
-			body.WriteString(timeAndPrice)
-
-			stripeSubscription, err = sub.Cancel(subscriptionID, nil)
+			_, err := sub.Cancel(subscriptionID, nil)
 			if err != nil {
 				log.Printf("Failed to cancel subscription %s, %v", subscriptionID, err)
 			}
-			if stripeSubscription.Status == "canceled" {
-				if stripeSubscription.LatestInvoice == nil {
-					_, err := database.DeleteSubscription(subscriptionID, tradespersonID)
-					if err != nil {
-						log.Printf("Failed to delete tradesperson subscription, %v", err)
-					}
-				}
-			}
+
 		default:
 			log.Printf("Unknown, %v", err)
 		}
@@ -526,23 +479,6 @@ func PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHan
 
 	payload.Canceled = true
 	response.SetPayload(&payload)
-
-	tradesperson, err := database.GetTradespersonAccount(tradespersonID)
-	if err != nil {
-		log.Printf("Failed to get tradesperson account, %v", err)
-		return response
-	}
-
-	stripeCustomer, err := customer.Get(cuStripeID, nil)
-	if err != nil {
-		log.Printf("Failed to get customer stripe account, %v", err)
-		return response
-	}
-
-	if err := email.SendCustomerSubscriptionCancellation(tradesperson, stripeCustomer, stripeProduct, body.String()); err != nil {
-		log.Printf("Failed to send customer confirmation email, %v", err)
-		return response
-	}
 
 	return response
 }

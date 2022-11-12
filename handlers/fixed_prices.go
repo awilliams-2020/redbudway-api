@@ -48,8 +48,8 @@ func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Ser
 			return fixedPrices, err
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Title = &stripeProduct.Name
-		fixedPrice.Image = &stripeProduct.Images[0]
+		fixedPrice.Title = stripeProduct.Name
+		fixedPrice.Image = stripeProduct.Images[0]
 		fixedPrice.VanityURL = vanityURL.String
 		fixedPrice.Business = name
 		fixedPrice.TradespersonID = tradespersonID

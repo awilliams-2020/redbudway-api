@@ -592,7 +592,7 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 func GetTradespersonFixedPrices(tradespersonID string) []*models.Service {
 	fixedPrices := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.subscription, fp.subInterval, fp.selectPlaces, fp.archived FROM tradesperson_account ta INNER JOIN fixed_prices fp ON ta.tradespersonId=fp.tradespersonId WHERE fp.tradespersonId=?")
+	stmt, err := db.Prepare("SELECT id, priceId, subscription, subInterval, selectPlaces, archived FROM fixed_prices WHERE tradespersonId=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices
@@ -637,8 +637,8 @@ func GetTradespersonFixedPrices(tradespersonID string) []*models.Service {
 			return fixedPrices
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Title = &stripeProduct.Name
-		fixedPrice.Image = &stripeProduct.Images[0]
+		fixedPrice.Title = stripeProduct.Name
+		fixedPrice.Image = stripeProduct.Images[0]
 
 		fixedPrice.AvailableTimeSlots, err = GetAvailableTimeSlots(id, subscription)
 		if err != nil {
@@ -753,11 +753,11 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 			return false, err
 		}
 
-		if err = insertStatesAndCities(ID, quote); err != nil {
+		if err = insertQuoteStatesAndCities(ID, quote); err != nil {
 			return false, err
 		}
 
-		if err = insertFilters(ID, quote); err != nil {
+		if err = insertQuoteFilters(ID, quote); err != nil {
 			return false, err
 		}
 	}
@@ -765,22 +765,22 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 	return true, nil
 }
 
-func GetQuoteImage(ID int64) (*string, error) {
+func GetQuoteImage(ID int64) (string, error) {
 	url := ""
 
 	stmt, err := db.Prepare("SELECT url FROM quote_images WHERE quoteId=?")
 	if err != nil {
-		return &url, err
+		return url, err
 	}
 	defer stmt.Close()
 
 	row := stmt.QueryRow(ID)
 	if err != nil {
-		return &url, err
+		return url, err
 	}
 	row.Scan(&url)
 
-	return &url, nil
+	return url, nil
 }
 
 func GetQuoteImages(ID int64) ([]string, error) {
@@ -1078,29 +1078,31 @@ func UpdateTradespersonQuote(tradespersonID string, quoteID string, quote *model
 
 func GetTradespersonQuotes(tradespersonID string) []*models.Service {
 
-	services := []*models.Service{}
+	quotes := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT q.id, q.quote, q.title FROM tradesperson_account m INNER JOIN quotes q ON m.tradespersonId=q.tradespersonId WHERE q.tradespersonId=?")
+	stmt, err := db.Prepare("SELECT id, quote, title FROM quotes WHERE tradespersonId=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
-		return services
+		return quotes
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.Query(tradespersonID)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
-		return services
+		return quotes
 	}
 
 	var ID int64
 	var quoteID, title string
 	for rows.Next() {
 		if err := rows.Scan(&ID, &quoteID, &title); err != nil {
-			return services
+			log.Printf("Failed to scan row %s", err)
+			return quotes
 		}
-		quote := &models.Service{}
-		quote.Title = &title
+		log.Printf("Title: %s", title)
+		quote := models.Service{}
+		quote.Title = title
 		quote.QuoteID = quoteID
 		quote.Reviews, quote.Rating, err = GetQuoteRating(ID)
 		if err != nil {
@@ -1110,7 +1112,7 @@ func GetTradespersonQuotes(tradespersonID string) []*models.Service {
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}
-		services = append(services, quote)
+		quotes = append(quotes, &quote)
 	}
-	return services
+	return quotes
 }

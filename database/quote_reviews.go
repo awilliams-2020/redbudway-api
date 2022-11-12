@@ -28,14 +28,15 @@ func CustomerReviewedQuote(customerID string, ID int64) (bool, error) {
 	return reviewed, nil
 }
 
-func CreateQuoteReview(customerID, message string, quoteID, rating int64) (bool, error) {
+func CreateQuoteReview(customerID, message string, ID, rating int64) (bool, error) {
 	stmt, err := db.Prepare("INSERT INTO quote_reviews (quoteId, customerId, rating, message, date) VALUES (?, ?, ?, ?, NOW())")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(quoteID, customerID, rating, message)
+	log.Printf("ID: %s", ID)
+	results, err := stmt.Exec(ID, customerID, rating, message)
 	if err != nil {
 		return false, err
 	}

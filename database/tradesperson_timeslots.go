@@ -24,21 +24,6 @@ func ResetTakenTimeSlotByCustomer(cuStripeID string) error {
 	return nil
 }
 
-func ResetTakenTimeSlotBySubscription(cuStripeID, subscriptionID string) error {
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=False, takenBy=NULL, cuStripeId=NULL WHERE takenBy=? AND cuStripeId=?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(subscriptionID, cuStripeID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func ResetTakenTimeSlotByInvoice(invoiceID string) error {
 	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=False, takenBy=NULL, cuStripeId=NULL WHERE takenBy=? AND startTime > CURDATE()")
 	if err != nil {

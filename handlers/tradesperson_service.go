@@ -52,8 +52,8 @@ func GetTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Get
 	tradespersonID := params.TradespersonID
 	priceID := params.PriceID
 
-	response := operations.NewGetTradespersonTradespersonIDFixedPriceOK()
-	payload := operations.GetTradespersonTradespersonIDFixedPriceOKBody{}
+	response := operations.NewGetTradespersonTradespersonIDFixedPricePriceIDOK()
+	payload := operations.GetTradespersonTradespersonIDFixedPricePriceIDOKBody{}
 	fixedPrice, fixedPriceID, err := database.GetTradespersonFixedPrice(tradespersonID, priceID)
 	if err != nil {
 		log.Printf("Failed to get fixed price, %s", err)
@@ -76,8 +76,8 @@ func PutTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Put
 	priceID := params.PriceID
 	fixedPrice := params.FixedPrice
 
-	response := operations.NewPutTradespersonTradespersonIDFixedPriceOK()
-	payload := operations.PutTradespersonTradespersonIDFixedPriceOKBody{}
+	response := operations.NewPutTradespersonTradespersonIDFixedPricePriceIDOK()
+	payload := operations.PutTradespersonTradespersonIDFixedPricePriceIDOKBody{}
 	updated := false
 	payload.Updated = updated
 
@@ -249,7 +249,7 @@ func GetTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.GetTrade
 	tradespersonID := params.TradespersonID
 	quoteID := params.QuoteID
 
-	response := operations.NewGetTradespersonTradespersonIDQuoteOK()
+	response := operations.NewGetTradespersonTradespersonIDQuoteQuoteIDOK()
 	quote, err := database.GetTradespersonQuote(tradespersonID, quoteID)
 	if err != nil {
 		log.Printf("Failed to get quote, %s", err)
@@ -266,8 +266,8 @@ func PutTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.PutTrade
 	quoteID := params.QuoteID
 	quote := params.Quote
 
-	response := operations.NewPutTradespersonTradespersonIDQuoteOK()
-	payload := operations.PutTradespersonTradespersonIDQuoteOKBody{}
+	response := operations.NewPutTradespersonTradespersonIDQuoteQuoteIDOK()
+	payload := operations.PutTradespersonTradespersonIDQuoteQuoteIDOKBody{}
 
 	payload.Updated = false
 

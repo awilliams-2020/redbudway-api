@@ -69,6 +69,15 @@ func PostCustomerHandler(params operations.PostCustomerParams) middleware.Respon
 		}
 		payload.RefreshToken = refreshToken
 
+		saved, err := database.SaveCustomerTokens(customerID.String(), refreshToken, accessToken)
+		if err != nil {
+			log.Printf("Failed to save customer tokens, %s", err)
+			return response
+		}
+		if !saved {
+			log.Printf("No issues, but failed to save customer")
+		}
+
 		response.SetPayload(&payload)
 	case nil:
 		log.Printf("Customer with email %s already exist", email)
@@ -186,6 +195,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			OnBehalfOf:                  stripe.String(tpStripeID),
 			PendingInvoiceItemsBehavior: stripe.String("exclude"),
 		}
+		invoiceParams.AddMetadata("tradesperson_id", tradespersonID)
 		stripeInvoice, err := invoice.New(invoiceParams)
 		if err != nil {
 			log.Printf("Failed to create new invoice %v", err)
@@ -314,7 +324,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 
 		quantity := int64(1)
 
-		params := &stripe.SubscriptionParams{
+		subscriptionParams := &stripe.SubscriptionParams{
 			Customer: stripe.String(cuStripeID),
 			Items: []*stripe.SubscriptionItemsParams{
 				{
@@ -329,7 +339,8 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 			},
 			ProrationBehavior: stripe.String("none"),
 		}
-		stripeSubscription, err := sub.New(params)
+		subscriptionParams.AddMetadata("tradesperson_id", tradespersonID)
+		stripeSubscription, err := sub.New(subscriptionParams)
 		if err != nil {
 			log.Printf("Failed to create subscription, %v", err)
 			return response
@@ -504,7 +515,7 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 func DeleteCustomerCustomerIDHandler(params operations.DeleteCustomerCustomerIDParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 
-	payload := operations.DeleteCustomerCustomerIDOKBody{Deleted: false}
+	payload := operations.DeleteCustomerCustomerIDOKBody{Deleted: false, Tradespeople: []string{}}
 	response := operations.NewDeleteCustomerCustomerIDOK().WithPayload(&payload)
 
 	cuStripeID, err := database.GetCustomerStripeID(customerID)
@@ -512,21 +523,14 @@ func DeleteCustomerCustomerIDHandler(params operations.DeleteCustomerCustomerIDP
 		log.Printf("Failed to get customer %s stripe ID, %v", customerID, err)
 		return response
 	}
-	stripeCustomer, err := customer.Del(cuStripeID, nil)
-	if err != nil {
-		log.Printf("Failed to delete customer %s stripe account, %v", customerID, err)
-	}
-	if stripeCustomer.Deleted {
-		deleted, err := database.DeleteCustomerAccount(customerID)
-		if err != nil {
-			log.Printf("Failed to delete customer %s account, %v", customerID, err)
-		}
-		payload.Deleted = deleted
-		response.SetPayload(&payload)
 
-		if err := database.ResetTakenTimeSlotByCustomer(cuStripeID); err != nil {
-			log.Printf("Failed to reset time slot, %v", err)
-		}
+	invoiceListParams := &stripe.InvoiceListParams{
+		Customer: stripe.String(cuStripeID),
+		Status:   stripe.String("draft"),
+	}
+	i := invoice.List(invoiceListParams)
+	for i.Next() {
+		return response
 	}
 
 	return response
