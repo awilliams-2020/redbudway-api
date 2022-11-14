@@ -16,6 +16,8 @@ import (
 	"github.com/stripe/stripe-go/v72/product"
 )
 
+const PAGE_SIZE = float64(9)
+
 func insertTimeSlots(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
 	for _, timeSlot := range fixedPrice.TimeSlots {
 		t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
@@ -589,17 +591,18 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 	return updated, nil
 }
 
-func GetTradespersonFixedPrices(tradespersonID string) []*models.Service {
+func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Service {
 	fixedPrices := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, priceId, subscription, subInterval, selectPlaces, archived FROM fixed_prices WHERE tradespersonId=?")
+	stmt, err := db.Prepare("SELECT id, priceId, subscription, subInterval, selectPlaces, archived FROM fixed_prices WHERE tradespersonId=? LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(tradespersonID)
+	offSet := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(tradespersonID, offSet, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return fixedPrices
@@ -1076,18 +1079,19 @@ func UpdateTradespersonQuote(tradespersonID string, quoteID string, quote *model
 	return updated, nil
 }
 
-func GetTradespersonQuotes(tradespersonID string) []*models.Service {
+func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service {
 
 	quotes := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, quote, title FROM quotes WHERE tradespersonId=?")
+	stmt, err := db.Prepare("SELECT id, quote, title FROM quotes WHERE tradespersonId=? LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(tradespersonID)
+	offSet := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(tradespersonID, offSet, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return quotes

@@ -171,6 +171,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		GetTradespersonTradespersonIDBillingSubscriptionsHandler: GetTradespersonTradespersonIDBillingSubscriptionsHandlerFunc(func(params GetTradespersonTradespersonIDBillingSubscriptionsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingSubscriptions has not yet been implemented")
 		}),
+		GetTradespersonTradespersonIDFixedPricePagesHandler: GetTradespersonTradespersonIDFixedPricePagesHandlerFunc(func(params GetTradespersonTradespersonIDFixedPricePagesParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDFixedPricePages has not yet been implemented")
+		}),
 		GetTradespersonTradespersonIDFixedPricePriceIDHandler: GetTradespersonTradespersonIDFixedPricePriceIDHandlerFunc(func(params GetTradespersonTradespersonIDFixedPricePriceIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDFixedPricePriceID has not yet been implemented")
 		}),
@@ -185,6 +188,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		}),
 		GetTradespersonTradespersonIDOnboardHandler: GetTradespersonTradespersonIDOnboardHandlerFunc(func(params GetTradespersonTradespersonIDOnboardParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDOnboard has not yet been implemented")
+		}),
+		GetTradespersonTradespersonIDQuotePagesHandler: GetTradespersonTradespersonIDQuotePagesHandlerFunc(func(params GetTradespersonTradespersonIDQuotePagesParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDQuotePages has not yet been implemented")
 		}),
 		GetTradespersonTradespersonIDQuoteQuoteIDHandler: GetTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(func(params GetTradespersonTradespersonIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDQuoteQuoteID has not yet been implemented")
@@ -484,6 +490,8 @@ type RedbudWayAPIAPI struct {
 	GetTradespersonTradespersonIDBillingSubscriptionPagesHandler GetTradespersonTradespersonIDBillingSubscriptionPagesHandler
 	// GetTradespersonTradespersonIDBillingSubscriptionsHandler sets the operation handler for the get tradesperson tradesperson ID billing subscriptions operation
 	GetTradespersonTradespersonIDBillingSubscriptionsHandler GetTradespersonTradespersonIDBillingSubscriptionsHandler
+	// GetTradespersonTradespersonIDFixedPricePagesHandler sets the operation handler for the get tradesperson tradesperson ID fixed price pages operation
+	GetTradespersonTradespersonIDFixedPricePagesHandler GetTradespersonTradespersonIDFixedPricePagesHandler
 	// GetTradespersonTradespersonIDFixedPricePriceIDHandler sets the operation handler for the get tradesperson tradesperson ID fixed price price ID operation
 	GetTradespersonTradespersonIDFixedPricePriceIDHandler GetTradespersonTradespersonIDFixedPricePriceIDHandler
 	// GetTradespersonTradespersonIDFixedPriceReviewsHandler sets the operation handler for the get tradesperson tradesperson ID fixed price reviews operation
@@ -494,6 +502,8 @@ type RedbudWayAPIAPI struct {
 	GetTradespersonTradespersonIDLoginLinkHandler GetTradespersonTradespersonIDLoginLinkHandler
 	// GetTradespersonTradespersonIDOnboardHandler sets the operation handler for the get tradesperson tradesperson ID onboard operation
 	GetTradespersonTradespersonIDOnboardHandler GetTradespersonTradespersonIDOnboardHandler
+	// GetTradespersonTradespersonIDQuotePagesHandler sets the operation handler for the get tradesperson tradesperson ID quote pages operation
+	GetTradespersonTradespersonIDQuotePagesHandler GetTradespersonTradespersonIDQuotePagesHandler
 	// GetTradespersonTradespersonIDQuoteQuoteIDHandler sets the operation handler for the get tradesperson tradesperson ID quote quote ID operation
 	GetTradespersonTradespersonIDQuoteQuoteIDHandler GetTradespersonTradespersonIDQuoteQuoteIDHandler
 	// GetTradespersonTradespersonIDQuoteReviewsHandler sets the operation handler for the get tradesperson tradesperson ID quote reviews operation
@@ -812,6 +822,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.GetTradespersonTradespersonIDBillingSubscriptionsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingSubscriptionsHandler")
 	}
+	if o.GetTradespersonTradespersonIDFixedPricePagesHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDFixedPricePagesHandler")
+	}
 	if o.GetTradespersonTradespersonIDFixedPricePriceIDHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDFixedPricePriceIDHandler")
 	}
@@ -826,6 +839,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.GetTradespersonTradespersonIDOnboardHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDOnboardHandler")
+	}
+	if o.GetTradespersonTradespersonIDQuotePagesHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDQuotePagesHandler")
 	}
 	if o.GetTradespersonTradespersonIDQuoteQuoteIDHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDQuoteQuoteIDHandler")
@@ -1261,6 +1277,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/fixed-price/pages"] = NewGetTradespersonTradespersonIDFixedPricePages(o.context, o.GetTradespersonTradespersonIDFixedPricePagesHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/fixed-price/{priceId}"] = NewGetTradespersonTradespersonIDFixedPricePriceID(o.context, o.GetTradespersonTradespersonIDFixedPricePriceIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -1278,6 +1298,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/onboard"] = NewGetTradespersonTradespersonIDOnboard(o.context, o.GetTradespersonTradespersonIDOnboardHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/quote/pages"] = NewGetTradespersonTradespersonIDQuotePages(o.context, o.GetTradespersonTradespersonIDQuotePagesHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

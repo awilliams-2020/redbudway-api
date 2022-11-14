@@ -3876,6 +3876,33 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/fixed-price/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of fixed price pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/fixed-price/review": {
       "post": {
         "security": [
@@ -4071,6 +4098,13 @@ func init() {
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query",
             "required": true
           }
         ],
@@ -4271,6 +4305,33 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/quote/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of quote pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/quote/review": {
       "post": {
         "security": [
@@ -4458,6 +4519,13 @@ func init() {
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query",
             "required": true
           }
         ],
@@ -8791,6 +8859,33 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/fixed-price/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of fixed price pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/fixed-price/review": {
       "post": {
         "security": [
@@ -8968,6 +9063,13 @@ func init() {
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query",
             "required": true
           }
         ],
@@ -9168,6 +9270,33 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/quote/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of quote pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/quote/review": {
       "post": {
         "security": [
@@ -9337,6 +9466,13 @@ func init() {
             "description": "Tradesperson ID",
             "name": "tradespersonId",
             "in": "path",
+            "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query",
             "required": true
           }
         ],

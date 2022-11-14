@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"log"
+	"math"
 	"redbudway-api/database"
 	"redbudway-api/restapi/operations"
 
@@ -95,10 +96,43 @@ func PutTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Put
 
 func GetTradespersonTradespersonIDFixedPricesHandler(params operations.GetTradespersonTradespersonIDFixedPricesParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	page := params.Page
 
 	response := operations.NewGetTradespersonTradespersonIDFixedPricesOK()
-	payload := database.GetTradespersonFixedPrices(tradespersonID)
+	payload := database.GetTradespersonFixedPrices(tradespersonID, page)
 	response.SetPayload(payload)
+
+	return response
+}
+
+func GetTradespersonTradespersonIDFixedPricePagesHandler(params operations.GetTradespersonTradespersonIDFixedPricePagesParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+
+	pages := float64(1)
+	response := operations.NewGetTradespersonTradespersonIDFixedPricePagesOK().WithPayload(int64(pages))
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices WHERE tradespersonId=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return response
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(tradespersonID).Scan(&pages)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return response
+	}
+
+	if pages == float64(0) {
+		pages = float64(1)
+	}
+
+	pages = math.Ceil(pages / PAGE_SIZE)
+
+	response.SetPayload(int64(pages))
 
 	return response
 }
@@ -337,10 +371,42 @@ func GetTradespersonTradespersonIDQuoteReviewsHandler(params operations.GetTrade
 
 func GetTradespersonTradespersonIDQuotesHandler(params operations.GetTradespersonTradespersonIDQuotesParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
+	page := params.Page
 	response := operations.NewGetTradespersonTradespersonIDQuotesOK()
-	services := database.GetTradespersonQuotes(tradespersonID)
+	services := database.GetTradespersonQuotes(tradespersonID, page)
 	response.SetPayload(services)
+
+	return response
+}
+
+func GetTradespersonTradespersonIDQuotePagesHandler(params operations.GetTradespersonTradespersonIDQuotePagesParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+
+	pages := float64(1)
+	response := operations.NewGetTradespersonTradespersonIDQuotePagesOK().WithPayload(int64(pages))
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM quotes WHERE tradespersonId=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return response
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(tradespersonID).Scan(&pages)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return response
+	}
+
+	if pages == float64(0) {
+		pages = float64(1)
+	}
+
+	pages = math.Ceil(pages / PAGE_SIZE)
+
+	response.SetPayload(int64(pages))
 
 	return response
 }

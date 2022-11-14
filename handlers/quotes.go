@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 )
 
-const QUOTE_PAGE_SIZE = 3
+const QUOTE_PAGE_SIZE = float64(9)
 
 func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service) ([]*models.Service, error) {
 	var id int64

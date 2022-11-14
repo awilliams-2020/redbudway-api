@@ -10,11 +10,15 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 	"strings"
+
+	"github.com/go-openapi/swag"
 )
 
 // GetTradespersonTradespersonIDQuotesURL generates an URL for the get tradesperson tradesperson ID quotes operation
 type GetTradespersonTradespersonIDQuotesURL struct {
 	TradespersonID string
+
+	Page int64
 
 	_basePath string
 	// avoid unkeyed usage
@@ -54,6 +58,15 @@ func (o *GetTradespersonTradespersonIDQuotesURL) Build() (*url.URL, error) {
 		_basePath = "/v1"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	pageQ := swag.FormatInt64(o.Page)
+	if pageQ != "" {
+		qs.Set("page", pageQ)
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }
