@@ -12,23 +12,22 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
-// NewGetFixedPricesParams creates a new GetFixedPricesParams object
+// NewGetQuotePagesParams creates a new GetQuotePagesParams object
 //
 // There are no default values defined in the spec.
-func NewGetFixedPricesParams() GetFixedPricesParams {
+func NewGetQuotePagesParams() GetQuotePagesParams {
 
-	return GetFixedPricesParams{}
+	return GetQuotePagesParams{}
 }
 
-// GetFixedPricesParams contains all the bound params for the get fixed prices operation
+// GetQuotePagesParams contains all the bound params for the get quote pages operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters GetFixedPrices
-type GetFixedPricesParams struct {
+// swagger:parameters GetQuotePages
+type GetQuotePagesParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -47,10 +46,6 @@ type GetFixedPricesParams struct {
 	*/
 	Filters *string
 	/*
-	  In: query
-	*/
-	Page *int64
-	/*
 	  Required: true
 	  In: query
 	*/
@@ -64,8 +59,8 @@ type GetFixedPricesParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewGetFixedPricesParams() beforehand.
-func (o *GetFixedPricesParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewGetQuotePagesParams() beforehand.
+func (o *GetQuotePagesParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
@@ -87,11 +82,6 @@ func (o *GetFixedPricesParams) BindRequest(r *http.Request, route *middleware.Ma
 		res = append(res, err)
 	}
 
-	qPage, qhkPage, _ := qs.GetOK("page")
-	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	qState, qhkState, _ := qs.GetOK("state")
 	if err := o.bindState(qState, qhkState, route.Formats); err != nil {
 		res = append(res, err)
@@ -108,7 +98,7 @@ func (o *GetFixedPricesParams) BindRequest(r *http.Request, route *middleware.Ma
 }
 
 // bindCategory binds and validates parameter Category from query.
-func (o *GetFixedPricesParams) bindCategory(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetQuotePagesParams) bindCategory(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -126,7 +116,7 @@ func (o *GetFixedPricesParams) bindCategory(rawData []string, hasKey bool, forma
 }
 
 // bindCity binds and validates parameter City from query.
-func (o *GetFixedPricesParams) bindCity(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetQuotePagesParams) bindCity(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("city", "query", rawData)
 	}
@@ -147,7 +137,7 @@ func (o *GetFixedPricesParams) bindCity(rawData []string, hasKey bool, formats s
 }
 
 // bindFilters binds and validates parameter Filters from query.
-func (o *GetFixedPricesParams) bindFilters(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetQuotePagesParams) bindFilters(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -164,31 +154,8 @@ func (o *GetFixedPricesParams) bindFilters(rawData []string, hasKey bool, format
 	return nil
 }
 
-// bindPage binds and validates parameter Page from query.
-func (o *GetFixedPricesParams) bindPage(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: false
-	// AllowEmptyValue: false
-
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-
-	value, err := swag.ConvertInt64(raw)
-	if err != nil {
-		return errors.InvalidType("page", "query", "int64", raw)
-	}
-	o.Page = &value
-
-	return nil
-}
-
 // bindState binds and validates parameter State from query.
-func (o *GetFixedPricesParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetQuotePagesParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("state", "query", rawData)
 	}
@@ -209,7 +176,7 @@ func (o *GetFixedPricesParams) bindState(rawData []string, hasKey bool, formats 
 }
 
 // bindSubCategory binds and validates parameter SubCategory from query.
-func (o *GetFixedPricesParams) bindSubCategory(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetQuotePagesParams) bindSubCategory(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]

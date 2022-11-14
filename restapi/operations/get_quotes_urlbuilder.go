@@ -9,6 +9,8 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
+
+	"github.com/go-openapi/swag"
 )
 
 // GetQuotesURL generates an URL for the get quotes operation
@@ -16,6 +18,7 @@ type GetQuotesURL struct {
 	Category    *string
 	City        string
 	Filters     *string
+	Page        *int64
 	State       string
 	SubCategory *string
 
@@ -72,6 +75,14 @@ func (o *GetQuotesURL) Build() (*url.URL, error) {
 	}
 	if filtersQ != "" {
 		qs.Set("filters", filtersQ)
+	}
+
+	var pageQ string
+	if o.Page != nil {
+		pageQ = swag.FormatInt64(*o.Page)
+	}
+	if pageQ != "" {
+		qs.Set("page", pageQ)
 	}
 
 	stateQ := o.State

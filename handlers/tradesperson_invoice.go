@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"log"
+	"math"
 	"redbudway-api/database"
 	"redbudway-api/email"
 	"redbudway-api/internal"
@@ -493,20 +494,22 @@ func GetTradespersonTradespersonIDBillingInvoicesHandler(params operations.GetTr
 	tradespersonID := params.TradespersonID
 	quarter := params.Quarter
 	year := params.Year
+	page := *params.Page
 
 	response := operations.NewGetTradespersonTradespersonIDBillingInvoicesOK()
 	invoices := []*operations.GetTradespersonTradespersonIDBillingInvoicesOKBodyItems0{}
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT invoiceId FROM tradesperson_invoices WHERE tradespersonId=? AND QUARTER(created) = ? AND YEAR(created) = ? GROUP BY id ORDER BY created DESC")
+	stmt, err := db.Prepare("SELECT invoiceId FROM tradesperson_invoices WHERE tradespersonId=? AND QUARTER(created) = ? AND YEAR(created) = ? ORDER BY created DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create prepare statement, %v", err)
 		return response
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(tradespersonID, quarter, year)
+	offSet := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(tradespersonID, quarter, year, offSet, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response
@@ -543,5 +546,38 @@ func GetTradespersonTradespersonIDBillingInvoicesHandler(params operations.GetTr
 	}
 
 	response.SetPayload(invoices)
+	return response
+}
+
+func GetTradespersonTradespersonIDBillingInvoicePagesHandler(params operations.GetTradespersonTradespersonIDBillingInvoicePagesParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	quarter := params.Quarter
+	year := params.Year
+
+	pages := float64(1)
+	response := operations.NewGetTradespersonTradespersonIDBillingInvoicePagesOK().WithPayload(int64(pages))
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM tradesperson_invoices WHERE tradespersonId=? AND QUARTER(created) = ? AND YEAR(created) = ?")
+	if err != nil {
+		log.Printf("Failed to create prepare statement, %v", err)
+		return response
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(tradespersonID, quarter, year).Scan(&pages)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return response
+	}
+
+	if pages == float64(0) {
+		pages = float64(1)
+	}
+
+	pages = math.Ceil(pages / PAGE_SIZE)
+
+	response.SetPayload(int64(pages))
 	return response
 }

@@ -1055,6 +1055,10 @@ paths:
         description: Year of invoice
         required: true
         type: string
+      - in: query
+        name: page
+        type: number
+        format: int64
       responses:
         '200':
           description: Invoices in a quarter of some year
@@ -1072,6 +1076,32 @@ paths:
                   type: string
                 customer:
                   type: string
+  /tradesperson/{tradespersonId}/billing/invoice/pages:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: query
+        name: quarter
+        description: Quarter of the year
+        required: true
+        type: string
+      - in: query
+        name: year
+        description: Year of invoice
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Number of invoices
+          schema:
+            type: number
+            format: int64
   /tradesperson/{tradespersonId}/billing/invoice/{invoiceId}:
     get:
       security:
@@ -1299,6 +1329,10 @@ paths:
         description: Year of quote
         required: true
         type: string
+      - in: query
+        name: page
+        type: integer
+        format: int64
       responses:
         '200':
           description: quotes in a quarter of some year
@@ -1318,6 +1352,32 @@ paths:
                   type: string
                 customer:
                   type: string
+  /tradesperson/{tradespersonId}/billing/quote/pages:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: query
+        name: quarter
+        description: Quarter of the year
+        required: true
+        type: string
+      - in: query
+        name: year
+        description: Year of quote
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Number of quote pages
+          schema:
+            type: number
+            format: int64
   /tradesperson/{tradespersonId}/billing/quote/{quoteId}:
     get:
       security:
@@ -1665,6 +1725,10 @@ paths:
         description: Year of invoice
         required: true
         type: string
+      - in: query
+        name: page
+        type: number
+        format: int64
       responses:
         '200':
           description: Manual invoices in a quarter of some year
@@ -1682,6 +1746,32 @@ paths:
                   type: string
                 customer:
                   type: string
+  /tradesperson/{tradespersonId}/billing/manual-invoice/pages:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: query
+        name: quarter
+        description: Quarter of the year
+        required: true
+        type: string
+      - in: query
+        name: year
+        description: Year of invoice
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Number of manual invoices
+          schema:
+            type: number
+            format: int64  
   /tradesperson/{tradespersonId}/billing/manual-invoice:
     post:
       security:
@@ -1853,6 +1943,10 @@ paths:
         description: Tradesperson ID
         required: true
         type: string
+      - in: query
+        name: page
+        type: integer
+        format: int64
       responses:
         '200':
           description: Customers active, canceled, incomplete subscriptions
@@ -1877,6 +1971,22 @@ paths:
                   type: integer
                   format: int64
                   x-omitempty: false
+  /tradesperson/{tradespersonId}/billing/subscription/pages:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Number of subscription pages
+          schema:
+            type: number
+            format: int64
   /tradesperson/{tradespersonId}/billing/customers:
     get:
       security:
@@ -2069,6 +2179,10 @@ paths:
         - in: query
           name: filters
           type: string
+        - in: query
+          name: page
+          type: integer
+          format: int64
       responses:
         '200':
           description: Tradesperson fixed-price services
@@ -2076,6 +2190,32 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Service'
+  /fixed-price/pages:
+    get:
+      parameters:
+        - in: query
+          name: state
+          type: string
+          required: true
+        - in: query
+          name: city
+          type: string
+          required: true
+        - in: query
+          name: category
+          type: string
+        - in: query
+          name: subCategory
+          type: string
+        - in: query
+          name: filters
+          type: string
+      responses:
+        '200':
+          description: Number of fixed prices
+          schema:
+            type: number
+            format: int64
   /quote/{quoteId}:
     get:
       parameters:
@@ -2165,6 +2305,10 @@ paths:
         - in: query
           name: filters
           type: string
+        - in: query
+          name: page
+          type: number
+          format: int64
       responses:
         '200':
           description: Tradesperson quote services
@@ -2172,6 +2316,32 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Service'
+  /quote/pages:
+    get:
+      parameters:
+        - in: query
+          name: state
+          type: string
+          required: true
+        - in: query
+          name: city
+          type: string
+          required: true
+        - in: query
+          name: category
+          type: string
+        - in: query
+          name: subCategory
+          type: string
+        - in: query
+          name: filters
+          type: string
+      responses:
+        '200':
+          description: Number of quote pages
+          schema:
+            type: number
+            format: int64
   /customer/login:
     post:
       parameters:

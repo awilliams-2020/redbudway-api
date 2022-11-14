@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
@@ -32,6 +33,10 @@ type GetTradespersonTradespersonIDBillingManualInvoicesParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
+	/*
+	  In: query
+	*/
+	Page *int64
 	/*Quarter of the year
 	  Required: true
 	  In: query
@@ -60,6 +65,11 @@ func (o *GetTradespersonTradespersonIDBillingManualInvoicesParams) BindRequest(r
 
 	qs := runtime.Values(r.URL.Query())
 
+	qPage, qhkPage, _ := qs.GetOK("page")
+	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	qQuarter, qhkQuarter, _ := qs.GetOK("quarter")
 	if err := o.bindQuarter(qQuarter, qhkQuarter, route.Formats); err != nil {
 		res = append(res, err)
@@ -77,6 +87,29 @@ func (o *GetTradespersonTradespersonIDBillingManualInvoicesParams) BindRequest(r
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// bindPage binds and validates parameter Page from query.
+func (o *GetTradespersonTradespersonIDBillingManualInvoicesParams) bindPage(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	value, err := swag.ConvertInt64(raw)
+	if err != nil {
+		return errors.InvalidType("page", "query", "int64", raw)
+	}
+	o.Page = &value
+
 	return nil
 }
 

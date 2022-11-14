@@ -9,16 +9,13 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
-
-	"github.com/go-openapi/swag"
 )
 
-// GetFixedPricesURL generates an URL for the get fixed prices operation
-type GetFixedPricesURL struct {
+// GetFixedPricesPagesURL generates an URL for the get fixed prices pages operation
+type GetFixedPricesPagesURL struct {
 	Category    *string
 	City        string
 	Filters     *string
-	Page        *int64
 	State       string
 	SubCategory *string
 
@@ -30,7 +27,7 @@ type GetFixedPricesURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetFixedPricesURL) WithBasePath(bp string) *GetFixedPricesURL {
+func (o *GetFixedPricesPagesURL) WithBasePath(bp string) *GetFixedPricesPagesURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -38,15 +35,15 @@ func (o *GetFixedPricesURL) WithBasePath(bp string) *GetFixedPricesURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetFixedPricesURL) SetBasePath(bp string) {
+func (o *GetFixedPricesPagesURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetFixedPricesURL) Build() (*url.URL, error) {
+func (o *GetFixedPricesPagesURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/fixed-prices"
+	var _path = "/fixed-prices/pages"
 
 	_basePath := o._basePath
 	if _basePath == "" {
@@ -77,14 +74,6 @@ func (o *GetFixedPricesURL) Build() (*url.URL, error) {
 		qs.Set("filters", filtersQ)
 	}
 
-	var pageQ string
-	if o.Page != nil {
-		pageQ = swag.FormatInt64(*o.Page)
-	}
-	if pageQ != "" {
-		qs.Set("page", pageQ)
-	}
-
 	stateQ := o.State
 	if stateQ != "" {
 		qs.Set("state", stateQ)
@@ -104,7 +93,7 @@ func (o *GetFixedPricesURL) Build() (*url.URL, error) {
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetFixedPricesURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetFixedPricesPagesURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -115,17 +104,17 @@ func (o *GetFixedPricesURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *GetFixedPricesURL) String() string {
+func (o *GetFixedPricesPagesURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetFixedPricesURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetFixedPricesPagesURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetFixedPricesURL")
+		return nil, errors.New("scheme is required for a full url on GetFixedPricesPagesURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetFixedPricesURL")
+		return nil, errors.New("host is required for a full url on GetFixedPricesPagesURL")
 	}
 
 	base, err := o.Build()
@@ -139,6 +128,6 @@ func (o *GetFixedPricesURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetFixedPricesURL) StringFull(scheme, host string) string {
+func (o *GetFixedPricesPagesURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

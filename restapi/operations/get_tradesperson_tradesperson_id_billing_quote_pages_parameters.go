@@ -12,31 +12,26 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
-// NewGetTradespersonTradespersonIDBillingQuotesParams creates a new GetTradespersonTradespersonIDBillingQuotesParams object
+// NewGetTradespersonTradespersonIDBillingQuotePagesParams creates a new GetTradespersonTradespersonIDBillingQuotePagesParams object
 //
 // There are no default values defined in the spec.
-func NewGetTradespersonTradespersonIDBillingQuotesParams() GetTradespersonTradespersonIDBillingQuotesParams {
+func NewGetTradespersonTradespersonIDBillingQuotePagesParams() GetTradespersonTradespersonIDBillingQuotePagesParams {
 
-	return GetTradespersonTradespersonIDBillingQuotesParams{}
+	return GetTradespersonTradespersonIDBillingQuotePagesParams{}
 }
 
-// GetTradespersonTradespersonIDBillingQuotesParams contains all the bound params for the get tradesperson tradesperson ID billing quotes operation
+// GetTradespersonTradespersonIDBillingQuotePagesParams contains all the bound params for the get tradesperson tradesperson ID billing quote pages operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters GetTradespersonTradespersonIDBillingQuotes
-type GetTradespersonTradespersonIDBillingQuotesParams struct {
+// swagger:parameters GetTradespersonTradespersonIDBillingQuotePages
+type GetTradespersonTradespersonIDBillingQuotePagesParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*
-	  In: query
-	*/
-	Page *int64
 	/*Quarter of the year
 	  Required: true
 	  In: query
@@ -57,18 +52,13 @@ type GetTradespersonTradespersonIDBillingQuotesParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewGetTradespersonTradespersonIDBillingQuotesParams() beforehand.
-func (o *GetTradespersonTradespersonIDBillingQuotesParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewGetTradespersonTradespersonIDBillingQuotePagesParams() beforehand.
+func (o *GetTradespersonTradespersonIDBillingQuotePagesParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
 
 	qs := runtime.Values(r.URL.Query())
-
-	qPage, qhkPage, _ := qs.GetOK("page")
-	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
-		res = append(res, err)
-	}
 
 	qQuarter, qhkQuarter, _ := qs.GetOK("quarter")
 	if err := o.bindQuarter(qQuarter, qhkQuarter, route.Formats); err != nil {
@@ -90,31 +80,8 @@ func (o *GetTradespersonTradespersonIDBillingQuotesParams) BindRequest(r *http.R
 	return nil
 }
 
-// bindPage binds and validates parameter Page from query.
-func (o *GetTradespersonTradespersonIDBillingQuotesParams) bindPage(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: false
-	// AllowEmptyValue: false
-
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-
-	value, err := swag.ConvertInt64(raw)
-	if err != nil {
-		return errors.InvalidType("page", "query", "int64", raw)
-	}
-	o.Page = &value
-
-	return nil
-}
-
 // bindQuarter binds and validates parameter Quarter from query.
-func (o *GetTradespersonTradespersonIDBillingQuotesParams) bindQuarter(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDBillingQuotePagesParams) bindQuarter(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("quarter", "query", rawData)
 	}
@@ -135,7 +102,7 @@ func (o *GetTradespersonTradespersonIDBillingQuotesParams) bindQuarter(rawData [
 }
 
 // bindTradespersonID binds and validates parameter TradespersonID from path.
-func (o *GetTradespersonTradespersonIDBillingQuotesParams) bindTradespersonID(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDBillingQuotePagesParams) bindTradespersonID(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -149,7 +116,7 @@ func (o *GetTradespersonTradespersonIDBillingQuotesParams) bindTradespersonID(ra
 }
 
 // bindYear binds and validates parameter Year from query.
-func (o *GetTradespersonTradespersonIDBillingQuotesParams) bindYear(rawData []string, hasKey bool, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDBillingQuotePagesParams) bindYear(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	if !hasKey {
 		return errors.Required("year", "query", rawData)
 	}

@@ -87,6 +87,7 @@ func PutTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Put
 		log.Printf("Failed to update fixed price, %s", err)
 		return response
 	}
+
 	response.SetPayload(&payload)
 
 	return response

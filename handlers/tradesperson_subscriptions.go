@@ -3,6 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"log"
+	"math"
 	"redbudway-api/database"
 	"redbudway-api/email"
 	"redbudway-api/models"
@@ -21,19 +22,21 @@ import (
 
 func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.GetTradespersonTradespersonIDBillingSubscriptionsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	page := *params.Page
 
 	response := operations.NewGetTradespersonTradespersonIDBillingSubscriptionsOK()
 	customers := []*operations.GetTradespersonTradespersonIDBillingSubscriptionsOKBodyItems0{}
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT subscriptionId, cuStripeId FROM tradesperson_subscriptions WHERE tradespersonId=? GROUP BY id ORDER BY created DESC")
+	stmt, err := db.Prepare("SELECT subscriptionId, cuStripeId FROM tradesperson_subscriptions WHERE tradespersonId=? GROUP BY id ORDER BY created DESC LIMIT ?, ?")
 	if err != nil {
 		return response
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(tradespersonID)
+	offSet := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(tradespersonID, offSet)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response
@@ -122,6 +125,46 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 		customers = append(customers, &info)
 	}
 	response.SetPayload(customers)
+
+	return response
+}
+
+func GetTradespersonTradespersonIDBillingSubscriptionPagesHandler(params operations.GetTradespersonTradespersonIDBillingSubscriptionPagesParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+
+	pages := float64(1)
+	response := operations.NewGetTradespersonTradespersonIDBillingSubscriptionPagesOK().WithPayload(int64(pages))
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT cuStripeId FROM tradesperson_subscriptions WHERE tradespersonId=?")
+	if err != nil {
+		return response
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(tradespersonID)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return response
+	}
+	customerSubs := make(map[string]interface{})
+	var cuStripeID string
+	for rows.Next() {
+		if err := rows.Scan(&cuStripeID); err != nil {
+			return response
+		}
+
+		if customerSubs[cuStripeID] == nil {
+			customerSubs[cuStripeID] = true
+		}
+	}
+
+	pages = math.Ceil(float64(len(customerSubs)) / PAGE_SIZE)
+	if pages == float64(0) {
+		pages = float64(1)
+	}
+	response.SetPayload(int64(pages))
 
 	return response
 }

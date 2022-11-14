@@ -1033,6 +1033,48 @@ func init() {
         }
       }
     },
+    "/fixed-price/pages": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of fixed prices",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/fixed-price/{priceId}": {
       "get": {
         "parameters": [
@@ -1204,6 +1246,12 @@ func init() {
             "type": "string",
             "name": "filters",
             "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -1369,6 +1417,48 @@ func init() {
         }
       }
     },
+    "/quote/pages": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of quote pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/quote/{quoteId}": {
       "get": {
         "parameters": [
@@ -1503,6 +1593,12 @@ func init() {
           {
             "type": "string",
             "name": "filters",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
             "in": "query"
           }
         ],
@@ -2165,6 +2261,47 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/invoice/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of invoice",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of invoices",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}": {
       "get": {
         "security": [
@@ -2524,6 +2661,12 @@ func init() {
             "name": "year",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -2607,6 +2750,47 @@ func init() {
                   "x-omitempty": false
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of invoice",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of manual invoices",
+            "schema": {
+              "type": "number",
+              "format": "int64"
             }
           }
         }
@@ -2837,6 +3021,12 @@ func init() {
             "name": "year",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -2862,6 +3052,47 @@ func init() {
                   }
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of quote",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of quote pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
             }
           }
         }
@@ -3418,6 +3649,12 @@ func init() {
             "name": "year",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -3451,6 +3688,33 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/subscription/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of subscription pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/subscriptions": {
       "get": {
         "security": [
@@ -3465,6 +3729,12 @@ func init() {
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -5838,6 +6108,48 @@ func init() {
         }
       }
     },
+    "/fixed-price/pages": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of fixed prices",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/fixed-price/{priceId}": {
       "get": {
         "parameters": [
@@ -5980,6 +6292,12 @@ func init() {
           {
             "type": "string",
             "name": "filters",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "page",
             "in": "query"
           }
         ],
@@ -6146,6 +6464,48 @@ func init() {
         }
       }
     },
+    "/quote/pages": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "state",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "city",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "subCategory",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "filters",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of quote pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/quote/{quoteId}": {
       "get": {
         "parameters": [
@@ -6258,6 +6618,12 @@ func init() {
           {
             "type": "string",
             "name": "filters",
+            "in": "query"
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
             "in": "query"
           }
         ],
@@ -6881,6 +7247,47 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/invoice/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of invoice",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of invoices",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}": {
       "get": {
         "security": [
@@ -7240,6 +7647,12 @@ func init() {
             "name": "year",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -7308,6 +7721,47 @@ func init() {
                   "x-omitempty": false
                 }
               }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/manual-invoice/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of invoice",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of manual invoices",
+            "schema": {
+              "type": "number",
+              "format": "int64"
             }
           }
         }
@@ -7538,6 +7992,12 @@ func init() {
             "name": "year",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "number",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -7548,6 +8008,47 @@ func init() {
               "items": {
                 "$ref": "#/definitions/GetTradespersonTradespersonIDBillingManualInvoicesOKBodyItems0"
               }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Quarter of the year",
+            "name": "quarter",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Year of quote",
+            "name": "year",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of quote pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
             }
           }
         }
@@ -8104,6 +8605,12 @@ func init() {
             "name": "year",
             "in": "query",
             "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {
@@ -8114,6 +8621,33 @@ func init() {
               "items": {
                 "$ref": "#/definitions/GetTradespersonTradespersonIDBillingQuotesOKBodyItems0"
               }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/subscription/pages": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Number of subscription pages",
+            "schema": {
+              "type": "number",
+              "format": "int64"
             }
           }
         }
@@ -8133,6 +8667,12 @@ func init() {
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "page",
+            "in": "query"
           }
         ],
         "responses": {

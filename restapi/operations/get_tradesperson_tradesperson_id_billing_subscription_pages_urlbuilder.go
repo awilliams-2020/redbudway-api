@@ -10,17 +10,11 @@ import (
 	"net/url"
 	golangswaggerpaths "path"
 	"strings"
-
-	"github.com/go-openapi/swag"
 )
 
-// GetTradespersonTradespersonIDBillingQuotesURL generates an URL for the get tradesperson tradesperson ID billing quotes operation
-type GetTradespersonTradespersonIDBillingQuotesURL struct {
+// GetTradespersonTradespersonIDBillingSubscriptionPagesURL generates an URL for the get tradesperson tradesperson ID billing subscription pages operation
+type GetTradespersonTradespersonIDBillingSubscriptionPagesURL struct {
 	TradespersonID string
-
-	Page    *int64
-	Quarter string
-	Year    string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -30,7 +24,7 @@ type GetTradespersonTradespersonIDBillingQuotesURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) WithBasePath(bp string) *GetTradespersonTradespersonIDBillingQuotesURL {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) WithBasePath(bp string) *GetTradespersonTradespersonIDBillingSubscriptionPagesURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -38,21 +32,21 @@ func (o *GetTradespersonTradespersonIDBillingQuotesURL) WithBasePath(bp string) 
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) SetBasePath(bp string) {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) Build() (*url.URL, error) {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/tradesperson/{tradespersonId}/billing/quotes"
+	var _path = "/tradesperson/{tradespersonId}/billing/subscription/pages"
 
 	tradespersonID := o.TradespersonID
 	if tradespersonID != "" {
 		_path = strings.Replace(_path, "{tradespersonId}", tradespersonID, -1)
 	} else {
-		return nil, errors.New("tradespersonId is required on GetTradespersonTradespersonIDBillingQuotesURL")
+		return nil, errors.New("tradespersonId is required on GetTradespersonTradespersonIDBillingSubscriptionPagesURL")
 	}
 
 	_basePath := o._basePath
@@ -61,33 +55,11 @@ func (o *GetTradespersonTradespersonIDBillingQuotesURL) Build() (*url.URL, error
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
 
-	qs := make(url.Values)
-
-	var pageQ string
-	if o.Page != nil {
-		pageQ = swag.FormatInt64(*o.Page)
-	}
-	if pageQ != "" {
-		qs.Set("page", pageQ)
-	}
-
-	quarterQ := o.Quarter
-	if quarterQ != "" {
-		qs.Set("quarter", quarterQ)
-	}
-
-	yearQ := o.Year
-	if yearQ != "" {
-		qs.Set("year", yearQ)
-	}
-
-	_result.RawQuery = qs.Encode()
-
 	return &_result, nil
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -98,17 +70,17 @@ func (o *GetTradespersonTradespersonIDBillingQuotesURL) Must(u *url.URL, err err
 }
 
 // String returns the string representation of the path with query string
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) String() string {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetTradespersonTradespersonIDBillingQuotesURL")
+		return nil, errors.New("scheme is required for a full url on GetTradespersonTradespersonIDBillingSubscriptionPagesURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetTradespersonTradespersonIDBillingQuotesURL")
+		return nil, errors.New("host is required for a full url on GetTradespersonTradespersonIDBillingSubscriptionPagesURL")
 	}
 
 	base, err := o.Build()
@@ -122,6 +94,6 @@ func (o *GetTradespersonTradespersonIDBillingQuotesURL) BuildFull(scheme, host s
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetTradespersonTradespersonIDBillingQuotesURL) StringFull(scheme, host string) string {
+func (o *GetTradespersonTradespersonIDBillingSubscriptionPagesURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

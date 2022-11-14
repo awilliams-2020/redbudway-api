@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
@@ -46,6 +47,10 @@ type GetQuotesParams struct {
 	*/
 	Filters *string
 	/*
+	  In: query
+	*/
+	Page *int64
+	/*
 	  Required: true
 	  In: query
 	*/
@@ -79,6 +84,11 @@ func (o *GetQuotesParams) BindRequest(r *http.Request, route *middleware.Matched
 
 	qFilters, qhkFilters, _ := qs.GetOK("filters")
 	if err := o.bindFilters(qFilters, qhkFilters, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	qPage, qhkPage, _ := qs.GetOK("page")
+	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -150,6 +160,29 @@ func (o *GetQuotesParams) bindFilters(rawData []string, hasKey bool, formats str
 		return nil
 	}
 	o.Filters = &raw
+
+	return nil
+}
+
+// bindPage binds and validates parameter Page from query.
+func (o *GetQuotesParams) bindPage(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	value, err := swag.ConvertInt64(raw)
+	if err != nil {
+		return errors.InvalidType("page", "query", "int64", raw)
+	}
+	o.Page = &value
 
 	return nil
 }

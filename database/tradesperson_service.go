@@ -207,7 +207,7 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 		}
 		defer stmt.Close()
 
-		rows, err := stmt.Query(tradespersonID, fixedPriceID)
+		rows, err := stmt.Query(fixedPriceID)
 		if err != nil {
 			log.Printf("Failed to execute prepared statement, %s", err)
 			continue
@@ -1100,7 +1100,6 @@ func GetTradespersonQuotes(tradespersonID string) []*models.Service {
 			log.Printf("Failed to scan row %s", err)
 			return quotes
 		}
-		log.Printf("Title: %s", title)
 		quote := models.Service{}
 		quote.Title = title
 		quote.QuoteID = quoteID
