@@ -81,7 +81,7 @@ func GetCustomerCustomerIDFixedPricePriceIDReviewHandler(params operations.GetCu
 	var ID int64
 	switch err = row.Scan(&ID); err {
 	case sql.ErrNoRows:
-		log.Printf("Customer %v doesn't have invoice to review", customerID)
+		//
 	case nil:
 		var err error
 		payload.Reviewed, err = database.CustomerReviewedFixedPrice(customerID, priceID)

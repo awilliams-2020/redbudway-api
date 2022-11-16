@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/stripe/stripe-go/v72/customer"
@@ -13,10 +14,8 @@ import (
 	"redbudway-api/restapi/operations"
 )
 
-func getService(subscription bool, subInterval string, priceId string) *operations.GetTradespersonTradespersonIDScheduleOKBodyItems0 {
+func getService(priceId string) *operations.GetTradespersonTradespersonIDScheduleOKBodyItems0 {
 	service := &operations.GetTradespersonTradespersonIDScheduleOKBodyItems0{}
-	service.Subscription = subscription
-	service.Interval = subInterval
 
 	stripePrice, _ := price.Get(
 		priceId,
@@ -31,12 +30,12 @@ func getService(subscription bool, subInterval string, priceId string) *operatio
 	return service
 }
 
-func getCustomer(subscription bool, takenBy string) *models.Customer {
+func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) *models.Customer {
 	_customer := &models.Customer{}
 
 	if subscription {
 		stripeSubscription, _ := sub.Get(
-			takenBy,
+			subscriptionID.String,
 			nil,
 		)
 		stripeCustomer, err := customer.Get(stripeSubscription.Customer.ID, nil)
@@ -56,7 +55,7 @@ func getCustomer(subscription bool, takenBy string) *models.Customer {
 		_customer.Phone = stripeCustomer.Phone
 	} else {
 		stripeInvoice, _ := invoice.Get(
-			takenBy,
+			invoiceID.String,
 			nil,
 		)
 		_customer.Name = *stripeInvoice.CustomerName
@@ -75,7 +74,7 @@ func getCustomer(subscription bool, takenBy string) *models.Customer {
 
 func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradespersonTradespersonIDScheduleOK, error) {
 	response := operations.NewGetTradespersonTradespersonIDScheduleOK()
-	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize, fpts.taken, fpts.takenBy, fpts.cuStripeId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE ( (MONTH(fpts.startTime) = MONTH(CURRENT_DATE()) AND fp.subscription=False) || fp.subscription=True ) AND fp.tradespersonId=? AND fpts.takenBy<>''")
+	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE ( (MONTH(fpts.startTime) = MONTH(CURRENT_DATE()) AND fp.subscription=False) || fp.subscription=True ) AND fp.tradespersonId=? GROUP BY fpts.id")
 	if err != nil {
 		return response, err
 	}
@@ -85,24 +84,25 @@ func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradesperson
 	if err != nil {
 		return response, err
 	}
-	var startTime, subInterval, takenBy, priceId, cuStripeId string
+	var startTime, subInterval, priceId string
 	var segmentSize float64
-	var taken, subscription bool
+	var subscription bool
+	var subscriptionID, invoiceID sql.NullString
 	m := make(map[string]*operations.GetTradespersonTradespersonIDScheduleOKBodyItems0)
 	for rows.Next() {
-		if err := rows.Scan(&startTime, &segmentSize, &taken, &takenBy, &cuStripeId, &priceId, &subscription, &subInterval); err != nil {
+		if err := rows.Scan(&startTime, &segmentSize, &subscriptionID, &invoiceID, &priceId, &subscription, &subInterval); err != nil {
 			return response, err
 		}
 		service, exist := m[priceId]
 		if !exist {
-			service = getService(subscription, subInterval, priceId)
+			service = getService(priceId)
+			service.Subscription = subscription
+			service.Interval = subInterval
 			timeSlots := service.TimeSlots
 			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0{}
 			timeSlot.StartTime = startTime
 			timeSlot.SegmentSize = segmentSize
-			timeSlot.Taken = taken
-			timeSlot.TakenBy = takenBy
-			timeSlot.Customer = getCustomer(subscription, takenBy)
+			timeSlot.Customers = append(timeSlot.Customers, getCustomer(subscription, subscriptionID, invoiceID))
 			timeSlots = append(timeSlots, timeSlot)
 			service.TimeSlots = timeSlots
 			m[priceId] = service
@@ -111,9 +111,7 @@ func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradesperson
 			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0{}
 			timeSlot.StartTime = startTime
 			timeSlot.SegmentSize = segmentSize
-			timeSlot.Taken = taken
-			timeSlot.TakenBy = takenBy
-			timeSlot.Customer = getCustomer(subscription, takenBy)
+			timeSlot.Customers = append(timeSlot.Customers, getCustomer(subscription, subscriptionID, invoiceID))
 			timeSlots = append(timeSlots, timeSlot)
 			service.TimeSlots = timeSlots
 			m[priceId] = service

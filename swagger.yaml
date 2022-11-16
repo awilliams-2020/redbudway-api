@@ -507,13 +507,11 @@ paths:
                       segmentSize:
                         type: number
                         format: double
-                      taken:
-                        type: boolean
+                      customers:
+                        type: array
                         x-omitempty: false
-                      takenBy:
-                        type: string
-                      customer:
-                        $ref: '#/definitions/Customer'
+                        items:
+                          $ref: '#/definitions/Customer'
   /tradesperson/{tradespersonId}/time-slots:
     get:
       security:
@@ -3168,10 +3166,9 @@ definitions:
   TimeSlot:
     type: object
     properties:
-      subscriptionId:
-        type: string
-      invoiceId:
-        type: string
+      id:
+        type: integer
+        format: int64
       startTime:
         type: string
       endTime:
@@ -3180,14 +3177,24 @@ definitions:
         type: string
       segmentSize:
         type: string
-      taken:
-        type: boolean
+      curPeople:
+        type: integer
+        format: int64
         x-omitempty: false
-      takenBy:
-        type: string
-        x-omitempty: false
-      cuStripeId:
-        type: string
+      maxPeople:
+        type: integer
+        format: int64
+      customers:
+        type: array
+        items:
+          type: object
+          properties:
+            invoiceId:
+              type: string
+            subscriptionId:
+              type: string
+            cuStripeId:
+              type: string
   Tradesperson:
     type: object
     properties:

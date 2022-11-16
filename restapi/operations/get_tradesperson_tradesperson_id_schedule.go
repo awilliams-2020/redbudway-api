@@ -193,27 +193,21 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0) UnmarshalBinary(b []
 // swagger:model GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0
 type GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0 struct {
 
-	// customer
-	Customer *models.Customer `json:"customer,omitempty"`
+	// customers
+	Customers []*models.Customer `json:"customers"`
 
 	// segment size
 	SegmentSize float64 `json:"segmentSize,omitempty"`
 
 	// start time
 	StartTime string `json:"startTime,omitempty"`
-
-	// taken
-	Taken bool `json:"taken"`
-
-	// taken by
-	TakenBy string `json:"takenBy,omitempty"`
 }
 
 // Validate validates this get tradesperson tradesperson ID schedule o k body items0 time slots items0
 func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateCustomer(formats); err != nil {
+	if err := o.validateCustomers(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -223,20 +217,27 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) Valid
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) validateCustomer(formats strfmt.Registry) error {
-	if swag.IsZero(o.Customer) { // not required
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) validateCustomers(formats strfmt.Registry) error {
+	if swag.IsZero(o.Customers) { // not required
 		return nil
 	}
 
-	if o.Customer != nil {
-		if err := o.Customer.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("customer")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("customer")
-			}
-			return err
+	for i := 0; i < len(o.Customers); i++ {
+		if swag.IsZero(o.Customers[i]) { // not required
+			continue
 		}
+
+		if o.Customers[i] != nil {
+			if err := o.Customers[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("customers" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("customers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil
@@ -246,7 +247,7 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) valid
 func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.contextValidateCustomer(ctx, formats); err != nil {
+	if err := o.contextValidateCustomers(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -256,17 +257,21 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) Conte
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0) contextValidateCustomers(ctx context.Context, formats strfmt.Registry) error {
 
-	if o.Customer != nil {
-		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("customer")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("customer")
+	for i := 0; i < len(o.Customers); i++ {
+
+		if o.Customers[i] != nil {
+			if err := o.Customers[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("customers" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("customers" + "." + strconv.Itoa(i))
+				}
+				return err
 			}
-			return err
 		}
+
 	}
 
 	return nil

@@ -2,12 +2,121 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"log"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"time"
 )
+
+func InsertTimeSlots(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	for _, timeSlot := range fixedPrice.TimeSlots {
+		t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
+		if err != nil {
+			return err
+		}
+		formattedDate := t.Format("2006-01-02 15:04:00")
+		stmt, err := db.Prepare("INSERT INTO fixed_price_time_slots (fixedPriceId, startTime, segmentSize, maxPeople) VALUES (?, ?, ?, ?)")
+		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+		_, err = stmt.Exec(fixedPriceID, formattedDate, timeSlot.SegmentSize, timeSlot.MaxPeople)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func UpdateTimeSlots(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE fixedPriceId=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(fixedPriceID)
+	if err != nil {
+		return err
+	}
+
+	existingTimeSlots := []*models.TimeSlotsItems0{}
+	var startTime, segmentSize string
+	for rows.Next() {
+		if err := rows.Scan(&startTime, &segmentSize); err != nil {
+			return err
+		}
+		existingTimeSlot := &models.TimeSlotsItems0{}
+		existingTimeSlot.StartTime = startTime
+		existingTimeSlot.SegmentSize = segmentSize
+		existingTimeSlots = append(existingTimeSlots, existingTimeSlot)
+	}
+
+	for _, existingTimeSlot := range existingTimeSlots {
+		found := false
+		for _, timeSlot := range fixedPrice.TimeSlots {
+			t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
+			if err != nil {
+				return err
+			}
+			formattedDate := t.Format("2006-01-02 15:04:00")
+			if formattedDate == existingTimeSlot.StartTime {
+				found = true
+				if timeSlot.SegmentSize != existingTimeSlot.SegmentSize {
+					stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET segmentSize=? AND maxPeople=? WHERE fixedPriceId=? AND startTime=?")
+					if err != nil {
+						return err
+					}
+					defer stmt.Close()
+					_, err = stmt.Exec(timeSlot.SegmentSize, timeSlot.MaxPeople, fixedPriceID, formattedDate)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+		if !found {
+			stmt, err := db.Prepare("DELETE FROM fixed_price_time_slots WHERE fixedPriceId=? AND startTime=?")
+			if err != nil {
+				return err
+			}
+			defer stmt.Close()
+			_, err = stmt.Exec(fixedPriceID, existingTimeSlot.StartTime)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, timeSlot := range fixedPrice.TimeSlots {
+		t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
+		if err != nil {
+			return err
+		}
+		formattedDate := t.Format("2006-01-02 15:04:00")
+		found := false
+		for _, existingTimeSlot := range existingTimeSlots {
+			if formattedDate == existingTimeSlot.StartTime {
+				found = true
+			}
+		}
+		if !found {
+			stmt, err := db.Prepare("INSERT INTO fixed_price_time_slots (fixedPriceId, startTime, segmentSize, maxPeople) VALUES (?, ?, ?, ?)")
+			if err != nil {
+				return err
+			}
+			defer stmt.Close()
+			_, err = stmt.Exec(fixedPriceID, formattedDate, timeSlot.SegmentSize, timeSlot.MaxPeople)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func ResetTakenTimeSlotByCustomer(cuStripeID string) error {
 	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=False, takenBy=NULL, cuStripeId=NULL WHERE cuStripeId=? and startTime < CURDATE()")
@@ -24,8 +133,20 @@ func ResetTakenTimeSlotByCustomer(cuStripeID string) error {
 	return nil
 }
 
-func ResetTakenTimeSlotByInvoice(invoiceID string) error {
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=False, takenBy=NULL, cuStripeId=NULL WHERE takenBy=? AND startTime > CURDATE()")
+func UpdateTimeSlotByInvoice(invoiceID string) error {
+
+	stmt, err := db.Prepare("UPDATE fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId SET fpts.curPeople=fpts.curPeople-1 WHERE cts.invoiceId=? AND fpts.startTime > CURDATE()")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(invoiceID)
+	if err != nil {
+		return err
+	}
+
+	stmt, err = db.Prepare("DELETE FROM customer_time_slots WHERE invoiceId=?")
 	if err != nil {
 		return err
 	}
@@ -39,7 +160,59 @@ func ResetTakenTimeSlotByInvoice(invoiceID string) error {
 	return nil
 }
 
-func UpdateTakenTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPriceID int64) (bool, error) {
+func GetTakenTimeSlot(startTime string, fixedPriceID int64) ([]string, []string, error) {
+
+	cuStripeIDs := []string{}
+	takenBy := []string{}
+
+	stmt, err := db.Prepare("SELECT takenBy, cuStripeIds, maxPeople, curPeople FROM fixed_price_time_slots WHERE startTime=? AND fixedPriceId=?")
+	if err != nil {
+		return cuStripeIDs, takenBy, err
+	}
+	defer stmt.Close()
+
+	var t, c sql.NullString
+	var maxPeople, curPeople int64
+	err = stmt.QueryRow(startTime, fixedPriceID).Scan(&t, &c, &maxPeople, &curPeople)
+	if err != nil {
+		return cuStripeIDs, takenBy, err
+	}
+
+	if t.Valid {
+		var t2 interface{}
+		if err := json.Unmarshal([]byte(t.String), &t2); err != nil {
+			return cuStripeIDs, takenBy, err
+		}
+		takenBy = t2.([]string)
+	}
+
+	if c.Valid {
+		var c2 interface{}
+		if err := json.Unmarshal([]byte(c.String), &c2); err != nil {
+			return cuStripeIDs, takenBy, err
+		}
+		cuStripeIDs = c2.([]string)
+	}
+
+	return cuStripeIDs, takenBy, nil
+}
+
+func updateCustomerInvoiceTimeSlot(timeSlotID int64, stripeInvoiceID, cuStripeID string) error {
+
+	stmt, err := db.Prepare("INSERT INTO customer_time_slots (timeSlotId, invoiceId, cuStripeId) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(timeSlotID, stripeInvoiceID, cuStripeID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateTakenTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPriceID int64, timeSlotID int64) (bool, error) {
 	startDate, err := time.Parse("1/2/2006, 3:04:00 PM", startTime)
 	if err != nil {
 		log.Printf("Failed to parse startTime %s", startTime)
@@ -48,13 +221,18 @@ func UpdateTakenTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPri
 
 	startTime = startDate.Format("2006-1-2 15:04:00")
 
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=true, takenBy=?, cuStripeId=? WHERE startTime=? AND fixedPriceId=?")
+	if err := updateCustomerInvoiceTimeSlot(timeSlotID, stripeInvoiceID, cuStripeID); err != nil {
+		log.Printf("Failed to insert customer time slot, %v", err)
+		return false, err
+	}
+
+	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET curPeople=curPeople+1 WHERE startTime=? AND fixedPriceId=?")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(stripeInvoiceID, cuStripeID, startTime, fixedPriceID)
+	results, err := stmt.Exec(startTime, fixedPriceID)
 	if err != nil {
 		return false, err
 	}
@@ -67,7 +245,22 @@ func UpdateTakenTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPri
 	return rowsAffected == 1, nil
 }
 
-func UpdateWeeklyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPriceID int64) (bool, error) {
+func updateCustomerSubscriptionTimeSlot(timeSlotID int64, subscriptionID, cuStripeID string) error {
+
+	stmt, err := db.Prepare("INSERT INTO customer_time_slots (timeSlotId, subscriptionId, cuStripeId) VALUES (?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(timeSlotID, subscriptionID, cuStripeID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateWeeklyTimeSlot(subscriptionID, cuStripeID, startTime string, fixedPriceID, timeSlotID int64) (bool, error) {
 	startDate, err := time.Parse("1/2/2006, 3:04:00 PM", startTime)
 	if err != nil {
 		log.Printf("Failed to parse startTime %s", startTime)
@@ -75,13 +268,18 @@ func UpdateWeeklyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPr
 	}
 	startTime = startDate.Format("2006-1-2 15:04:00")
 
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=true, takenBy=?, cuStripeId=? WHERE DAYNAME(startTime)=DAYNAME(?) AND TIME(startTime)=TIME(?) AND fixedPriceId=?")
+	if err := updateCustomerSubscriptionTimeSlot(timeSlotID, subscriptionID, cuStripeID); err != nil {
+		log.Printf("Failed to insert customer time slot, %v", err)
+		return false, err
+	}
+
+	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET curPeople=curPeople+1 WHERE DAYNAME(startTime)=DAYNAME(?) AND TIME(startTime)=TIME(?) AND fixedPriceId=?")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(stripeInvoiceID, cuStripeID, startTime, startTime, fixedPriceID)
+	results, err := stmt.Exec(startTime, startTime, fixedPriceID)
 	if err != nil {
 		return false, err
 	}
@@ -94,7 +292,7 @@ func UpdateWeeklyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPr
 	return rowsAffected == 1, nil
 }
 
-func UpdateMonthlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPriceID int64) (bool, error) {
+func UpdateMonthlyTimeSlot(subscriptionID, cuStripeID, startTime string, fixedPriceID, timeSlotID int64) (bool, error) {
 	startDate, err := time.Parse("1/2/2006, 3:04:00 PM", startTime)
 	if err != nil {
 		log.Printf("Failed to parse startTime %s", startTime)
@@ -102,13 +300,18 @@ func UpdateMonthlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedP
 	}
 	startTime = startDate.Format("2006-1-2 15:04:00")
 
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=true, takenBy=?, cuStripeId=? WHERE DAYOFMONTH(startTime)=DAYOFMONTH(?) AND TIME(startTime)=TIME(?) AND fixedPriceId=?")
+	if err := updateCustomerSubscriptionTimeSlot(timeSlotID, subscriptionID, cuStripeID); err != nil {
+		log.Printf("Failed to insert customer time slot, %v", err)
+		return false, err
+	}
+
+	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET curPeople=curPeople+1 WHERE DAYOFMONTH(startTime)=DAYOFMONTH(?) AND TIME(startTime)=TIME(?) AND fixedPriceId=?")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(stripeInvoiceID, cuStripeID, startTime, startTime, fixedPriceID)
+	results, err := stmt.Exec(startTime, startTime, fixedPriceID)
 	if err != nil {
 		return false, err
 	}
@@ -121,7 +324,7 @@ func UpdateMonthlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedP
 	return rowsAffected == 1, nil
 }
 
-func UpdateYearlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPriceID int64) (bool, error) {
+func UpdateYearlyTimeSlot(subscriptionID, cuStripeID, startTime string, fixedPriceID, timeSlotID int64) (bool, error) {
 	startDate, err := time.Parse("1/2/2006, 3:04:00 PM", startTime)
 	if err != nil {
 		log.Printf("Failed to parse startTime %s", startTime)
@@ -129,13 +332,18 @@ func UpdateYearlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPr
 	}
 	startTime = startDate.Format("2006-1-2 15:04:00")
 
-	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET taken=true, takenBy=?, cuStripeId=? WHERE MONTH(startTime)=MONTH(?) AND DAYOFMONTH(startTime)=DAYOFMONTH(?) AND TIME(startTime)=TIME(?) AND fixedPriceId=?")
+	if err := updateCustomerSubscriptionTimeSlot(timeSlotID, subscriptionID, cuStripeID); err != nil {
+		log.Printf("Failed to insert customer time slot, %v", err)
+		return false, err
+	}
+
+	stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET curPeople=curPeople+1 WHERE MONTH(startTime)=MONTH(?) AND DAYOFMONTH(startTime)=DAYOFMONTH(?) AND TIME(startTime)=TIME(?) AND fixedPriceId=?")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(stripeInvoiceID, cuStripeID, startTime, startTime, startTime, fixedPriceID)
+	results, err := stmt.Exec(startTime, startTime, startTime, fixedPriceID)
 	if err != nil {
 		return false, err
 	}
@@ -148,10 +356,10 @@ func UpdateYearlyTimeSlot(stripeInvoiceID, cuStripeID, startTime string, fixedPr
 	return rowsAffected == 1, nil
 }
 
-func getScheduleTimeSlots(fixedPriceId int) ([]*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0, error) {
+func getServiceTimeSlots(fixedPriceId int) ([]*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0, error) {
 	timeSlots := []*operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0{}
 
-	stmt, err := db.Prepare("SELECT startTime, segmentSize, taken, takenBy FROM fixed_price_time_slots WHERE fixedPriceId=?")
+	stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE fixedPriceId=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return timeSlots, err
@@ -164,20 +372,14 @@ func getScheduleTimeSlots(fixedPriceId int) ([]*operations.GetTradespersonTrades
 		return timeSlots, err
 	}
 
-	var taken bool
 	var startTime, segmentSize string
-	var takenBy sql.NullString
 	for rows.Next() {
-		if err := rows.Scan(&startTime, &segmentSize, &taken, &takenBy); err != nil {
+		if err := rows.Scan(&startTime, &segmentSize); err != nil {
 			return timeSlots, err
 		}
 		timeSlot := &operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0{}
 		timeSlot.StartTime = startTime
 		timeSlot.SegmentSize = segmentSize
-		timeSlot.Taken = taken
-		if takenBy.Valid {
-			timeSlot.TakenBy = takenBy.String
-		}
 		timeSlots = append(timeSlots, timeSlot)
 	}
 
@@ -214,7 +416,7 @@ func GetTradespersonTimeslots(tradespersonID string) (*operations.GetTradesperso
 		service := operations.GetTradespersonTradespersonIDTimeSlotsOKBodyItems0{}
 		service.Interval = interval
 		service.Subscription = subscription
-		service.TimeSlots, err = getScheduleTimeSlots(id)
+		service.TimeSlots, err = getServiceTimeSlots(id)
 		if err != nil {
 			log.Printf("Failed to get service timeslots %s", err)
 		}
@@ -225,10 +427,43 @@ func GetTradespersonTimeslots(tradespersonID string) (*operations.GetTradesperso
 	return response, nil
 }
 
+func getCustomerTimeSlots(timeSlotID int64) []*models.TimeSlotCustomersItems0 {
+	customers := []*models.TimeSlotCustomersItems0{}
+
+	stmt, err := db.Prepare("SELECT invoiceId, subscriptionId, cuStripeId FROM customer_time_slots WHERE timeSlotId=?")
+	if err != nil {
+		return customers
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(timeSlotID)
+	if err != nil {
+		return customers
+	}
+
+	var invoiceID, subscriptionID sql.NullString
+	var cuStripeID string
+	for rows.Next() {
+		if err := rows.Scan(&invoiceID, &subscriptionID, &cuStripeID); err != nil {
+			return customers
+		}
+		customer := models.TimeSlotCustomersItems0{}
+		if invoiceID.Valid {
+			customer.InvoiceID = invoiceID.String
+		} else if subscriptionID.Valid {
+			customer.SubscriptionID = subscriptionID.String
+		}
+		customer.CuStripeID = cuStripeID
+		customers = append(customers, &customer)
+	}
+
+	return customers
+}
+
 func GetTimeSlots(fixedPriceID int64) ([]*models.TimeSlot, error) {
 	timeSlots := []*models.TimeSlot{}
 
-	stmt, err := db.Prepare("SELECT ts.subscriptionId, ti.invoiceId, fpts.startTime, fpts.segmentSize, fpts.taken, fpts.takenBy, fpts.cuStripeId FROM fixed_price_time_slots fpts LEFT JOIN tradesperson_invoices ti ON fpts.takenBy=ti.invoiceId LEFT JOIN tradesperson_subscriptions ts ON fpts.takenBy=ts.subscriptionId WHERE fpts.fixedPriceId=?")
+	stmt, err := db.Prepare("SELECT id, startTime, segmentSize, curPeople, maxPeople FROM fixed_price_time_slots WHERE fixedPriceId=?")
 	if err != nil {
 		return timeSlots, err
 	}
@@ -239,29 +474,51 @@ func GetTimeSlots(fixedPriceID int64) ([]*models.TimeSlot, error) {
 		return timeSlots, err
 	}
 
-	var taken bool
-	var subscriptionID, invoiceID, cuStripeID, takenBy sql.NullString
+	var ID, curPeople, maxPeople int64
 	var startTime, segmentSize string
 	for rows.Next() {
-		if err := rows.Scan(&subscriptionID, &invoiceID, &startTime, &segmentSize, &taken, &takenBy, &cuStripeID); err != nil {
+		if err := rows.Scan(&ID, &startTime, &segmentSize, &curPeople, &maxPeople); err != nil {
 			return timeSlots, err
 		}
 		timeSlot := &models.TimeSlot{}
-		if subscriptionID.Valid {
-			timeSlot.SubscriptionID = subscriptionID.String
-		}
-		if invoiceID.Valid {
-			timeSlot.InvoiceID = invoiceID.String
-		}
+		timeSlot.ID = ID
 		timeSlot.StartTime = startTime
 		timeSlot.SegmentSize = segmentSize
-		timeSlot.Taken = taken
-		if takenBy.Valid {
-			timeSlot.TakenBy = takenBy.String
+		timeSlot.CurPeople = curPeople
+		timeSlot.MaxPeople = maxPeople
+		timeSlot.Customers = getCustomerTimeSlots(ID)
+		timeSlots = append(timeSlots, timeSlot)
+	}
+
+	return timeSlots, nil
+}
+
+func GetPublicTimeSlots(fixedPriceID int64) ([]*models.TimeSlot, error) {
+	timeSlots := []*models.TimeSlot{}
+
+	stmt, err := db.Prepare("SELECT id, startTime, segmentSize, curPeople, maxPeople FROM fixed_price_time_slots WHERE fixedPriceId=?")
+	if err != nil {
+		return timeSlots, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(fixedPriceID)
+	if err != nil {
+		return timeSlots, err
+	}
+
+	var ID, curPeople, maxPeople int64
+	var startTime, segmentSize string
+	for rows.Next() {
+		if err := rows.Scan(&ID, &startTime, &segmentSize, &curPeople, &maxPeople); err != nil {
+			return timeSlots, err
 		}
-		if cuStripeID.Valid {
-			timeSlot.CuStripeID = cuStripeID.String
-		}
+		timeSlot := &models.TimeSlot{}
+		timeSlot.ID = ID
+		timeSlot.StartTime = startTime
+		timeSlot.SegmentSize = segmentSize
+		timeSlot.CurPeople = curPeople
+		timeSlot.MaxPeople = maxPeople
 		timeSlots = append(timeSlots, timeSlot)
 	}
 
@@ -273,9 +530,9 @@ func GetAvailableTimeSlots(fixedPriceId int64, subscription bool) (int64, error)
 
 	var sqlStmt string
 	if subscription {
-		sqlStmt = "SELECT COUNT(taken) FROM fixed_price_time_slots WHERE fixedPriceId=? AND taken=false"
+		sqlStmt = "SELECT COUNT(id) FROM fixed_price_time_slots WHERE fixedPriceId=? AND NOT curPeople <=> maxPeople"
 	} else {
-		sqlStmt = "SELECT COUNT(taken) FROM fixed_price_time_slots WHERE fixedPriceId=? AND startTime > CURDATE() AND taken=false"
+		sqlStmt = "SELECT COUNT(id) FROM fixed_price_time_slots WHERE fixedPriceId=? AND startTime > CURDATE() AND NOT curPeople <=> maxPeople"
 	}
 
 	stmt, err := db.Prepare(sqlStmt)
@@ -300,7 +557,7 @@ func GetAvailableTimeSlots(fixedPriceId int64, subscription bool) (int64, error)
 
 func GetInvoiceStartTimeSegmentSize(invoiceID string) (string, string, error) {
 	var startTime, segmentSize string
-	stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE takenBy=?")
+	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId WHERE cts.invoiceId=?")
 	if err != nil {
 		return startTime, segmentSize, err
 	}
@@ -321,7 +578,7 @@ func GetInvoiceStartTimeSegmentSize(invoiceID string) (string, string, error) {
 
 func GetSubscriptionTimeSlot(subscriptionID string, fixedPriceID int64) (*models.TimeSlot, error) {
 	timeSlot := &models.TimeSlot{}
-	stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE takenBy=? AND fixedPriceId=?")
+	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId WHERE cts.subscriptionId=? AND fpts.fixedPriceId=?")
 	if err != nil {
 		return timeSlot, err
 	}

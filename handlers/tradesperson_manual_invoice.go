@@ -445,9 +445,8 @@ func PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler(pa
 			if err != nil {
 				log.Printf("Failed to create refund in database, %v", err)
 			}
-			err = database.ResetTakenTimeSlotByInvoice(invoiceID)
-			if err != nil {
-				log.Printf("Failed to reset taken time slot for invoice %s, %v", &invoiceID, err)
+			if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
+				log.Printf("Failed to update time slot current people, %s, %v", invoiceID, err)
 			}
 
 			payload.Refunded = true

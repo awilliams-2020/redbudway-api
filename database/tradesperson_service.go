@@ -3,40 +3,18 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/stripe"
 	"strconv"
-	"time"
 
 	"github.com/stripe/stripe-go/v72/price"
 	"github.com/stripe/stripe-go/v72/product"
 )
 
 const PAGE_SIZE = float64(9)
-
-func insertTimeSlots(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
-	for _, timeSlot := range fixedPrice.TimeSlots {
-		t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
-		if err != nil {
-			return err
-		}
-		formattedDate := t.Format("2006-01-02 15:04:00")
-		stmt, err := db.Prepare("INSERT INTO fixed_price_time_slots (fixedPriceId, startTime, segmentSize, taken, takenBy, cuStripeId) VALUES (?, ?, ?, DEFAULT, DEFAULT, DEFAULT)")
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
-		_, err = stmt.Exec(fixedPriceID, formattedDate, timeSlot.SegmentSize)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 func insertFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
 	for _, filter := range fixedPrice.Filters {
@@ -109,7 +87,7 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 			return false, err
 		}
 
-		if err = insertTimeSlots(fixedPriceID, fixedPrice); err != nil {
+		if err = InsertTimeSlots(fixedPriceID, fixedPrice); err != nil {
 			return false, err
 		}
 
@@ -202,7 +180,7 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 		if interval.Valid {
 			service.Interval = interval.String
 		}
-		stmt, err := db.Prepare("SELECT startTime, segmentSize, taken, takenBy FROM fixed_price_time_slots WHERE fixedPriceId=?")
+		stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE fixedPriceId=?")
 		if err != nil {
 			log.Printf("Failed to create prepared statement, %s", err)
 			continue
@@ -217,18 +195,15 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 
 		timeSlots := []*models.TimeSlot{}
 
-		var startTime, segmentSize, takenBy string
-		var taken bool
+		var startTime, segmentSize string
 		for rows.Next() {
-			if err := rows.Scan(&startTime, &segmentSize, &taken, &takenBy); err != nil {
+			if err := rows.Scan(&startTime, &segmentSize); err != nil {
 				log.Printf("Failed to scan statement, %s", err)
 				continue
 			}
 			timeSlot := &models.TimeSlot{}
 			timeSlot.StartTime = startTime
 			timeSlot.SegmentSize = segmentSize
-			timeSlot.Taken = taken
-			timeSlot.TakenBy = takenBy
 			timeSlots = append(timeSlots, timeSlot)
 		}
 		service.TimeSlots = timeSlots
@@ -297,94 +272,6 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 	}
 
 	return fixedPrice, fixedPriceID, nil
-}
-
-func updateTimeSlots(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
-	stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE fixedPriceId=?")
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.Query(fixedPriceID)
-	if err != nil {
-		return err
-	}
-
-	existingTimeSlots := []*models.TimeSlotsItems0{}
-	var startTime, segmentSize string
-	for rows.Next() {
-		if err := rows.Scan(&startTime, &segmentSize); err != nil {
-			return err
-		}
-		existingTimeSlot := &models.TimeSlotsItems0{}
-		existingTimeSlot.StartTime = startTime
-		existingTimeSlot.SegmentSize = segmentSize
-		existingTimeSlots = append(existingTimeSlots, existingTimeSlot)
-	}
-
-	for _, existingTimeSlot := range existingTimeSlots {
-		found := false
-		for _, timeSlot := range fixedPrice.TimeSlots {
-			t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
-			if err != nil {
-				return err
-			}
-			formattedDate := t.Format("2006-01-02 15:04:00")
-			if formattedDate == existingTimeSlot.StartTime {
-				found = true
-				if timeSlot.SegmentSize != existingTimeSlot.SegmentSize {
-					stmt, err := db.Prepare("UPDATE fixed_price_time_slots SET segmentSize=? WHERE fixedPriceId=? AND startTime=?")
-					if err != nil {
-						return err
-					}
-					defer stmt.Close()
-					_, err = stmt.Exec(existingTimeSlot.SegmentSize, fixedPriceID, formattedDate)
-					if err != nil {
-						return err
-					}
-				}
-			}
-		}
-		if !found {
-			stmt, err := db.Prepare("DELETE FROM fixed_price_time_slots WHERE takenBy IS NULL AND fixedPriceId=? AND startTime=?")
-			if err != nil {
-				return err
-			}
-			defer stmt.Close()
-			_, err = stmt.Exec(fixedPriceID, existingTimeSlot.StartTime)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	for _, timeSlot := range fixedPrice.TimeSlots {
-		t, err := time.Parse("1/2/2006, 3:04:00 PM", timeSlot.StartTime)
-		if err != nil {
-			return err
-		}
-		formattedDate := t.Format("2006-01-02 15:04:00")
-		found := false
-		for _, existingTimeSlot := range existingTimeSlots {
-			if formattedDate == existingTimeSlot.StartTime {
-				found = true
-			}
-		}
-		if !found {
-			stmt, err := db.Prepare("INSERT INTO fixed_price_time_slots (fixedPriceId, startTime, segmentSize, taken) VALUES (?, ?, ?, DEFAULT)")
-			if err != nil {
-				return err
-			}
-			defer stmt.Close()
-			_, err = stmt.Exec(fixedPriceID, formattedDate, timeSlot.SegmentSize)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
 }
 
 func updateFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
@@ -559,7 +446,7 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 	row := stmt.QueryRow(tradespersonID, priceID)
 	switch err = row.Scan(&fixedPriceID); err {
 	case sql.ErrNoRows:
-		return updated, errors.New(fmt.Sprintf("FixedPriced with priceId %s does not exist", priceID))
+		return updated, fmt.Errorf("FixedPriced with priceId %s does not exist", priceID)
 	case nil:
 		stmt, err := db.Prepare("UPDATE fixed_prices SET category=?, subcategory=?, selectPlaces=?, archived=? WHERE priceId=?")
 		if err != nil {
@@ -580,7 +467,7 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 			return updated, err
 		}
 
-		if err := updateTimeSlots(fixedPriceID, fixedPrice); err != nil {
+		if err := UpdateTimeSlots(fixedPriceID, fixedPrice); err != nil {
 			return updated, err
 		}
 		updated = true
@@ -594,7 +481,7 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Service {
 	fixedPrices := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, priceId, subscription, subInterval, selectPlaces, archived FROM fixed_prices WHERE tradespersonId=? LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT id, priceId, subscription, subInterval, selectPlaces, archived FROM fixed_prices WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices
@@ -1083,7 +970,7 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 
 	quotes := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, quote, title FROM quotes WHERE tradespersonId=? LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT id, quote, title FROM quotes WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes

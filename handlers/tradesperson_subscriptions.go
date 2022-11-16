@@ -36,7 +36,7 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 	defer stmt.Close()
 
 	offSet := (page - 1) * int64(PAGE_SIZE)
-	rows, err := stmt.Query(tradespersonID, offSet)
+	rows, err := stmt.Query(tradespersonID, offSet, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response
@@ -497,7 +497,7 @@ func PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHan
 	db := database.GetConnection()
 
 	for _, subscriptionID := range subscriptions {
-		stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize FROM tradesperson_subscriptions ts INNER JOIN fixed_price_time_slots fpts ON fpts.cuStripeId=ts.cuStripeId WHERE ts.tradespersonId=? AND ts.cuStripeId=? AND ts.subscriptionId=?")
+		stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize FROM tradesperson_subscriptions ts INNER JOIN customer_time_slots cts ON ts.cuStripeId=cts.cuStripeId INNER JOIN fixed_price_time_slots fpts ON cts.timeSlotId=fpts.id WHERE ts.tradespersonId=? AND ts.cuStripeId=? AND ts.subscriptionId=?")
 		if err != nil {
 			log.Printf("Failed to create prepared statement, %v", err)
 			return response

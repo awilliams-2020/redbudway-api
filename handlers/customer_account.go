@@ -222,7 +222,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			return response
 		}
 
-		_, err = database.UpdateTakenTimeSlot(stripeInvoice.ID, cuStripeID, timeSlot.StartTime, fixedPriceID)
+		_, err = database.UpdateTakenTimeSlot(stripeInvoice.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
 		if err != nil {
 			log.Printf("Failed to update time slots %v", err)
 			return response
@@ -288,8 +288,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 		return response
 	}
 
-	appFee := decimalPrice * sellingFee
-	fee := float64(appFee * 100)
+	fee := sellingFee * float64(100)
 
 	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
 	if err != nil {
@@ -353,19 +352,19 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 		}
 
 		if interval == "week" {
-			_, err = database.UpdateWeeklyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID)
+			_, err = database.UpdateWeeklyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
 			if err != nil {
 				log.Printf("Failed to update time slots %v", err)
 				return response
 			}
 		} else if interval == "month" {
-			_, err = database.UpdateMonthlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID)
+			_, err = database.UpdateMonthlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
 			if err != nil {
 				log.Printf("Failed to update time slots %v", err)
 				return response
 			}
 		} else if interval == "year" {
-			_, err = database.UpdateYearlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID)
+			_, err = database.UpdateYearlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
 			if err != nil {
 				log.Printf("Failed to update time slots %v", err)
 				return response

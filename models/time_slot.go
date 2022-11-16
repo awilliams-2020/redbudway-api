@@ -7,7 +7,9 @@ package models
 
 import (
 	"context"
+	"strconv"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -17,8 +19,11 @@ import (
 // swagger:model TimeSlot
 type TimeSlot struct {
 
-	// cu stripe Id
-	CuStripeID string `json:"cuStripeId,omitempty"`
+	// cur people
+	CurPeople int64 `json:"curPeople"`
+
+	// customers
+	Customers []*TimeSlotCustomersItems0 `json:"customers"`
 
 	// end time
 	EndTime string `json:"endTime,omitempty"`
@@ -26,32 +31,90 @@ type TimeSlot struct {
 	// future time
 	FutureTime string `json:"futureTime,omitempty"`
 
-	// invoice Id
-	InvoiceID string `json:"invoiceId,omitempty"`
+	// id
+	ID int64 `json:"id,omitempty"`
+
+	// max people
+	MaxPeople int64 `json:"maxPeople,omitempty"`
 
 	// segment size
 	SegmentSize string `json:"segmentSize,omitempty"`
 
 	// start time
 	StartTime string `json:"startTime,omitempty"`
-
-	// subscription Id
-	SubscriptionID string `json:"subscriptionId,omitempty"`
-
-	// taken
-	Taken bool `json:"taken"`
-
-	// taken by
-	TakenBy string `json:"takenBy"`
 }
 
 // Validate validates this time slot
 func (m *TimeSlot) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateCustomers(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
 
-// ContextValidate validates this time slot based on context it is used
+func (m *TimeSlot) validateCustomers(formats strfmt.Registry) error {
+	if swag.IsZero(m.Customers) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Customers); i++ {
+		if swag.IsZero(m.Customers[i]) { // not required
+			continue
+		}
+
+		if m.Customers[i] != nil {
+			if err := m.Customers[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("customers" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("customers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this time slot based on the context it is used
 func (m *TimeSlot) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateCustomers(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *TimeSlot) contextValidateCustomers(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Customers); i++ {
+
+		if m.Customers[i] != nil {
+			if err := m.Customers[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("customers" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("customers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -66,6 +129,49 @@ func (m *TimeSlot) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *TimeSlot) UnmarshalBinary(b []byte) error {
 	var res TimeSlot
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*m = res
+	return nil
+}
+
+// TimeSlotCustomersItems0 time slot customers items0
+//
+// swagger:model TimeSlotCustomersItems0
+type TimeSlotCustomersItems0 struct {
+
+	// cu stripe Id
+	CuStripeID string `json:"cuStripeId,omitempty"`
+
+	// invoice Id
+	InvoiceID string `json:"invoiceId,omitempty"`
+
+	// subscription Id
+	SubscriptionID string `json:"subscriptionId,omitempty"`
+}
+
+// Validate validates this time slot customers items0
+func (m *TimeSlotCustomersItems0) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this time slot customers items0 based on context it is used
+func (m *TimeSlotCustomersItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (m *TimeSlotCustomersItems0) MarshalBinary() ([]byte, error) {
+	if m == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(m)
+}
+
+// UnmarshalBinary interface implementation
+func (m *TimeSlotCustomersItems0) UnmarshalBinary(b []byte) error {
+	var res TimeSlotCustomersItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

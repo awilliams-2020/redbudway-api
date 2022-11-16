@@ -191,7 +191,7 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			return response
 		}
 
-		decimalPrice := float64(stripeInvoice.Lines.Data[0].Price.UnitAmount / 100.00)
+		decimalPrice := stripeInvoice.Lines.Data[0].Price.UnitAmountDecimal / float64(100.00)
 
 		startTime, segmentSize, err := database.GetInvoiceStartTimeSegmentSize(invoiceID)
 		if err != nil {
@@ -211,8 +211,8 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			return response
 		}
 
-		if err := database.ResetTakenTimeSlotByInvoice(invoiceID); err != nil {
-			log.Printf("Failed to reset taken time slot, %v", err)
+		if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
+			log.Printf("Failed to update time slot current people, %v", err)
 			return response
 		}
 
@@ -222,6 +222,7 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			return response
 		}
 		if deleted {
+
 			_, err = invoice.Del(invoiceID, nil)
 			if err != nil {
 				log.Printf("Failed to delete stripe invoice %s description, %s", invoiceID, err)
@@ -318,12 +319,12 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 			log.Printf("Failed to get invoice %s, %v", invoiceID, err)
 		}
 
-		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.ID, nil)
+		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.Product.ID, nil)
 		if err != nil {
 			return response
 		}
 
-		decimalPrice := float64(stripeInvoice.Lines.Data[0].Price.UnitAmount / 100.00)
+		decimalPrice := stripeInvoice.Lines.Data[0].Price.UnitAmountDecimal / float64(100.00)
 
 		startTime, segmentSize, err := database.GetInvoiceStartTimeSegmentSize(invoiceID)
 		if err != nil {
@@ -343,8 +344,8 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 			return response
 		}
 
-		if err := database.ResetTakenTimeSlotByInvoice(invoiceID); err != nil {
-			log.Printf("Failed to reset taken time slot, %v", err)
+		if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
+			log.Printf("Failed to update time slot current people,, %v", err)
 			return response
 		}
 
@@ -419,9 +420,9 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler(params o
 			if err != nil {
 				log.Printf("Failed to create refund in database, %v", err)
 			}
-			err = database.ResetTakenTimeSlotByInvoice(invoiceID)
-			if err != nil {
-				log.Printf("Failed to reset taken time slot for invoice %s, %v", &invoiceID, err)
+
+			if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
+				log.Printf("Failed to update time slot current people, %s, %v", invoiceID, err)
 			}
 
 			payload.Refunded = true

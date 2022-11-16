@@ -71,7 +71,7 @@ func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDe
 		fixedPrice.Images = pr.Images
 		fixedPrice.Title = &pr.Name
 		fixedPrice.Description = &pr.Description
-		fixedPrice.TimeSlots, err = GetTimeSlots(fixedPriceID)
+		fixedPrice.TimeSlots, err = GetPublicTimeSlots(fixedPriceID)
 		if err != nil {
 			return fixedPrice, business, err
 		}

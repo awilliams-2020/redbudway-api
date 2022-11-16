@@ -4582,21 +4582,18 @@ func init() {
                     "items": {
                       "type": "object",
                       "properties": {
-                        "customer": {
-                          "$ref": "#/definitions/Customer"
+                        "customers": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/definitions/Customer"
+                          },
+                          "x-omitempty": false
                         },
                         "segmentSize": {
                           "type": "number",
                           "format": "double"
                         },
                         "startTime": {
-                          "type": "string"
-                        },
-                        "taken": {
-                          "type": "boolean",
-                          "x-omitempty": false
-                        },
-                        "takenBy": {
                           "type": "string"
                         }
                       }
@@ -5095,8 +5092,27 @@ func init() {
     "TimeSlot": {
       "type": "object",
       "properties": {
-        "cuStripeId": {
-          "type": "string"
+        "curPeople": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "customers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cuStripeId": {
+                "type": "string"
+              },
+              "invoiceId": {
+                "type": "string"
+              },
+              "subscriptionId": {
+                "type": "string"
+              }
+            }
+          }
         },
         "endTime": {
           "type": "string"
@@ -5104,25 +5120,19 @@ func init() {
         "futureTime": {
           "type": "string"
         },
-        "invoiceId": {
-          "type": "string"
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "maxPeople": {
+          "type": "integer",
+          "format": "int64"
         },
         "segmentSize": {
           "type": "string"
         },
         "startTime": {
           "type": "string"
-        },
-        "subscriptionId": {
-          "type": "string"
-        },
-        "taken": {
-          "type": "boolean",
-          "x-omitempty": false
-        },
-        "takenBy": {
-          "type": "string",
-          "x-omitempty": false
         }
       }
     },
@@ -9996,21 +10006,18 @@ func init() {
     "GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0": {
       "type": "object",
       "properties": {
-        "customer": {
-          "$ref": "#/definitions/Customer"
+        "customers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Customer"
+          },
+          "x-omitempty": false
         },
         "segmentSize": {
           "type": "number",
           "format": "double"
         },
         "startTime": {
-          "type": "string"
-        },
-        "taken": {
-          "type": "boolean",
-          "x-omitempty": false
-        },
-        "takenBy": {
           "type": "string"
         }
       }
@@ -10401,8 +10408,16 @@ func init() {
     "TimeSlot": {
       "type": "object",
       "properties": {
-        "cuStripeId": {
-          "type": "string"
+        "curPeople": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "customers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TimeSlotCustomersItems0"
+          }
         },
         "endTime": {
           "type": "string"
@@ -10410,25 +10425,33 @@ func init() {
         "futureTime": {
           "type": "string"
         },
-        "invoiceId": {
-          "type": "string"
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "maxPeople": {
+          "type": "integer",
+          "format": "int64"
         },
         "segmentSize": {
           "type": "string"
         },
         "startTime": {
           "type": "string"
+        }
+      }
+    },
+    "TimeSlotCustomersItems0": {
+      "type": "object",
+      "properties": {
+        "cuStripeId": {
+          "type": "string"
+        },
+        "invoiceId": {
+          "type": "string"
         },
         "subscriptionId": {
           "type": "string"
-        },
-        "taken": {
-          "type": "boolean",
-          "x-omitempty": false
-        },
-        "takenBy": {
-          "type": "string",
-          "x-omitempty": false
         }
       }
     },
