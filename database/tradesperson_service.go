@@ -505,6 +505,7 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 			return fixedPrices
 		}
 		fixedPrice := &models.Service{}
+		fixedPrice.Archived = archived
 		fixedPrice.Subscription = subscription
 		if interval.Valid {
 			fixedPrice.Interval = interval.String

@@ -74,7 +74,7 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) *m
 
 func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradespersonTradespersonIDScheduleOK, error) {
 	response := operations.NewGetTradespersonTradespersonIDScheduleOK()
-	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE ( (MONTH(fpts.startTime) = MONTH(CURRENT_DATE()) AND fp.subscription=False) || fp.subscription=True ) AND fp.tradespersonId=? GROUP BY fpts.id")
+	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE ( (DATE(fpts.startTime) >= CURRENT_DATE() AND fp.subscription=False) || fp.subscription=True ) AND fp.tradespersonId=? GROUP BY fpts.id")
 	if err != nil {
 		return response, err
 	}

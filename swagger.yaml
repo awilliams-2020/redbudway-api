@@ -843,11 +843,11 @@ paths:
           type: object
           required:
             - response
-            - quoteId
+            - reviewId
           properties:
             response:
               type: string
-            quoteId:
+            reviewId:
               type: integer
               format: int64
       responses:
@@ -2307,24 +2307,51 @@ paths:
         '200':
           description: List of reviews
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                rating:
-                  type: integer
-                  format: int64
-                message:
-                  type: string
-                date:
-                  type: string
-                responded:
-                  type: boolean
-                  x-omitempty: false
-                respMsg:
-                  type: string
-                respDate:
-                  type: string
+            type: object
+            properties:
+              oneStars:
+                type: integer
+                format: int64
+                x-omitempty: false
+              twoStars:
+                type: integer
+                format: int64
+                x-omitempty: false
+              threeStars:
+                type: integer
+                format: int64
+                x-omitempty: false
+              fourStars:
+                type: integer
+                format: int64
+                x-omitempty: false
+              fiveStars:
+                type: integer
+                format: int64
+                x-omitempty: false
+              reviews:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    customer:
+                      type: string
+                    rating:
+                      type: integer
+                      format: int64
+                    message:
+                      type: string
+                    date:
+                      type: string
+                    responded:
+                      type: boolean
+                      x-omitempty: false
+                    tradesperson:
+                      type: string
+                    respMsg:
+                      type: string
+                    respDate:
+                      type: string
   /quotes:
     get:
       parameters:
@@ -3039,6 +3066,9 @@ definitions:
       vanityURL:
         type: string
         x-omitempty: false
+      archived:
+        type: boolean
+        x-omitempity: false
   ServiceDetails:
     type: object
     required:

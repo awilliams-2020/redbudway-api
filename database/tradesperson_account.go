@@ -38,7 +38,7 @@ func GetTradespersonSellingFee(tradespersonID string) (float64, error) {
 }
 
 func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, stripeAccount *stripe.Account) (uuid.UUID, error) {
-	log.Printf("Creating %v tradesperson account", tradesperson.Name)
+	log.Printf("Creating %s tradesperson account", tradesperson.Name)
 
 	tradespersonID, err := internal.GenerateUUID()
 	if err != nil {
@@ -242,7 +242,7 @@ func UpdateTradespersonImage(tradespersonID, image string) error {
 }
 
 func UpdateTradespersonDisplaySettings(tradespersonID string, settings operations.PutTradespersonTradespersonIDSettingsBody) (bool, error) {
-	stmt, err := db.Prepare("UPDATE tradesperson_settings SET displayEmail=?, displayNumber=?, displayAddress=? WHERE tradespersonId=?")
+	stmt, err := db.Prepare("UPDATE tradesperson_settings SET email=?, number=?, address=? WHERE tradespersonId=?")
 	if err != nil {
 		return false, err
 	}

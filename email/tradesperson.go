@@ -38,7 +38,7 @@ func SendTradespersonMessage(businessName, businessEmail, service, message strin
 		m.Attach(image)
 	}
 
-	d := gomail.NewDialer("mail.redbudway.com", 25, "help@redbudway.com", "MerCedEsAmgGt22$")
+	d := gomail.NewDialer("mail.redbudway.com", 25, "service@redbudway.com", "MerCedEsAmgGt22$")
 
 	return images, d.DialAndSend(m)
 }
@@ -75,7 +75,7 @@ func SendTradespersonSubscriptionBooking(tradesperson models.Tradesperson, strip
 
 func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message string, quote *models.ServiceDetails, images []string) ([]string, error) {
 	m := gomail.NewMessage()
-	m.SetHeader("From", "help@redbudway.com")
+	m.SetHeader("From", "service@redbudway.com")
 	m.SetAddressHeader("To", tradesperson.Email, tradesperson.Name)
 	m.SetHeader("Subject", "Quote Request")
 
@@ -93,7 +93,7 @@ func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustom
 
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("mail.redbudway.com", 25, "help@redbudway.com", "MerCedEsAmgGt22$")
+	d := gomail.NewDialer("mail.redbudway.com", 25, "service@redbudway.com", "MerCedEsAmgGt22$")
 
 	return images, d.DialAndSend(m)
 }

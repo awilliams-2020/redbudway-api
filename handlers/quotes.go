@@ -12,8 +12,6 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 )
 
-const QUOTE_PAGE_SIZE = float64(9)
-
 func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service) ([]*models.Service, error) {
 	var id int64
 	var vanityURL sql.NullString
@@ -64,7 +62,8 @@ func getQuotesWithFilters(state, city, category, subCategory, filters string, pa
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(category, subCategory, state, city, page, QUOTE_PAGE_SIZE)
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(category, subCategory, state, city, offset, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return quotes, err
@@ -91,7 +90,8 @@ func getSubCategoryQuotes(state, city, category, subCategory string, page int64)
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(category, subCategory, state, city, page, QUOTE_PAGE_SIZE)
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(category, subCategory, state, city, offset, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return quotes, err
@@ -118,7 +118,8 @@ func getCategoryQuotes(state, city, category string, page int64) ([]*models.Serv
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(category, state, city, page, QUOTE_PAGE_SIZE)
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(category, state, city, offset, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return quotes, err
@@ -144,7 +145,8 @@ func getAllQuotes(state, city string, page int64) ([]*models.Service, error) {
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(state, city, page, QUOTE_PAGE_SIZE)
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(state, city, offset, PAGE_SIZE)
 	if err != nil {
 		log.Println("Failed to execute select statement")
 		return quotes, err
@@ -166,6 +168,10 @@ func GetQuotesHandler(params operations.GetQuotesParams) middleware.Responder {
 	response := operations.NewGetQuotesOK()
 	quotes := []*models.Service{}
 	response.SetPayload(quotes)
+
+	if city == "" || state == "" {
+		return response
+	}
 
 	var err error
 	if params.Category == nil && params.SubCategory == nil {
@@ -322,7 +328,7 @@ func GetQuotePagesHandler(params operations.GetQuotePagesParams) middleware.Resp
 		pages = float64(1)
 	}
 
-	pages = math.Ceil(pages / QUOTE_PAGE_SIZE)
+	pages = math.Ceil(pages / PAGE_SIZE)
 
 	response.SetPayload(int64(pages))
 

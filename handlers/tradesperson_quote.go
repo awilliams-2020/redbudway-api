@@ -238,9 +238,12 @@ func PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.P
 	fee := int64(appFee * 100)
 
 	quoteParams := &stripe.QuoteParams{
-		LineItems:            lineItems,
-		ApplicationFeeAmount: &fee,
-		Description:          stripe.String(description),
+		Description: stripe.String(description),
+	}
+
+	if len(products) != 0 {
+		quoteParams.LineItems = lineItems
+		quoteParams.ApplicationFeeAmount = &fee
 	}
 	_, err = quote.Update(
 		quoteID,

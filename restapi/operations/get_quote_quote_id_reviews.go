@@ -8,7 +8,9 @@ package operations
 import (
 	"context"
 	"net/http"
+	"strconv"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -58,10 +60,129 @@ func (o *GetQuoteQuoteIDReviews) ServeHTTP(rw http.ResponseWriter, r *http.Reque
 
 }
 
-// GetQuoteQuoteIDReviewsOKBodyItems0 get quote quote ID reviews o k body items0
+// GetQuoteQuoteIDReviewsOKBody get quote quote ID reviews o k body
 //
-// swagger:model GetQuoteQuoteIDReviewsOKBodyItems0
-type GetQuoteQuoteIDReviewsOKBodyItems0 struct {
+// swagger:model GetQuoteQuoteIDReviewsOKBody
+type GetQuoteQuoteIDReviewsOKBody struct {
+
+	// five stars
+	FiveStars int64 `json:"fiveStars"`
+
+	// four stars
+	FourStars int64 `json:"fourStars"`
+
+	// one stars
+	OneStars int64 `json:"oneStars"`
+
+	// reviews
+	Reviews []*GetQuoteQuoteIDReviewsOKBodyReviewsItems0 `json:"reviews"`
+
+	// three stars
+	ThreeStars int64 `json:"threeStars"`
+
+	// two stars
+	TwoStars int64 `json:"twoStars"`
+}
+
+// Validate validates this get quote quote ID reviews o k body
+func (o *GetQuoteQuoteIDReviewsOKBody) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.validateReviews(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetQuoteQuoteIDReviewsOKBody) validateReviews(formats strfmt.Registry) error {
+	if swag.IsZero(o.Reviews) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(o.Reviews); i++ {
+		if swag.IsZero(o.Reviews[i]) { // not required
+			continue
+		}
+
+		if o.Reviews[i] != nil {
+			if err := o.Reviews[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("getQuoteQuoteIdReviewsOK" + "." + "reviews" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("getQuoteQuoteIdReviewsOK" + "." + "reviews" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this get quote quote ID reviews o k body based on the context it is used
+func (o *GetQuoteQuoteIDReviewsOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidateReviews(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetQuoteQuoteIDReviewsOKBody) contextValidateReviews(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(o.Reviews); i++ {
+
+		if o.Reviews[i] != nil {
+			if err := o.Reviews[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("getQuoteQuoteIdReviewsOK" + "." + "reviews" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("getQuoteQuoteIdReviewsOK" + "." + "reviews" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *GetQuoteQuoteIDReviewsOKBody) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *GetQuoteQuoteIDReviewsOKBody) UnmarshalBinary(b []byte) error {
+	var res GetQuoteQuoteIDReviewsOKBody
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
+// GetQuoteQuoteIDReviewsOKBodyReviewsItems0 get quote quote ID reviews o k body reviews items0
+//
+// swagger:model GetQuoteQuoteIDReviewsOKBodyReviewsItems0
+type GetQuoteQuoteIDReviewsOKBodyReviewsItems0 struct {
+
+	// customer
+	Customer string `json:"customer,omitempty"`
 
 	// date
 	Date string `json:"date,omitempty"`
@@ -80,20 +201,23 @@ type GetQuoteQuoteIDReviewsOKBodyItems0 struct {
 
 	// responded
 	Responded bool `json:"responded"`
+
+	// tradesperson
+	Tradesperson string `json:"tradesperson,omitempty"`
 }
 
-// Validate validates this get quote quote ID reviews o k body items0
-func (o *GetQuoteQuoteIDReviewsOKBodyItems0) Validate(formats strfmt.Registry) error {
+// Validate validates this get quote quote ID reviews o k body reviews items0
+func (o *GetQuoteQuoteIDReviewsOKBodyReviewsItems0) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this get quote quote ID reviews o k body items0 based on context it is used
-func (o *GetQuoteQuoteIDReviewsOKBodyItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this get quote quote ID reviews o k body reviews items0 based on context it is used
+func (o *GetQuoteQuoteIDReviewsOKBodyReviewsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (o *GetQuoteQuoteIDReviewsOKBodyItems0) MarshalBinary() ([]byte, error) {
+func (o *GetQuoteQuoteIDReviewsOKBodyReviewsItems0) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -101,8 +225,8 @@ func (o *GetQuoteQuoteIDReviewsOKBodyItems0) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (o *GetQuoteQuoteIDReviewsOKBodyItems0) UnmarshalBinary(b []byte) error {
-	var res GetQuoteQuoteIDReviewsOKBodyItems0
+func (o *GetQuoteQuoteIDReviewsOKBodyReviewsItems0) UnmarshalBinary(b []byte) error {
+	var res GetQuoteQuoteIDReviewsOKBodyReviewsItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

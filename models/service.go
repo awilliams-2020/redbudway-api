@@ -17,6 +17,9 @@ import (
 // swagger:model Service
 type Service struct {
 
+	// archived
+	Archived bool `json:"archived,omitempty"`
+
 	// available time slots
 	AvailableTimeSlots int64 `json:"availableTimeSlots"`
 

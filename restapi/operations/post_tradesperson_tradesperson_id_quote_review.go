@@ -78,24 +78,24 @@ func (o *PostTradespersonTradespersonIDQuoteReview) ServeHTTP(rw http.ResponseWr
 // swagger:model PostTradespersonTradespersonIDQuoteReviewBody
 type PostTradespersonTradespersonIDQuoteReviewBody struct {
 
-	// quote Id
-	// Required: true
-	QuoteID *int64 `json:"quoteId"`
-
 	// response
 	// Required: true
 	Response *string `json:"response"`
+
+	// review Id
+	// Required: true
+	ReviewID *int64 `json:"reviewId"`
 }
 
 // Validate validates this post tradesperson tradesperson ID quote review body
 func (o *PostTradespersonTradespersonIDQuoteReviewBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateQuoteID(formats); err != nil {
+	if err := o.validateResponse(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := o.validateResponse(formats); err != nil {
+	if err := o.validateReviewID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -105,18 +105,18 @@ func (o *PostTradespersonTradespersonIDQuoteReviewBody) Validate(formats strfmt.
 	return nil
 }
 
-func (o *PostTradespersonTradespersonIDQuoteReviewBody) validateQuoteID(formats strfmt.Registry) error {
+func (o *PostTradespersonTradespersonIDQuoteReviewBody) validateResponse(formats strfmt.Registry) error {
 
-	if err := validate.Required("review"+"."+"quoteId", "body", o.QuoteID); err != nil {
+	if err := validate.Required("review"+"."+"response", "body", o.Response); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (o *PostTradespersonTradespersonIDQuoteReviewBody) validateResponse(formats strfmt.Registry) error {
+func (o *PostTradespersonTradespersonIDQuoteReviewBody) validateReviewID(formats strfmt.Registry) error {
 
-	if err := validate.Required("review"+"."+"response", "body", o.Response); err != nil {
+	if err := validate.Required("review"+"."+"reviewId", "body", o.ReviewID); err != nil {
 		return err
 	}
 

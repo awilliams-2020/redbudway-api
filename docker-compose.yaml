@@ -6,6 +6,7 @@ services:
       - STRIPE_KEY=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
       - SUBDOMAIN=
       - DATABASE=redbudway
+      - ARCGIS_TOKEN=AAPK928991da1bd2468697cf175e83eaa5b18w6fXD15Vg5ZiDluyjoH7jBi7twr5tfQiApP1Zb_Vezifb-qEF6hYrna5CASnlDD
     volumes:
       - /home/awilliams/images:/usr/src/app/images
     networks:
@@ -19,6 +20,7 @@ services:
       - STRIPE_KEY=sk_test_uYo1zefPYHPTRuovutUHfSSM0090vzsSDw
       - SUBDOMAIN=dev.
       - DATABASE=redbudway_dev
+      - ARCGIS_TOKEN=AAPK928991da1bd2468697cf175e83eaa5b18w6fXD15Vg5ZiDluyjoH7jBi7twr5tfQiApP1Zb_Vezifb-qEF6hYrna5CASnlDD
     volumes:
       - /home/awilliams/images-dev:/usr/src/app/images
     networks:

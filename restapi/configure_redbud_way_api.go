@@ -9,7 +9,6 @@ import (
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/runtime/middleware"
 	"github.com/stripe/stripe-go/v72"
 
 	"redbudway-api/database"
@@ -241,11 +240,7 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.PostTradespersonTradespersonIDQuoteHandler = operations.PostTradespersonTradespersonIDQuoteHandlerFunc(handlers.PostTradespersonTradespersonIDQuoteHandler)
 
-	if api.PostTradespersonTradespersonIDQuoteReviewHandler == nil {
-		api.PostTradespersonTradespersonIDQuoteReviewHandler = operations.PostTradespersonTradespersonIDQuoteReviewHandlerFunc(func(params operations.PostTradespersonTradespersonIDQuoteReviewParams, principal interface{}) middleware.Responder {
-			return middleware.NotImplemented("operation operations.PostTradespersonTradespersonIDQuoteReview has not yet been implemented")
-		})
-	}
+	api.PostTradespersonTradespersonIDQuoteReviewHandler = operations.PostTradespersonTradespersonIDQuoteReviewHandlerFunc(handlers.PostTradespersonTradespersonIDQuoteReviewHandler)
 
 	api.PutTradespersonTradespersonIDHandler = operations.PutTradespersonTradespersonIDHandlerFunc(handlers.PutTradespersonTradespersonIDHandler)
 

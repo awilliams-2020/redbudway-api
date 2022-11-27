@@ -13,13 +13,13 @@ var password string
 
 func email(email, name, subject, body string) error {
 	m := gomail.NewMessage()
-	m.SetHeader("From", "help@redbudway.com")
+	m.SetHeader("From", "service@redbudway.com")
 	m.SetAddressHeader("To", email, name)
 	m.SetHeader("Subject", subject)
 
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("mail.redbudway.com", 25, "help@redbudway.com", "MerCedEsAmgGt22$")
+	d := gomail.NewDialer("mail.redbudway.com", 25, "service@redbudway.com", "MerCedEsAmgGt22$")
 
 	return d.DialAndSend(m)
 }

@@ -31,43 +31,21 @@ func GetQuoteQuoteIDReviewsHandler(params operations.GetQuoteQuoteIDReviewsParam
 	quoteID := params.QuoteID
 	page := params.Page
 
-	reviews := []*operations.GetQuoteQuoteIDReviewsOKBodyItems0{}
+	reviews := operations.GetQuoteQuoteIDReviewsOKBody{}
 	response := operations.NewGetQuoteQuoteIDReviewsOK()
-	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT qr.customerId, qr.rating, qr.message, DATE_FORMAT(qr.date, '%M %D %Y') date, qr.responded, qr.response, DATE_FORMAT(qr.respDate, '%M %D %Y') respDate, q.tradespersonId FROM quote_reviews qr INNER JOIN quotes q ON qr.quoteId=q.id WHERE q.quote=? ORDER BY qr.date DESC LIMIT ?, 10")
+	var err error
+	reviews, err = database.GetQuoteRatings(quoteID)
 	if err != nil {
-		log.Printf("Failed to create select statement %s", err)
-		return response
+		log.Printf("Failed to get quote %s ratings, %v", &quoteID, err)
 	}
-	defer stmt.Close()
 
-	rows, err := stmt.Query(quoteID, page)
+	reviews.Reviews, err = database.GetQuoteReviews(quoteID, page)
 	if err != nil {
-		log.Printf("Failed to execute select statement %s", err)
-		return response
+		log.Printf("Failed to get quote %s reviews, %v", &quoteID, err)
 	}
 
-	var customerID, message, date, respMsg, respDate string
-	var rating int64
-	var responded bool
-	for rows.Next() {
-		if err := rows.Scan(&customerID, &rating, &message, &date, &responded, &respMsg, &respDate); err != nil {
-			log.Printf("Failed to scan for quote reviews, %s", err)
-			return response
-		}
-
-		review := &operations.GetQuoteQuoteIDReviewsOKBodyItems0{}
-		review.Rating = rating
-		review.Message = message
-		review.Date = date
-		review.Responded = responded
-		review.RespMsg = respMsg
-		review.RespDate = respDate
-		reviews = append(reviews, review)
-	}
-
-	response.SetPayload(reviews)
+	response.SetPayload(&reviews)
 
 	return response
 }

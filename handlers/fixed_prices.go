@@ -195,6 +195,10 @@ func GetFixedPricesHandler(params operations.GetFixedPricesParams) middleware.Re
 	fixedPrices := []*models.Service{}
 	response.SetPayload(fixedPrices)
 
+	if city == "" || state == "" {
+		return response
+	}
+
 	var err error
 	if params.Category == nil && params.SubCategory == nil {
 		fixedPrices, err = getAllFixedPrices(state, city, page)

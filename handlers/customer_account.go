@@ -337,6 +337,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 				Destination: stripe.String(tpStripeID),
 			},
 			ProrationBehavior: stripe.String("none"),
+			PaymentBehavior:   stripe.String("default_incomplete"),
 		}
 		subscriptionParams.AddMetadata("tradesperson_id", tradespersonID)
 		stripeSubscription, err := sub.New(subscriptionParams)

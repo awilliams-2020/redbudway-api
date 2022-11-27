@@ -1534,30 +1534,66 @@ func init() {
           "200": {
             "description": "List of reviews",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "date": {
-                    "type": "string"
-                  },
-                  "message": {
-                    "type": "string"
-                  },
-                  "rating": {
-                    "type": "integer",
-                    "format": "int64"
-                  },
-                  "respDate": {
-                    "type": "string"
-                  },
-                  "respMsg": {
-                    "type": "string"
-                  },
-                  "responded": {
-                    "type": "boolean",
-                    "x-omitempty": false
+              "type": "object",
+              "properties": {
+                "fiveStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "fourStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "oneStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "reviews": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "customer": {
+                        "type": "string"
+                      },
+                      "date": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      },
+                      "rating": {
+                        "type": "integer",
+                        "format": "int64"
+                      },
+                      "respDate": {
+                        "type": "string"
+                      },
+                      "respMsg": {
+                        "type": "string"
+                      },
+                      "responded": {
+                        "type": "boolean",
+                        "x-omitempty": false
+                      },
+                      "tradesperson": {
+                        "type": "string"
+                      }
+                    }
                   }
+                },
+                "threeStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "twoStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
                 }
               }
             }
@@ -4355,15 +4391,15 @@ func init() {
               "type": "object",
               "required": [
                 "response",
-                "quoteId"
+                "reviewId"
               ],
               "properties": {
-                "quoteId": {
-                  "type": "integer",
-                  "format": "int64"
-                },
                 "response": {
                   "type": "string"
+                },
+                "reviewId": {
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -4936,6 +4972,10 @@ func init() {
     "Service": {
       "type": "object",
       "properties": {
+        "archived": {
+          "type": "boolean",
+          "x-omitempity": false
+        },
         "availableTimeSlots": {
           "type": "integer",
           "x-omitempty": false
@@ -6659,9 +6699,39 @@ func init() {
           "200": {
             "description": "List of reviews",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/GetQuoteQuoteIDReviewsOKBodyItems0"
+              "type": "object",
+              "properties": {
+                "fiveStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "fourStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "oneStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "reviews": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ReviewsItems0"
+                  }
+                },
+                "threeStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                },
+                "twoStars": {
+                  "type": "integer",
+                  "format": "int64",
+                  "x-omitempty": false
+                }
               }
             }
           }
@@ -9330,15 +9400,15 @@ func init() {
               "type": "object",
               "required": [
                 "response",
-                "quoteId"
+                "reviewId"
               ],
               "properties": {
-                "quoteId": {
-                  "type": "integer",
-                  "format": "int64"
-                },
                 "response": {
                   "type": "string"
+                },
+                "reviewId": {
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -9795,31 +9865,6 @@ func init() {
         }
       }
     },
-    "GetQuoteQuoteIDReviewsOKBodyItems0": {
-      "type": "object",
-      "properties": {
-        "date": {
-          "type": "string"
-        },
-        "message": {
-          "type": "string"
-        },
-        "rating": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "respDate": {
-          "type": "string"
-        },
-        "respMsg": {
-          "type": "string"
-        },
-        "responded": {
-          "type": "boolean",
-          "x-omitempty": false
-        }
-      }
-    },
     "GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOKBodyService": {
       "type": "object",
       "properties": {
@@ -10201,6 +10246,10 @@ func init() {
     "Service": {
       "type": "object",
       "properties": {
+        "archived": {
+          "type": "boolean",
+          "x-omitempity": false
+        },
         "availableTimeSlots": {
           "type": "integer",
           "x-omitempty": false

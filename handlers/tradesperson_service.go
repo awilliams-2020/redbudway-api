@@ -326,7 +326,7 @@ func GetTradespersonTradespersonIDQuoteReviewsHandler(params operations.GetTrade
 	reviews := []*operations.GetTradespersonTradespersonIDQuoteReviewsOKBodyItems0{}
 	response.SetPayload(reviews)
 
-	stmt, err := db.Prepare("SELECT qr.id, qr.customerId, qr.rating, qr.message, DATE_FORMAT(qr.date, '%M %D %Y') date, q.tradespersonId FROM quote_reviews qr INNER JOIN quotes q ON qr.quoteId=q.id WHERE q.tradespersonId=? AND qr.responded=0")
+	stmt, err := db.Prepare("SELECT qr.id, qr.customerId, qr.rating, qr.message, DATE_FORMAT(qr.date, '%M %D %Y') date FROM quote_reviews qr INNER JOIN quotes q ON qr.quoteId=q.id WHERE q.tradespersonId=? AND qr.responded=0")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -343,6 +343,7 @@ func GetTradespersonTradespersonIDQuoteReviewsHandler(params operations.GetTrade
 	var customerID, message, date string
 	for rows.Next() {
 		if err := rows.Scan(&id, &customerID, &rating, &message, &date); err != nil {
+			log.Printf("Failed to scan row, %s", err)
 			return response
 		}
 		review := &operations.GetTradespersonTradespersonIDQuoteReviewsOKBodyItems0{}
@@ -365,6 +366,59 @@ func GetTradespersonTradespersonIDQuoteReviewsHandler(params operations.GetTrade
 	response.SetPayload(reviews)
 
 	return response
+}
+
+func PostTradespersonTradespersonIDQuoteReviewHandler(params operations.PostTradespersonTradespersonIDQuoteReviewParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	respMsg := *params.Review.Response
+	reviewID := *params.Review.ReviewID
+
+	db := database.GetConnection()
+
+	response := operations.NewPostTradespersonTradespersonIDQuoteReviewOK()
+	payload := operations.PostTradespersonTradespersonIDQuoteReviewOKBody{Responded: false}
+	response.SetPayload(&payload)
+
+	stmt, err := db.Prepare("SELECT qr.id FROM quote_reviews qr INNER JOIN quotes q ON qr.quoteId=q.id WHERE q.tradespersonId=? AND qr.responded=0 AND qr.id=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return response
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID, reviewID)
+
+	switch err = row.Scan(&reviewID); err {
+	case sql.ErrNoRows:
+		log.Printf("Review %d does not exit to respond, %v", reviewID, err)
+		return response
+	case nil:
+		stmt, err := db.Prepare("UPDATE quote_reviews SET responded = 1, respMsg = ?, respDate = NOW() WHERE id = ?")
+		if err != nil {
+			log.Printf("Failed to create prepare statement, %v", err)
+			return response
+		}
+		defer stmt.Close()
+
+		results, err := stmt.Exec(respMsg, reviewID)
+		if err != nil {
+			log.Printf("Failed to exec statement, %v", err)
+			return response
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			log.Printf("Failed to retrieve affected rows, %v", err)
+			return response
+		}
+
+		if rowsAffected == 1 {
+			payload.Responded = true
+			response.SetPayload(&payload)
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
 
 	return response
 }

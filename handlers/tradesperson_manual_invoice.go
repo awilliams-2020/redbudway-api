@@ -90,7 +90,7 @@ func GetTradespersonTradespersonIDBillingManualInvoicesHandler(params operations
 	defer stmt.Close()
 
 	offSet := (page - 1) * int64(PAGE_SIZE)
-	rows, err := stmt.Query(tradespersonID, quarter, year, page, offSet)
+	rows, err := stmt.Query(tradespersonID, quarter, year, offSet, PAGE_SIZE)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response

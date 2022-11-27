@@ -8,6 +8,7 @@ import (
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
+	"redbudway-api/stripe"
 	"strconv"
 
 	"github.com/go-openapi/runtime/middleware"
@@ -23,22 +24,60 @@ func GetProfileVanityOrIDHandler(params operations.GetProfileVanityOrIDParams) m
 	response := operations.NewGetProfileVanityOrIDOK()
 	response.SetPayload(tradesperson)
 
-	stmt, err := db.Prepare("SELECT ta.tradespersonId FROM tradesperson_account ta INNER JOIN tradesperson_settings ts ON ts.tradespersonId=ta.tradespersonId WHERE ta.tradespersonId=? OR ts.vanityURL=?")
+	stmt, err := db.Prepare("SELECT ta.tradespersonId, ta.stripeId, ta.name, ta.description, ta.image, IF(ts.number=true, ta.number, '') as number, IF(ts.email=true, ta.email, '') as email, ts.address  FROM tradesperson_account ta INNER JOIN tradesperson_settings ts ON ts.tradespersonId=ta.tradespersonId WHERE ta.tradespersonId=? OR ts.vanityURL=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	var tradespersonID string
+	var name, number, email, stripeID, tradespersonID string
+	var description, image sql.NullString
+	var address bool
 	row := stmt.QueryRow(vanityOrID, vanityOrID)
-	switch err = row.Scan(&tradespersonID); err {
+	switch err = row.Scan(&tradespersonID, &stripeID, &name, &description, &image, &number, &email, &address); err {
 	case sql.ErrNoRows:
-		log.Printf("Tradesperson with vanityOrID %v doesn't exist", &vanityOrID)
+		//
 	case nil:
+		if description.Valid {
+			tradesperson.Description = description.String
+		}
+		if image.Valid {
+			tradesperson.Image = image.String
+		}
 
-		tradesperson = GetTradespersonTradespersonID(tradespersonID)
+		jobs, err := database.GetTradespersonJobs(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson job count %s", err)
+			return response
+		}
+		tradesperson.Jobs = jobs
 
+		rating, reviews, err := database.GetTradespersonRatingReviews(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson rating & reviews %s", err)
+			return response
+		}
+		tradesperson.Rating = rating
+		tradesperson.Reviews = reviews
+
+		tradesperson.Name = name
+		tradesperson.Number = number
+		tradesperson.Email = email
+		if address {
+			stripe, err := stripe.GetConnectAccount(stripeID)
+			if err != nil {
+				log.Print("Failed to get stripe account for tradesperson with ID %s", tradespersonID)
+				return response
+			}
+
+			tradesperson.Address = &models.Address{}
+			tradesperson.Address.City = stripe.BusinessProfile.SupportAddress.City
+			tradesperson.Address.State = stripe.BusinessProfile.SupportAddress.State
+			tradesperson.Address.LineOne = stripe.BusinessProfile.SupportAddress.Line1
+			tradesperson.Address.LineTwo = stripe.BusinessProfile.SupportAddress.Line2
+			tradesperson.Address.ZipCode = stripe.BusinessProfile.SupportAddress.PostalCode
+		}
 		response.SetPayload(tradesperson)
 	default:
 		log.Printf("Unknown %v", err)
