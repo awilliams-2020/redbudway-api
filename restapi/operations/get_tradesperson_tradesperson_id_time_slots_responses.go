@@ -23,7 +23,7 @@ type GetTradespersonTradespersonIDTimeSlotsOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []*GetTradespersonTradespersonIDTimeSlotsOKBodyItems0 `json:"body,omitempty"`
+	Payload *GetTradespersonTradespersonIDTimeSlotsOKBody `json:"body,omitempty"`
 }
 
 // NewGetTradespersonTradespersonIDTimeSlotsOK creates GetTradespersonTradespersonIDTimeSlotsOK with default headers values
@@ -33,13 +33,13 @@ func NewGetTradespersonTradespersonIDTimeSlotsOK() *GetTradespersonTradespersonI
 }
 
 // WithPayload adds the payload to the get tradesperson tradesperson Id time slots o k response
-func (o *GetTradespersonTradespersonIDTimeSlotsOK) WithPayload(payload []*GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) *GetTradespersonTradespersonIDTimeSlotsOK {
+func (o *GetTradespersonTradespersonIDTimeSlotsOK) WithPayload(payload *GetTradespersonTradespersonIDTimeSlotsOKBody) *GetTradespersonTradespersonIDTimeSlotsOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get tradesperson tradesperson Id time slots o k response
-func (o *GetTradespersonTradespersonIDTimeSlotsOK) SetPayload(payload []*GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) {
+func (o *GetTradespersonTradespersonIDTimeSlotsOK) SetPayload(payload *GetTradespersonTradespersonIDTimeSlotsOKBody) {
 	o.Payload = payload
 }
 
@@ -47,13 +47,10 @@ func (o *GetTradespersonTradespersonIDTimeSlotsOK) SetPayload(payload []*GetTrad
 func (o *GetTradespersonTradespersonIDTimeSlotsOK) WriteResponse(rw http.ResponseWriter, producer runtime.Producer) {
 
 	rw.WriteHeader(200)
-	payload := o.Payload
-	if payload == nil {
-		// return empty array
-		payload = make([]*GetTradespersonTradespersonIDTimeSlotsOKBodyItems0, 0, 50)
-	}
-
-	if err := producer.Produce(rw, payload); err != nil {
-		panic(err) // let the recovery middleware deal with this
+	if o.Payload != nil {
+		payload := o.Payload
+		if err := producer.Produce(rw, payload); err != nil {
+			panic(err) // let the recovery middleware deal with this
+		}
 	}
 }

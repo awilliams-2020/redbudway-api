@@ -23,9 +23,19 @@ import (
 func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.GetTradespersonTradespersonIDBillingSubscriptionsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	page := *params.Page
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDBillingSubscriptionsOK()
 	customers := []*operations.GetTradespersonTradespersonIDBillingSubscriptionsOKBodyItems0{}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -78,6 +88,8 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 				subscriptions["canceled"] = subscriptions["canceled"].(int64) + int64(1)
 			} else if stripeSubscription.Status == "incomplete" {
 				subscriptions["incomplete"] = subscriptions["incomplete"].(int64) + int64(1)
+			} else if stripeSubscription.Status == "past_due" {
+				subscriptions["incomplete"] = subscriptions["incomplete"].(int64) + int64(1)
 			}
 			customerSubs[cuStripeID] = subscriptions
 		} else {
@@ -108,6 +120,8 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 				subscriptions["canceled"] = subscriptions["canceled"].(int64) + int64(1)
 			} else if stripeSubscription.Status == "incomplete" {
 				subscriptions["incomplete"] = subscriptions["incomplete"].(int64) + int64(1)
+			} else if stripeSubscription.Status == "past_due" {
+				subscriptions["incomplete"] = subscriptions["incomplete"].(int64) + int64(1)
 			}
 
 			customerSubs[cuStripeID] = subscriptions
@@ -131,9 +145,19 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 
 func GetTradespersonTradespersonIDBillingSubscriptionPagesHandler(params operations.GetTradespersonTradespersonIDBillingSubscriptionPagesParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	pages := float64(1)
 	response := operations.NewGetTradespersonTradespersonIDBillingSubscriptionPagesOK().WithPayload(int64(pages))
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -172,9 +196,19 @@ func GetTradespersonTradespersonIDBillingSubscriptionPagesHandler(params operati
 func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(params operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	stripeID := params.StripeID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOK()
 	_customer := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBody{}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -209,10 +243,11 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 			log.Printf("Failed to get product %s, %v", stripeSubscription.Items.Data[0].Price.Product.ID, err)
 		}
 
-		sameService := false
+		exist := false
 		for i, subscription := range subscriptions {
 			if subscription.Title == stripeProduct.Name {
-				sameService = true
+				exist = true
+				subscription.Total += stripeSubscription.Items.Data[0].Price.UnitAmount * stripeSubscription.Items.Data[0].Quantity
 				detail := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubscriptionsItems0DetailsItems0{}
 				detail.SubscriptionID = subscriptionID
 				detail.Status = string(stripeSubscription.Status)
@@ -254,16 +289,18 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 				if err != nil {
 					log.Printf("Failed to get subscription %s time slot, %v", subscriptionID, err)
 				}
-				detail.TimeSlots = append(detail.TimeSlots, timeSlot)
+				if timeSlot.StartTime != "" && timeSlot.EndTime != "" {
+					detail.TimeSlots = append(detail.TimeSlots, timeSlot)
+				}
 				subscription.Details = append(subscription.Details, &detail)
 			}
 			subscriptions[i] = subscription
 		}
-		if !sameService {
+		if !exist {
 			subscription := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubscriptionsItems0{}
 			subscription.Title = stripeProduct.Name
 			subscription.Description = stripeProduct.Description
-			subscription.Total = stripeSubscription.Items.Data[0].Price.UnitAmount
+			subscription.Total = subscription.Total + stripeSubscription.Items.Data[0].Price.UnitAmount*stripeSubscription.Items.Data[0].Quantity
 			subscription.Interval = interval
 			detail := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubscriptionsItems0DetailsItems0{}
 			detail.SubscriptionID = subscriptionID
@@ -306,7 +343,9 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 			if err != nil {
 				log.Printf("Failed to get subscription %s time slot, %v", subscriptionID, err)
 			}
-			detail.TimeSlots = append(detail.TimeSlots, timeSlot)
+			if timeSlot.StartTime != "" && timeSlot.EndTime != "" {
+				detail.TimeSlots = append(detail.TimeSlots, timeSlot)
+			}
 			subscription.Details = append(subscription.Details, &detail)
 
 			subscriptions = append(subscriptions, &subscription)
@@ -321,9 +360,19 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptio
 	tradespersonID := params.TradespersonID
 	subscriptionID := params.SubscriptionID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOK()
 	subscriptionInvoice := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOKBody{}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -360,7 +409,13 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptio
 		subscriptionInvoice.Total = stripeInvoice.Total
 		subscriptionInvoice.Pdf = stripeInvoice.InvoicePDF
 		subscriptionInvoice.URL = stripeInvoice.HostedInvoiceURL
-		subscriptionInvoice.TimeSlot, err = database.GetSubscriptionTimeSlot(subscriptionID, fixedPriceID)
+		timeSlot, err := database.GetSubscriptionTimeSlot(subscriptionID, fixedPriceID)
+		if err != nil {
+			log.Printf("Failed to get subscription invoice %s time slot, %v", subscriptionID, err)
+		}
+		if timeSlot.StartTime != "" && timeSlot.EndTime != "" {
+			subscriptionInvoice.TimeSlot = timeSlot
+		}
 		if err != nil {
 			log.Printf("Failed to get subscription %s time slot, %v", subscriptionID, err)
 		}
@@ -404,10 +459,20 @@ func PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscripti
 	stripeID := params.StripeID
 	subscriptionID := params.SubscriptionID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundOK()
 	payload := operations.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundOKBody{Refunded: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -489,24 +554,34 @@ func PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelHan
 	tradespersonID := params.TradespersonID
 	cuStripeID := params.StripeID
 	subscriptions := params.Subscriptions
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelOK()
 	payload := operations.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancelOKBody{Canceled: false}
 	response.SetPayload(&payload)
 
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	db := database.GetConnection()
 
 	for _, subscriptionID := range subscriptions {
-		stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize FROM tradesperson_subscriptions ts INNER JOIN customer_time_slots cts ON ts.cuStripeId=cts.cuStripeId INNER JOIN fixed_price_time_slots fpts ON cts.timeSlotId=fpts.id WHERE ts.tradespersonId=? AND ts.cuStripeId=? AND ts.subscriptionId=?")
+		stmt, err := db.Prepare("SELECT fpts.startTime, fpts.endTime FROM tradesperson_subscriptions ts INNER JOIN customer_time_slots cts ON ts.cuStripeId=cts.cuStripeId INNER JOIN fixed_price_time_slots fpts ON cts.timeSlotId=fpts.id WHERE ts.tradespersonId=? AND ts.cuStripeId=? AND ts.subscriptionId=?")
 		if err != nil {
 			log.Printf("Failed to create prepared statement, %v", err)
 			return response
 		}
 		defer stmt.Close()
 
-		var startTime, segmentSize string
+		var startTime, endTime string
 		row := stmt.QueryRow(tradespersonID, cuStripeID, subscriptionID)
-		switch err = row.Scan(&startTime, &segmentSize); err {
+		switch err = row.Scan(&startTime, &endTime); err {
 		case sql.ErrNoRows:
 			log.Printf("Tradesperson %s has no subscription %s", tradespersonID, subscriptionID)
 		case nil:

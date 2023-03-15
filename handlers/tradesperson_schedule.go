@@ -11,8 +11,21 @@ import (
 
 func GetTradespersonTradespersonIDScheduleHandler(params operations.GetTradespersonTradespersonIDScheduleParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	accessToken := params.AccessToken
+	token := params.HTTPRequest.Header.Get("Authorization")
 
-	response, err := database.GetTradespersonSchedule(tradespersonID)
+	response := operations.NewGetTradespersonTradespersonIDScheduleOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	response, err = database.GetTradespersonSchedule(tradespersonID, accessToken)
 	if err != nil {
 		log.Printf("Failed to retrieve tradesperson schedule %s", err)
 		return response

@@ -18,7 +18,7 @@ import (
 type Product struct {
 
 	// price
-	Price int64 `json:"price,omitempty"`
+	Price int64 `json:"price"`
 
 	// quantity
 	Quantity int64 `json:"quantity,omitempty"`

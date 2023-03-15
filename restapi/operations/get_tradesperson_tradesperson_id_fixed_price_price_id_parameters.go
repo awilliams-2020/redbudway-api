@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 )
@@ -31,6 +32,10 @@ type GetTradespersonTradespersonIDFixedPricePriceIDParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*
+	  In: query
+	*/
+	AccessToken *string
+	/*
 	  Required: true
 	  In: path
 	*/
@@ -51,6 +56,13 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDParams) BindRequest(r *ht
 
 	o.HTTPRequest = r
 
+	qs := runtime.Values(r.URL.Query())
+
+	qAccessToken, qhkAccessToken, _ := qs.GetOK("accessToken")
+	if err := o.bindAccessToken(qAccessToken, qhkAccessToken, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	rPriceID, rhkPriceID, _ := route.Params.GetOK("priceId")
 	if err := o.bindPriceID(rPriceID, rhkPriceID, route.Formats); err != nil {
 		res = append(res, err)
@@ -63,6 +75,24 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDParams) BindRequest(r *ht
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// bindAccessToken binds and validates parameter AccessToken from query.
+func (o *GetTradespersonTradespersonIDFixedPricePriceIDParams) bindAccessToken(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.AccessToken = &raw
+
 	return nil
 }
 

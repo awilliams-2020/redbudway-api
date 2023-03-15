@@ -12,7 +12,7 @@ import (
 )
 
 func CreateCustomerAccount(_customer operations.PostCustomerBody, stripeAccount *stripe.Customer) (uuid.UUID, error) {
-	log.Printf("Creating %s customer account", *_customer.Name)
+	log.Printf("Creating %s customer account", &_customer.Name)
 
 	customerID, err := internal.GenerateUUID()
 	if err != nil {

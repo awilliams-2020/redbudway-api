@@ -82,6 +82,9 @@ type GetTradespersonTradespersonIDFixedPricePriceIDOKBody struct {
 	// fixed price
 	FixedPrice *models.ServiceDetails `json:"fixedPrice,omitempty"`
 
+	// google time slots
+	GoogleTimeSlots models.GoogleTimeSlots `json:"googleTimeSlots"`
+
 	// other services
 	OtherServices models.OtherServices `json:"otherServices"`
 }
@@ -91,6 +94,10 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) Validate(formats 
 	var res []error
 
 	if err := o.validateFixedPrice(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateGoogleTimeSlots(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -123,6 +130,23 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) validateFixedPric
 	return nil
 }
 
+func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) validateGoogleTimeSlots(formats strfmt.Registry) error {
+	if swag.IsZero(o.GoogleTimeSlots) { // not required
+		return nil
+	}
+
+	if err := o.GoogleTimeSlots.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdFixedPricePriceIdOK" + "." + "googleTimeSlots")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdFixedPricePriceIdOK" + "." + "googleTimeSlots")
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) validateOtherServices(formats strfmt.Registry) error {
 	if swag.IsZero(o.OtherServices) { // not required
 		return nil
@@ -148,6 +172,10 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) ContextValidate(c
 		res = append(res, err)
 	}
 
+	if err := o.contextValidateGoogleTimeSlots(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := o.contextValidateOtherServices(ctx, formats); err != nil {
 		res = append(res, err)
 	}
@@ -169,6 +197,20 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) contextValidateFi
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) contextValidateGoogleTimeSlots(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := o.GoogleTimeSlots.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdFixedPricePriceIdOK" + "." + "googleTimeSlots")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdFixedPricePriceIdOK" + "." + "googleTimeSlots")
+		}
+		return err
 	}
 
 	return nil

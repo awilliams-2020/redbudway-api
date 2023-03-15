@@ -64,10 +64,10 @@ func (o *GetLocation) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 type GetLocationOKBody struct {
 
 	// city
-	City string `json:"city,omitempty"`
+	City string `json:"city"`
 
 	// state
-	State string `json:"state,omitempty"`
+	State string `json:"state"`
 }
 
 // Validate validates this get location o k body

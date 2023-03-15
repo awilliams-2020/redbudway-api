@@ -7,12 +7,16 @@ services:
       - SUBDOMAIN=
       - DATABASE=redbudway
       - ARCGIS_TOKEN=AAPK928991da1bd2468697cf175e83eaa5b18w6fXD15Vg5ZiDluyjoH7jBi7twr5tfQiApP1Zb_Vezifb-qEF6hYrna5CASnlDD
+      - CLIENT_ID=421804495665-pooh074lvb2f0kmuprchnjbfaqlpd538.apps.googleusercontent.com
+      - CLIENT_SECRET=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
     volumes:
       - /home/awilliams/images:/usr/src/app/images
     networks:
-    - frontend_network
-    - backend_network
+    - redbudway_network
     image: golang
+    restart: always
+    depends_on:
+      mariadb
   redbudway-api-dev:
     container_name: redbudway-api-dev
     build: ./
@@ -21,14 +25,16 @@ services:
       - SUBDOMAIN=dev.
       - DATABASE=redbudway_dev
       - ARCGIS_TOKEN=AAPK928991da1bd2468697cf175e83eaa5b18w6fXD15Vg5ZiDluyjoH7jBi7twr5tfQiApP1Zb_Vezifb-qEF6hYrna5CASnlDD
+      - CLIENT_ID=421804495665-pooh074lvb2f0kmuprchnjbfaqlpd538.apps.googleusercontent.com
+      - CLIENT_SECRET=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
     volumes:
       - /home/awilliams/images-dev:/usr/src/app/images
     networks:
-    - frontend_network
-    - backend_network
+    - redbudway_network
     image: golang
+    restart: always
+    depends_on:
+      mariadb
 networks:
-  frontend_network:
-    name: frontend
-  backend_network:
-    name: backend
+  redbudway_network:
+    name: redbudway

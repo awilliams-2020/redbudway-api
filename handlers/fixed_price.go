@@ -14,7 +14,7 @@ func GetFixedPricePriceIDHandler(params operations.GetFixedPricePriceIDParams) m
 	city := params.City
 
 	payload := operations.GetFixedPricePriceIDOKBody{}
-	response := operations.NewGetFixedPricePriceIDOK()
+	response := operations.NewGetFixedPricePriceIDOK().WithPayload(&payload)
 	fixedPrice, business, err := database.GetFixedPriceServiceDetails(priceID, state, city)
 	if err != nil {
 		log.Printf("Failed to get public fixed price, %s", err)

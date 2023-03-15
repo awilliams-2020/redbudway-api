@@ -146,6 +146,18 @@ type PostTradespersonLoginOKBody struct {
 	// access token
 	AccessToken string `json:"accessToken,omitempty"`
 
+	// email
+	Email string `json:"email,omitempty"`
+
+	// expires in
+	ExpiresIn float64 `json:"expiresIn,omitempty"`
+
+	// google access token
+	GoogleAccessToken string `json:"googleAccessToken,omitempty"`
+
+	// picture
+	Picture string `json:"picture,omitempty"`
+
 	// refresh token
 	RefreshToken string `json:"refreshToken,omitempty"`
 

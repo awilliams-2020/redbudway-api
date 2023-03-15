@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/stripe"
@@ -123,7 +124,7 @@ func GetFilters(fixedPriceID int64) ([]string, error) {
 	return filters, nil
 }
 
-func GetStatesAndCities(fixedPriceID int64) ([]*models.ServiceDetailsStatesAndCitiesItems0, error) {
+func GetFixedPriceStatesAndCities(fixedPriceID int64) ([]*models.ServiceDetailsStatesAndCitiesItems0, error) {
 	StatesAndCities := []*models.ServiceDetailsStatesAndCitiesItems0{}
 
 	stmt, err := db.Prepare("SELECT state, cities FROM fixed_price_state_cities WHERE fixedPriceId=?")
@@ -133,6 +134,38 @@ func GetStatesAndCities(fixedPriceID int64) ([]*models.ServiceDetailsStatesAndCi
 	defer stmt.Close()
 
 	rows, err := stmt.Query(fixedPriceID)
+	if err != nil {
+		return StatesAndCities, err
+	}
+
+	var state, citiesBlob string
+	for rows.Next() {
+		if err := rows.Scan(&state, &citiesBlob); err != nil {
+			return StatesAndCities, err
+		}
+		statesAndCitiesItem := &models.ServiceDetailsStatesAndCitiesItems0{}
+		statesAndCitiesItem.State = state
+		var cities []*models.ServiceDetailsStatesAndCitiesItems0CitiesItems0
+		err := json.Unmarshal([]byte(citiesBlob), &cities)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+		statesAndCitiesItem.Cities = cities
+		StatesAndCities = append(StatesAndCities, statesAndCitiesItem)
+	}
+	return StatesAndCities, nil
+}
+
+func GetQuoteStatesAndCities(quoteID int64) ([]*models.ServiceDetailsStatesAndCitiesItems0, error) {
+	StatesAndCities := []*models.ServiceDetailsStatesAndCitiesItems0{}
+
+	stmt, err := db.Prepare("SELECT state, cities FROM quote_state_cities WHERE quoteId=?")
+	if err != nil {
+		return StatesAndCities, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(quoteID)
 	if err != nil {
 		return StatesAndCities, err
 	}
@@ -180,7 +213,7 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 		if interval.Valid {
 			service.Interval = interval.String
 		}
-		stmt, err := db.Prepare("SELECT startTime, segmentSize FROM fixed_price_time_slots WHERE fixedPriceId=?")
+		stmt, err := db.Prepare("SELECT startTime, endTime FROM fixed_price_time_slots WHERE fixedPriceId=?")
 		if err != nil {
 			log.Printf("Failed to create prepared statement, %s", err)
 			continue
@@ -195,15 +228,15 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 
 		timeSlots := []*models.TimeSlot{}
 
-		var startTime, segmentSize string
+		var startTime, endTime string
 		for rows.Next() {
-			if err := rows.Scan(&startTime, &segmentSize); err != nil {
+			if err := rows.Scan(&startTime, &endTime); err != nil {
 				log.Printf("Failed to scan statement, %s", err)
 				continue
 			}
 			timeSlot := &models.TimeSlot{}
 			timeSlot.StartTime = startTime
-			timeSlot.SegmentSize = segmentSize
+			timeSlot.EndTime = endTime
 			timeSlots = append(timeSlots, timeSlot)
 		}
 		service.TimeSlots = timeSlots
@@ -259,7 +292,7 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 		if err != nil {
 			return fixedPrice, fixedPriceID, err
 		}
-		fixedPrice.StatesAndCities, err = GetStatesAndCities(fixedPriceID)
+		fixedPrice.StatesAndCities, err = GetFixedPriceStatesAndCities(fixedPriceID)
 		if err != nil {
 			return fixedPrice, fixedPriceID, err
 		}
@@ -529,7 +562,11 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 		}
 		fixedPrice.Price = floatPrice
 		fixedPrice.Title = stripeProduct.Name
-		fixedPrice.Image = stripeProduct.Images[0]
+		if len(stripeProduct.Images) > 0 {
+			fixedPrice.Image = stripeProduct.Images[0]
+		} else {
+			fixedPrice.Image = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+		}
 
 		fixedPrice.AvailableTimeSlots, err = GetAvailableTimeSlots(id, subscription)
 		if err != nil {
@@ -568,7 +605,6 @@ func updateImages(ID int64, images []*string) error {
 			return err
 		}
 		defer stmt.Close()
-
 		_, err = stmt.Exec(ID, url)
 		if err != nil {
 			return err
@@ -670,6 +706,9 @@ func GetQuoteImage(ID int64) (string, error) {
 		return url, err
 	}
 	row.Scan(&url)
+	if url == "" {
+		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+	}
 
 	return url, nil
 }
@@ -695,6 +734,10 @@ func GetQuoteImages(ID int64) ([]string, error) {
 		}
 		images = append(images, url)
 	}
+	if len(images) == 0 {
+		images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/assets/images/deal.svg")
+	}
+
 	return images, nil
 }
 
@@ -756,7 +799,7 @@ func GetTradespersonQuote(tradespersonID, quoteID string) (*models.ServiceDetail
 		if err != nil {
 			return quote, err
 		}
-		quote.StatesAndCities, err = GetStatesAndCities(ID)
+		quote.StatesAndCities, err = GetQuoteStatesAndCities(ID)
 		if err != nil {
 			return quote, err
 		}
@@ -971,7 +1014,7 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 
 	quotes := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, quote, title FROM quotes WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT id, quote, title, description, archived FROM quotes WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes
@@ -986,15 +1029,21 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 	}
 
 	var ID int64
-	var quoteID, title string
+	var quoteID, title, description string
+	var archived bool
 	for rows.Next() {
-		if err := rows.Scan(&ID, &quoteID, &title); err != nil {
+		if err := rows.Scan(&ID, &quoteID, &title, &description, &archived); err != nil {
 			log.Printf("Failed to scan row %s", err)
 			return quotes
 		}
 		quote := models.Service{}
 		quote.Title = title
+		if len(description) > 65 {
+			description = description[:65] + "..."
+		}
+		quote.Description = description
 		quote.QuoteID = quoteID
+		quote.Archived = archived
 		quote.Reviews, quote.Rating, err = GetQuoteRating(ID)
 		if err != nil {
 			log.Printf("Failed to get quote reviews and rating %s", err)

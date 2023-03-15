@@ -19,8 +19,11 @@ import (
 // swagger:model TimeSlot
 type TimeSlot struct {
 
-	// cur people
-	CurPeople int64 `json:"curPeople"`
+	// booked
+	Booked int64 `json:"booked"`
+
+	// bookings
+	Bookings int64 `json:"bookings"`
 
 	// customers
 	Customers []*TimeSlotCustomersItems0 `json:"customers"`
@@ -34,11 +37,8 @@ type TimeSlot struct {
 	// id
 	ID int64 `json:"id,omitempty"`
 
-	// max people
-	MaxPeople int64 `json:"maxPeople,omitempty"`
-
-	// segment size
-	SegmentSize string `json:"segmentSize,omitempty"`
+	// quantity
+	Quantity int64 `json:"quantity,omitempty"`
 
 	// start time
 	StartTime string `json:"startTime,omitempty"`

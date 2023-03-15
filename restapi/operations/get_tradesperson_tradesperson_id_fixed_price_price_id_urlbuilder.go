@@ -17,6 +17,8 @@ type GetTradespersonTradespersonIDFixedPricePriceIDURL struct {
 	PriceID        string
 	TradespersonID string
 
+	AccessToken *string
+
 	_basePath string
 	// avoid unkeyed usage
 	_ struct{}
@@ -62,6 +64,18 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDURL) Build() (*url.URL, e
 		_basePath = "/v1"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var accessTokenQ string
+	if o.AccessToken != nil {
+		accessTokenQ = *o.AccessToken
+	}
+	if accessTokenQ != "" {
+		qs.Set("accessToken", accessTokenQ)
+	}
+
+	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

@@ -9,11 +9,11 @@ import (
 	"os"
 	"redbudway-api/models"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/h2non/bimg"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -47,28 +47,22 @@ func saveImage(path, image string, index int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	format := ""
-	switch data[0] {
-	case "data:image/jpeg;base64":
-		format = ".jpeg"
-	case "data:image/png;base64":
-		format = ".png"
-	case "data:image/webp;base64":
-		format = ".webp"
-	}
 
-	fileName := fmt.Sprintf("%s/images_%d%s", path, index, format)
-	f, err := os.Create(fileName)
+	fileName := fmt.Sprintf("%s/images_%d%s", path, index, ".webp")
+
+	converted, err := bimg.NewImage(dec).Convert(bimg.WEBP)
 	if err != nil {
-		return "", err
+		return fileName, err
 	}
-	defer f.Close()
 
-	if _, err := f.Write(dec); err != nil {
-		return "", err
+	processed, err := bimg.NewImage(converted).Process(bimg.Options{Quality: 70})
+	if err != nil {
+		return fileName, err
 	}
-	if err := f.Sync(); err != nil {
-		return "", err
+
+	writeError := bimg.Write(fileName, processed)
+	if writeError != nil {
+		return fileName, writeError
 	}
 
 	return fileName, nil
@@ -162,9 +156,9 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 	}
 
 	if len(service.Images) != 0 {
-		for index, binary := range service.Images {
-			if !strings.Contains(binary, "http") {
-				fileName, err := saveImage(servicePath, binary, index)
+		for i := range service.Images {
+			if !strings.Contains(service.Images[i], "https://") {
+				fileName, err := saveImage(servicePath, service.Images[i], i)
 				URL := fmt.Sprintf("%s/%s", "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com", fileName)
 				if err != nil {
 					log.Printf("Failed to save images, %s", err)
@@ -172,12 +166,9 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 				}
 				images = append(images, &URL)
 			} else {
-				images = append(images, &binary)
+				images = append(images, &service.Images[i])
 			}
 		}
-	} else {
-		URL := "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
-		images = append(images, &URL)
 	}
 
 	return images, nil
@@ -229,22 +220,6 @@ func CreateTimeAndPrice(startTime, endTime string, decimalPrice float64) (string
 	startTime = startDate.Format("3:04")
 	endTime = endDate.Format("3:04PM")
 	return fmt.Sprintf("%s<br>%s - %s<br>$%.2f<br><br>", date, startTime, endTime, decimalPrice), nil
-}
-
-func CreateEndTime(startTime, segmentSize string) (string, error) {
-	endTime, err := time.Parse("2006-1-2 15:04:00", startTime)
-	if err != nil {
-		log.Printf("Failed to parse endTime")
-		return "", err
-	}
-	segment, err := strconv.Atoi(segmentSize)
-	if err != nil {
-		log.Printf("Failed to cast string to int")
-		return "", err
-	}
-	milliSegment := segment * 60 * 60 * 1000
-	endTime = endTime.Add(time.Millisecond * time.Duration(milliSegment))
-	return endTime.Format("2006-1-2 15:04:00"), nil
 }
 
 func GetEndDate(endTime string) (time.Time, error) {

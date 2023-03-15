@@ -8,12 +8,13 @@ package operations
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+
+	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDTimeSlotsHandlerFunc turns a function with the right signature into a get tradesperson tradesperson ID time slots handler
@@ -73,26 +74,27 @@ func (o *GetTradespersonTradespersonIDTimeSlots) ServeHTTP(rw http.ResponseWrite
 
 }
 
-// GetTradespersonTradespersonIDTimeSlotsOKBodyItems0 get tradesperson tradesperson ID time slots o k body items0
+// GetTradespersonTradespersonIDTimeSlotsOKBody get tradesperson tradesperson ID time slots o k body
 //
-// swagger:model GetTradespersonTradespersonIDTimeSlotsOKBodyItems0
-type GetTradespersonTradespersonIDTimeSlotsOKBodyItems0 struct {
+// swagger:model GetTradespersonTradespersonIDTimeSlotsOKBody
+type GetTradespersonTradespersonIDTimeSlotsOKBody struct {
 
-	// interval
-	Interval string `json:"interval,omitempty"`
+	// google time slots
+	GoogleTimeSlots models.GoogleTimeSlots `json:"googleTimeSlots"`
 
-	// subscription
-	Subscription bool `json:"subscription"`
-
-	// time slots
-	TimeSlots []*GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0 `json:"timeSlots"`
+	// other services
+	OtherServices models.OtherServices `json:"otherServices"`
 }
 
-// Validate validates this get tradesperson tradesperson ID time slots o k body items0
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) Validate(formats strfmt.Registry) error {
+// Validate validates this get tradesperson tradesperson ID time slots o k body
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateTimeSlots(formats); err != nil {
+	if err := o.validateGoogleTimeSlots(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateOtherServices(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -102,37 +104,49 @@ func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) Validate(formats st
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) validateTimeSlots(formats strfmt.Registry) error {
-	if swag.IsZero(o.TimeSlots) { // not required
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) validateGoogleTimeSlots(formats strfmt.Registry) error {
+	if swag.IsZero(o.GoogleTimeSlots) { // not required
 		return nil
 	}
 
-	for i := 0; i < len(o.TimeSlots); i++ {
-		if swag.IsZero(o.TimeSlots[i]) { // not required
-			continue
+	if err := o.GoogleTimeSlots.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "googleTimeSlots")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "googleTimeSlots")
 		}
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
+		return err
 	}
 
 	return nil
 }
 
-// ContextValidate validate this get tradesperson tradesperson ID time slots o k body items0 based on the context it is used
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) validateOtherServices(formats strfmt.Registry) error {
+	if swag.IsZero(o.OtherServices) { // not required
+		return nil
+	}
+
+	if err := o.OtherServices.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "otherServices")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "otherServices")
+		}
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this get tradesperson tradesperson ID time slots o k body based on the context it is used
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.contextValidateTimeSlots(ctx, formats); err != nil {
+	if err := o.contextValidateGoogleTimeSlots(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.contextValidateOtherServices(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -142,74 +156,36 @@ func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) ContextValidate(ctx
 	return nil
 }
 
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) contextValidateTimeSlots(ctx context.Context, formats strfmt.Registry) error {
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) contextValidateGoogleTimeSlots(ctx context.Context, formats strfmt.Registry) error {
 
-	for i := 0; i < len(o.TimeSlots); i++ {
-
-		if o.TimeSlots[i] != nil {
-			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("timeSlots" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
+	if err := o.GoogleTimeSlots.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "googleTimeSlots")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "googleTimeSlots")
 		}
-
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDTimeSlotsOKBodyItems0
-	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
-	*o = res
+
 	return nil
 }
 
-// GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0 get tradesperson tradesperson ID time slots o k body items0 time slots items0
-//
-// swagger:model GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0
-type GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0 struct {
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) contextValidateOtherServices(ctx context.Context, formats strfmt.Registry) error {
 
-	// segment size
-	SegmentSize string `json:"segmentSize,omitempty"`
+	if err := o.OtherServices.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "otherServices")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("getTradespersonTradespersonIdTimeSlotsOK" + "." + "otherServices")
+		}
+		return err
+	}
 
-	// start time
-	StartTime string `json:"startTime,omitempty"`
-
-	// taken
-	Taken bool `json:"taken"`
-
-	// taken by
-	TakenBy string `json:"takenBy,omitempty"`
-}
-
-// Validate validates this get tradesperson tradesperson ID time slots o k body items0 time slots items0
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get tradesperson tradesperson ID time slots o k body items0 time slots items0 based on context it is used
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) MarshalBinary() ([]byte, error) {
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) MarshalBinary() ([]byte, error) {
 	if o == nil {
 		return nil, nil
 	}
@@ -217,8 +193,8 @@ func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) Mars
 }
 
 // UnmarshalBinary interface implementation
-func (o *GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0) UnmarshalBinary(b []byte) error {
-	var res GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0
+func (o *GetTradespersonTradespersonIDTimeSlotsOKBody) UnmarshalBinary(b []byte) error {
+	var res GetTradespersonTradespersonIDTimeSlotsOKBody
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

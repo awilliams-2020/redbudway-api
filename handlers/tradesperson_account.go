@@ -11,9 +11,12 @@ import (
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
-	"redbudway-api/stripe"
+	_stripe "redbudway-api/stripe"
 
+	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/account"
+	"github.com/stripe/stripe-go/v72/invoice"
+	"github.com/stripe/stripe-go/v72/sub"
 )
 
 func PostTradespersonHandler(params operations.PostTradespersonParams) middleware.Responder {
@@ -35,7 +38,7 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 	var email string
 	switch err = row.Scan(&email); err {
 	case sql.ErrNoRows:
-		stripeAccount, err := stripe.CreateTradespersonStripeAccount(tradesperson)
+		stripeAccount, err := _stripe.CreateTradespersonStripeAccount(tradesperson)
 		if err != nil {
 			log.Printf("Failed creating tradesperson stripe connect account %s", err)
 			return response
@@ -45,7 +48,7 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 			log.Printf("Failed creating tradesperson account %s", err)
 			return response
 		}
-		onBoarding, err := stripe.GetOnBoardingLink(stripeAccount.ID)
+		onBoarding, err := _stripe.GetOnBoardingLink(stripeAccount.ID)
 		if err != nil {
 			log.Printf("Failed creating tradesperson onboarding link %s", err)
 			return response
@@ -86,13 +89,37 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 	return response
 }
 
-func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradespersonTradespersonIDParams) middleware.Responder {
+func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.DeleteTradespersonTradespersonIDOKBody{Deleted: false}
 	response := operations.NewDeleteTradespersonTradespersonIDOK().WithPayload(&payload)
 
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	//Handle open invoices, subscriptions, quotes?
+	subParams := &stripe.SubscriptionListParams{
+		Status: "active",
+	}
+	s := sub.List(subParams)
+	for s.Next() {
+		return response
+	}
+	invParams := &stripe.InvoiceListParams{
+		Status: stripe.String("open"),
+	}
+	i := invoice.List(invParams)
+	for i.Next() {
+		return response
+	}
 
 	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
 	if err != nil {
@@ -160,18 +187,18 @@ func GetTradespersonTradespersonID(tradespersonID string) *models.Tradesperson {
 		tradesperson.Rating = rating
 		tradesperson.Reviews = reviews
 
-		stripe, err := stripe.GetConnectAccount(stripeID)
+		connect, err := _stripe.GetConnectAccount(stripeID)
 		if err != nil {
-			log.Print("Failed to get stripe account for tradesperson with ID %s", tradespersonID)
+			log.Print("Failed to get stripe connect account for tradesperson with ID %s", tradespersonID)
 			return tradesperson
 		}
 
 		tradesperson.Address = &models.Address{}
-		tradesperson.Address.City = stripe.BusinessProfile.SupportAddress.City
-		tradesperson.Address.State = stripe.BusinessProfile.SupportAddress.State
-		tradesperson.Address.LineOne = stripe.BusinessProfile.SupportAddress.Line1
-		tradesperson.Address.LineTwo = stripe.BusinessProfile.SupportAddress.Line2
-		tradesperson.Address.ZipCode = stripe.BusinessProfile.SupportAddress.PostalCode
+		tradesperson.Address.City = connect.BusinessProfile.SupportAddress.City
+		tradesperson.Address.State = connect.BusinessProfile.SupportAddress.State
+		tradesperson.Address.LineOne = connect.BusinessProfile.SupportAddress.Line1
+		tradesperson.Address.LineTwo = connect.BusinessProfile.SupportAddress.Line2
+		tradesperson.Address.ZipCode = connect.BusinessProfile.SupportAddress.PostalCode
 	default:
 		log.Printf("Unknown %v", err)
 	}
@@ -181,7 +208,18 @@ func GetTradespersonTradespersonID(tradespersonID string) *models.Tradesperson {
 
 func GetTradespersonTradespersonIDHandler(params operations.GetTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
+
 	response := operations.NewGetTradespersonTradespersonIDOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	tradeperson := GetTradespersonTradespersonID(tradespersonID)
 	response.SetPayload(tradeperson)
@@ -192,12 +230,22 @@ func GetTradespersonTradespersonIDHandler(params operations.GetTradespersonTrade
 func PutTradespersonTradespersonIDHandler(params operations.PutTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	tradesperson := params.Tradesperson
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PutTradespersonTradespersonIDOKBody{}
 	updated := false
 	payload.Updated = updated
 	response := operations.NewPutTradespersonTradespersonIDOK()
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	if err := database.UpdateTradespersonDescription(tradespersonID, tradesperson.Description); err != nil {
 		log.Printf("Failed to update tradesperson description, %v", err)
@@ -217,12 +265,22 @@ func PutTradespersonTradespersonIDHandler(params operations.PutTradespersonTrade
 
 func GetTradespersonTradespersonIDSettingsHandler(params operations.GetTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.GetTradespersonTradespersonIDSettingsOKBody{}
 	response := operations.NewGetTradespersonTradespersonIDSettingsOK()
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT vanityURL, number, email, address FROM tradesperson_settings WHERE tradespersonId=?")
 	if err != nil {
@@ -255,6 +313,18 @@ func GetTradespersonTradespersonIDSettingsHandler(params operations.GetTradesper
 func PutTradespersonTradespersonIDSettingsHandler(params operations.PutTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	settings := params.Settings
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	response := operations.NewPutTradespersonTradespersonIDSettingsOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	updated, err := database.UpdateTradespersonDisplaySettings(tradespersonID, settings)
 	if err != nil {
@@ -266,9 +336,7 @@ func PutTradespersonTradespersonIDSettingsHandler(params operations.PutTradesper
 			log.Printf("Failed to update tradesperson vanity settings %s", err)
 		}
 	}
-
 	payload := operations.PutTradespersonTradespersonIDSettingsOKBody{Updated: updated}
-	response := operations.NewPutTradespersonTradespersonIDSettingsOK()
 
 	response.SetPayload(&payload)
 
@@ -277,12 +345,22 @@ func PutTradespersonTradespersonIDSettingsHandler(params operations.PutTradesper
 
 func GetTradespersonTradespersonIDStatusHandler(params operations.GetTradespersonTradespersonIDStatusParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.GetTradespersonTradespersonIDStatusOKBody{Enabled: false, Submitted: false}
 	response := operations.NewGetTradespersonTradespersonIDStatusOK()
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT stripeId FROM tradesperson_account WHERE tradespersonId=?")
 	if err != nil {
@@ -297,13 +375,13 @@ func GetTradespersonTradespersonIDStatusHandler(params operations.GetTradesperso
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
 	case nil:
-		stripe, err := stripe.GetConnectAccount(stripeID)
+		connect, err := _stripe.GetConnectAccount(stripeID)
 		if err != nil {
 			log.Print("Failed to get stripe account for tradesperson with ID %s", tradespersonID)
 			return response
 		}
-		payload.Enabled = stripe.ChargesEnabled
-		payload.Submitted = stripe.DetailsSubmitted
+		payload.Enabled = connect.ChargesEnabled
+		payload.Submitted = connect.DetailsSubmitted
 		response.SetPayload(&payload)
 	default:
 		log.Printf("Unknown default switch case, %v", err)
@@ -315,11 +393,21 @@ func GetTradespersonTradespersonIDStatusHandler(params operations.GetTradesperso
 func PutTradespersonTradespersonIDPasswordHandler(params operations.PutTradespersonTradespersonIDPasswordParams, principal interface{}) middleware.Responder {
 	tradesperson := params.Tradesperson
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPutTradespersonTradespersonIDPasswordOK()
 	payload := &operations.PutTradespersonTradespersonIDPasswordOKBody{}
 	payload.Updated = false
 	response.SetPayload(payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -372,12 +460,22 @@ func PutTradespersonTradespersonIDPasswordHandler(params operations.PutTradesper
 
 func GetTradespersonTradespersonIDOnboardHandler(params operations.GetTradespersonTradespersonIDOnboardParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDOnboardOK()
 	payload := operations.GetTradespersonTradespersonIDOnboardOKBody{}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT stripeId FROM tradesperson_account WHERE tradespersonId=?")
 	if err != nil {
@@ -392,7 +490,7 @@ func GetTradespersonTradespersonIDOnboardHandler(params operations.GetTradespers
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %v doesn't exist", tradespersonID)
 	case nil:
-		onBoarding, err := stripe.GetOnBoardingLink(stripeID)
+		onBoarding, err := _stripe.GetOnBoardingLink(stripeID)
 		if err != nil {
 			log.Printf("Failed creating tradesperson onboarding link %s", err)
 			return response
@@ -408,8 +506,17 @@ func GetTradespersonTradespersonIDOnboardHandler(params operations.GetTradespers
 
 func GetTradespersonTradespersonIDLoginLinkHandler(params operations.GetTradespersonTradespersonIDLoginLinkParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
+	token := params.HTTPRequest.Header.Get("Authorization")
 	response := operations.NewGetTradespersonTradespersonIDLoginLinkOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
 	if err != nil {
@@ -417,7 +524,7 @@ func GetTradespersonTradespersonIDLoginLinkHandler(params operations.GetTradespe
 		return response
 	}
 
-	loginLink, err := stripe.GetTradespersonLoginLink(stripeID)
+	loginLink, err := _stripe.GetTradespersonLoginLink(stripeID)
 	if err != nil {
 		log.Printf("Failed to get tradesperson login link, %v", err)
 		return response
@@ -427,4 +534,9 @@ func GetTradespersonTradespersonIDLoginLinkHandler(params operations.GetTradespe
 	response.SetPayload(&payload)
 
 	return response
+}
+
+func GetTradespersonTradespersonIDSellingFeeHandler(params operations.GetTradespersonTradespersonIDSellingFeeParams, principal interface{}) middleware.Responder {
+
+	return operations.NewGetTradespersonTradespersonIDSellingFeeOK()
 }

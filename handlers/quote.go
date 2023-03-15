@@ -14,7 +14,7 @@ func GetQuoteQuoteIDHandler(params operations.GetQuoteQuoteIDParams) middleware.
 	city := params.City
 
 	payload := operations.GetQuoteQuoteIDOKBody{}
-	response := operations.NewGetQuoteQuoteIDOK()
+	response := operations.NewGetQuoteQuoteIDOK().WithPayload(&payload)
 	quote, business, err := database.GetQuoteServiceDetails(quoteID, state, city)
 	if err != nil {
 		log.Printf("Failed to get quote, %s", err)

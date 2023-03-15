@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"strconv"
@@ -17,30 +16,21 @@ func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDe
 	fixedPrice := &models.ServiceDetails{}
 	business := &operations.GetFixedPricePriceIDOKBodyBusiness{}
 
-	stmt, err := db.Prepare("SELECT ta.name, ta.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory, fp.subscription, fp.subInterval, fp.selectPlaces, fpsc.cities FROM fixed_prices fp INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId LEFT JOIN fixed_price_state_cities fpsc ON fpsc.fixedPriceId=fp.id WHERE (fp.selectPlaces=false OR fpsc.state=?) AND fp.archived=false AND fp.priceId=?")
+	stmt, err := db.Prepare("SELECT ta.name, ta.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId LEFT JOIN fixed_price_state_cities fpsc ON fpsc.fixedPriceId=fp.id WHERE (fp.selectPlaces=false OR fpsc.state=?) AND (fp.selectPlaces=false OR JSON_CONTAINS(fpsc.cities, JSON_OBJECT('name', ?))) AND fp.archived=false AND fp.priceId=?")
 	if err != nil {
 		return fixedPrice, business, err
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRow(state, priceID)
+	row := stmt.QueryRow(state, city, priceID)
 	var fixedPriceID int64
-	var vanityURL, interval, citiesJson sql.NullString
+	var vanityURL, interval sql.NullString
 	var name, tradespersonID, category, subCategory string
-	var subscription, selectPlaces, archived bool
-	switch err = row.Scan(&name, &tradespersonID, &vanityURL, &fixedPriceID, &category, &subCategory, &subscription, &interval, &selectPlaces, &citiesJson); err {
+	var subscription, archived bool
+	switch err = row.Scan(&name, &tradespersonID, &vanityURL, &fixedPriceID, &category, &subCategory, &subscription, &interval); err {
 	case sql.ErrNoRows:
 		return fixedPrice, business, err
 	case nil:
-
-		if selectPlaces {
-			if citiesJson.Valid {
-				cityExist, err := internal.SelectedCities(citiesJson.String, city)
-				if !cityExist || err != nil {
-					return fixedPrice, business, err
-				}
-			}
-		}
 
 		business.Name = name
 		business.VanityURL = vanityURL.String
@@ -52,7 +42,6 @@ func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDe
 		if interval.Valid {
 			fixedPrice.Interval = interval.String
 		}
-		fixedPrice.SelectPlaces = &selectPlaces
 		fixedPrice.Archived = archived
 		p, err := price.Get(priceID, nil)
 		if err != nil {
@@ -71,7 +60,7 @@ func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDe
 		fixedPrice.Images = pr.Images
 		fixedPrice.Title = &pr.Name
 		fixedPrice.Description = &pr.Description
-		fixedPrice.TimeSlots, err = GetPublicTimeSlots(fixedPriceID)
+		fixedPrice.TimeSlots, err = GetPublicTimeSlots(fixedPriceID, subscription)
 		if err != nil {
 			return fixedPrice, business, err
 		}

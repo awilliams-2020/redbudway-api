@@ -26,6 +26,9 @@ type Service struct {
 	// business
 	Business string `json:"business,omitempty"`
 
+	// description
+	Description string `json:"description,omitempty"`
+
 	// image
 	Image string `json:"image,omitempty"`
 
@@ -33,7 +36,7 @@ type Service struct {
 	Interval string `json:"interval"`
 
 	// price
-	Price float64 `json:"price,omitempty"`
+	Price float64 `json:"price"`
 
 	// price Id
 	PriceID string `json:"priceId,omitempty"`

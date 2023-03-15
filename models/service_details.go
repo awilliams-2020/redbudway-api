@@ -46,7 +46,7 @@ type ServiceDetails struct {
 	Interval string `json:"interval"`
 
 	// price
-	Price float64 `json:"price,omitempty"`
+	Price float64 `json:"price"`
 
 	// price Id
 	PriceID string `json:"priceId,omitempty"`

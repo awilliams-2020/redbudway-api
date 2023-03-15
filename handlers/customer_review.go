@@ -17,9 +17,19 @@ import (
 func GetCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.GetCustomerCustomerIDQuoteQuoteIDReviewParams, prinicpal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	quoteID := params.QuoteID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.GetCustomerCustomerIDQuoteQuoteIDReviewOKBody{Reviewed: true}
 	response := operations.NewGetCustomerCustomerIDQuoteQuoteIDReviewOK().WithPayload(&payload)
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -64,9 +74,19 @@ func GetCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.GetCustome
 func GetCustomerCustomerIDFixedPricePriceIDReviewHandler(params operations.GetCustomerCustomerIDFixedPricePriceIDReviewParams, prinicpal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	priceID := params.PriceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetCustomerCustomerIDFixedPricePriceIDReviewOK()
 	payload := operations.GetCustomerCustomerIDFixedPricePriceIDReviewOKBody{Reviewed: true}
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -99,9 +119,19 @@ func GetCustomerCustomerIDFixedPricePriceIDReviewHandler(params operations.GetCu
 func GetCustomerCustomerIDSubscriptionPriceIDReviewHandler(params operations.GetCustomerCustomerIDSubscriptionPriceIDReviewParams, prinicpal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	priceID := params.PriceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetCustomerCustomerIDSubscriptionPriceIDReviewOK()
 	payload := operations.GetCustomerCustomerIDSubscriptionPriceIDReviewOKBody{Reviewed: true}
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -149,9 +179,19 @@ func PostCustomerCustomerIDFixedPricePriceIDReviewHandler(params operations.Post
 	priceID := params.PriceID
 	message := params.Review.Message
 	rating := params.Review.Rating
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostCustomerCustomerIDFixedPricePriceIDReviewOK()
 	payload := operations.PostCustomerCustomerIDFixedPricePriceIDReviewOKBody{Rated: false}
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -213,9 +253,19 @@ func PostCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.PostCusto
 	quoteID := params.QuoteID
 	message := params.Review.Message
 	rating := params.Review.Rating
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostCustomerCustomerIDQuoteQuoteIDReviewOK()
 	payload := operations.PostCustomerCustomerIDQuoteQuoteIDReviewOKBody{Rated: false}
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 

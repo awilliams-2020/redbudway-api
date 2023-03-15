@@ -23,12 +23,22 @@ func PostTradespersonTradespersonIDEmailHandler(params operations.PostTradespers
 	quoteID := params.Email.QuoteID
 	customerID := params.Email.CustomerID
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostTradespersonTradespersonIDEmailOKBody{}
 	sent := false
 	payload.Sent = sent
 	response := operations.NewPostTradespersonTradespersonIDEmailOK()
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 

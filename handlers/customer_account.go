@@ -90,11 +90,21 @@ func PostCustomerHandler(params operations.PostCustomerParams) middleware.Respon
 
 func GetCustomerCustomerIDBillingLinkHandler(params operations.GetCustomerCustomerIDBillingLinkParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.GetCustomerCustomerIDBillingLinkOKBody{}
 	response := operations.NewGetCustomerCustomerIDBillingLinkOK()
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT stripeId FROM customer_account WHERE customerId=?")
 	if err != nil {
@@ -122,13 +132,40 @@ func GetCustomerCustomerIDBillingLinkHandler(params operations.GetCustomerCustom
 	return response
 }
 
+func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, stripeProduct *stripe.Product, cuStripeID, customerID, body string) {
+
+	stripeCustomer, err := customer.Get(cuStripeID, nil)
+	if err != nil {
+		log.Printf("Failed to retrieve customer, %s", customerID)
+		return
+	}
+
+	if err := email.SendCustomerConfirmation(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+		log.Printf("Failed to send customer receipt email, %v", err)
+	}
+
+	if err := email.SendTradespersonBooking(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+		log.Printf("Failed to send tradesperson receipt email, %v", err)
+	}
+}
+
 func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCustomerCustomerIDFixedPricePriceIDBookParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	priceID := params.PriceID
 	timeSlots := params.Booking.TimeSlots
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostCustomerCustomerIDFixedPricePriceIDBookCreatedBody{Booked: false}
 	response := operations.NewPostCustomerCustomerIDFixedPricePriceIDBookCreated().WithPayload(&payload)
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	cuStripeID, err := database.GetCustomerStripeID(customerID)
 	if err != nil {
@@ -148,26 +185,15 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 		return response
 	}
 
-	decimalPrice := stripePrice.UnitAmountDecimal / float64(100.00)
+	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
+	if err != nil {
+		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
+	}
 
 	sellingFee, err := database.GetTradespersonSellingFee(tradespersonID)
 	if err != nil {
 		log.Printf("Failed to retrieve tradesperson selling fee, %v", sellingFee)
 		return response
-	}
-
-	appFee := decimalPrice * sellingFee
-	fee := int64(appFee * 100)
-
-	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
-	if err != nil {
-		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
-		return response
-	}
-
-	stripeCustomer, err := customer.Get(cuStripeID, nil)
-	if err != nil {
-		log.Printf("Failed to retrieve customer, %s", customerID)
 	}
 
 	fixedPriceID, err := database.GetFixedPriceID(priceID)
@@ -178,6 +204,9 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 
 	var body bytes.Buffer
 	for _, timeSlot := range timeSlots {
+		decimalPrice := (stripePrice.UnitAmountDecimal / float64(100.00)) * float64(timeSlot.Quantity)
+		appFee := decimalPrice * sellingFee
+		fee := int64(appFee * 100)
 
 		endDate, err := internal.GetEndDate(timeSlot.EndTime)
 		if err != nil {
@@ -202,11 +231,10 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			return response
 		}
 
-		quantity := int64(1)
 		invoiceItemParams := &stripe.InvoiceItemParams{
 			Customer:    stripe.String(cuStripeID),
 			Price:       stripe.String(stripePrice.ID),
-			Quantity:    &quantity,
+			Quantity:    &timeSlot.Quantity,
 			Description: stripe.String(stripeProduct.Description),
 			Invoice:     stripe.String(stripeInvoice.ID),
 		}
@@ -222,7 +250,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			return response
 		}
 
-		_, err = database.UpdateTakenTimeSlot(stripeInvoice.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
+		_, err = database.UpdateTakenTimeSlot(stripeInvoice.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.Quantity, timeSlot.ID)
 		if err != nil {
 			log.Printf("Failed to update time slots %v", err)
 			return response
@@ -236,15 +264,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 		body.WriteString(timeAndPrice)
 	}
 
-	if err := email.SendCustomerConfirmation(tradesperson, stripeCustomer, stripeProduct, body.String()); err != nil {
-		log.Printf("Failed to send customer receipt email, %v", err)
-		return response
-	}
-
-	if err := email.SendTradespersonBooking(tradesperson, stripeCustomer, stripeProduct, body.String()); err != nil {
-		log.Printf("Failed to send tradesperson receipt email, %v", err)
-		return response
-	}
+	go emailHelper(tradesperson, stripePrice, stripeProduct, cuStripeID, customerID, body.String())
 
 	payload.Booked = true
 	response.SetPayload(&payload)
@@ -252,25 +272,50 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 	return response
 }
 
+func emailSubscriptionHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, cuStripeID, body string) {
+	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
+	if err != nil {
+		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
+		return
+	}
+
+	stripeCustomer, err := customer.Get(cuStripeID, nil)
+	if err != nil {
+		log.Printf("Failed to retrieve customer, %s", &cuStripeID)
+		return
+	}
+
+	if err := email.SendCustomerSubscriptionConfirmation(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+		log.Printf("Failed to send customer confirmation email, %v", err)
+	}
+
+	if err := email.SendTradespersonSubscriptionBooking(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+		log.Printf("Failed to send tradesperson confirmation email, %v", err)
+	}
+}
+
 func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.PostCustomerCustomerIDSubscriptionPriceIDBookParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	priceID := params.PriceID
-
 	timeSlots := params.Booking.TimeSlots
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostCustomerCustomerIDSubscriptionPriceIDBookCreatedBody{}
 	payload.Booked = false
 	response := operations.NewPostCustomerCustomerIDSubscriptionPriceIDBookCreated().WithPayload(&payload)
 
-	cuStripeID, err := database.GetCustomerStripeID(customerID)
+	valid, err := ValidateCustomerAccessToken(customerID, token)
 	if err != nil {
-		log.Printf("Failed to retrieve customer account, %v", customerID)
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
 		return response
 	}
 
-	tradesperson, tpStripeID, tradespersonID, err := database.GetTradespersonAccountByPriceID(priceID)
+	cuStripeID, err := database.GetCustomerStripeID(customerID)
 	if err != nil {
-		log.Printf("Failed to retrieve tradesperson from price id, %s", priceID)
+		log.Printf("Failed to retrieve customer account, %v", customerID)
 		return response
 	}
 
@@ -280,7 +325,10 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 		return response
 	}
 
-	decimalPrice := stripePrice.UnitAmountDecimal / float64(100.00)
+	tradesperson, tpStripeID, tradespersonID, err := database.GetTradespersonAccountByPriceID(priceID)
+	if err != nil {
+		log.Printf("Failed to retrieve tradesperson from price id, %s", priceID)
+	}
 
 	sellingFee, err := database.GetTradespersonSellingFee(tradespersonID)
 	if err != nil {
@@ -289,17 +337,6 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 	}
 
 	fee := sellingFee * float64(100)
-
-	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
-	if err != nil {
-		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
-		return response
-	}
-
-	stripeCustomer, err := customer.Get(cuStripeID, nil)
-	if err != nil {
-		log.Printf("Failed to retrieve customer, %s", &cuStripeID)
-	}
 
 	fixedPriceID, err := database.GetFixedPriceID(priceID)
 	if err != nil {
@@ -315,20 +352,20 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 
 	var body bytes.Buffer
 	for _, timeSlot := range timeSlots {
+		decimalPrice := (stripePrice.UnitAmountDecimal / float64(100.00)) * float64(timeSlot.Quantity)
+
 		startDate, err := internal.GetStartDate(timeSlot.FutureTime)
 		if err != nil {
 			log.Printf("Failed to get startDate from futureTime, %v", err)
 		}
 		timeStamp := startDate.Unix()
 
-		quantity := int64(1)
-
 		subscriptionParams := &stripe.SubscriptionParams{
 			Customer: stripe.String(cuStripeID),
 			Items: []*stripe.SubscriptionItemsParams{
 				{
 					Price:    stripe.String(stripePrice.ID),
-					Quantity: &quantity,
+					Quantity: &timeSlot.Quantity,
 				},
 			},
 			BillingCycleAnchor:    &timeStamp,
@@ -338,6 +375,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 			},
 			ProrationBehavior: stripe.String("none"),
 			PaymentBehavior:   stripe.String("default_incomplete"),
+			OnBehalfOf:        stripe.String(tpStripeID),
 		}
 		subscriptionParams.AddMetadata("tradesperson_id", tradespersonID)
 		stripeSubscription, err := sub.New(subscriptionParams)
@@ -353,19 +391,19 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 		}
 
 		if interval == "week" {
-			_, err = database.UpdateWeeklyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
+			_, err = database.UpdateWeeklyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.Quantity, timeSlot.ID)
 			if err != nil {
 				log.Printf("Failed to update time slots %v", err)
 				return response
 			}
 		} else if interval == "month" {
-			_, err = database.UpdateMonthlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
+			_, err = database.UpdateMonthlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.Quantity, timeSlot.ID)
 			if err != nil {
 				log.Printf("Failed to update time slots %v", err)
 				return response
 			}
 		} else if interval == "year" {
-			_, err = database.UpdateYearlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.ID)
+			_, err = database.UpdateYearlyTimeSlot(stripeSubscription.ID, cuStripeID, timeSlot.StartTime, fixedPriceID, timeSlot.Quantity, timeSlot.ID)
 			if err != nil {
 				log.Printf("Failed to update time slots %v", err)
 				return response
@@ -381,15 +419,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 
 	}
 
-	if err := email.SendCustomerSubscriptionConfirmation(tradesperson, stripeCustomer, stripeProduct, body.String()); err != nil {
-		log.Printf("Failed to send customer confirmation email, %v", err)
-		return response
-	}
-
-	if err := email.SendTradespersonSubscriptionBooking(tradesperson, stripeCustomer, stripeProduct, body.String()); err != nil {
-		log.Printf("Failed to send tradesperson confirmation email, %v", err)
-		return response
-	}
+	go emailSubscriptionHelper(tradesperson, stripePrice, cuStripeID, body.String())
 
 	payload.Booked = true
 	response.SetPayload(&payload)
@@ -399,9 +429,19 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 
 func GetCustomerCustomerIDPaymentDefaultHandler(params operations.GetCustomerCustomerIDPaymentDefaultParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.GetCustomerCustomerIDPaymentDefaultOKBody{DefaultPayment: false}
 	response := operations.NewGetCustomerCustomerIDPaymentDefaultOK().WithPayload(&payload)
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	cuStripeID, err := database.GetCustomerStripeID(customerID)
 	if err != nil {
@@ -423,15 +463,46 @@ func GetCustomerCustomerIDPaymentDefaultHandler(params operations.GetCustomerCus
 	return response
 }
 
+func emailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDetails, images []string, cuStripeID, message string) {
+	stripeCustomer, err := customer.Get(cuStripeID, nil)
+	if err != nil {
+		log.Printf("Failed to get stripe customer, %v", err)
+		return
+	}
+	if err := email.SendCustomerQuoteConfirmation(tradesperson, stripeCustomer, message, quote); err != nil {
+		log.Printf("Failed to send customer email, %v", err)
+	}
+	images, err = email.SendTradespersonQuoteRequest(tradesperson, stripeCustomer, message, quote, images)
+	if err != nil {
+		log.Printf("Failed to send customer email, %v", err)
+	}
+	for _, imagePath := range images {
+		err := os.Remove(imagePath)
+		if err != nil {
+			log.Printf("Failed to delete image, %s", imagePath)
+		}
+	}
+}
+
 func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCustomerCustomerIDQuoteQuoteIDRequestParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	quoteID := params.QuoteID
 	images := params.Request.Images
 	message := params.Request.Message
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostCustomerCustomerIDQuoteQuoteIDRequestCreated()
 	payload := operations.PostCustomerCustomerIDQuoteQuoteIDRequestCreatedBody{Requested: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -458,11 +529,6 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 			return response
 		}
 
-		stripeCustomer, err := customer.Get(cuStripeID, nil)
-		if err != nil {
-			log.Printf("Failed to get stripe customer, %v", err)
-			return response
-		}
 		daysDue := int64(7)
 		params := &stripe.QuoteParams{
 			Customer:         stripe.String(cuStripeID),
@@ -488,19 +554,8 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 				return response
 			}
 			if created {
-				if err := email.SendCustomerQuoteConfirmation(tradesperson, stripeCustomer, message, _quote); err != nil {
-					log.Printf("Failed to send customer email, %v", err)
-				}
-				images, err := email.SendTradespersonQuoteRequest(tradesperson, stripeCustomer, message, _quote, images)
-				if err != nil {
-					log.Printf("Failed to send customer email, %v", err)
-				}
-				for _, imagePath := range images {
-					err := os.Remove(imagePath)
-					if err != nil {
-						log.Printf("Failed to delete image, %s", imagePath)
-					}
-				}
+				go emailQuoteHelper(tradesperson, _quote, images, cuStripeID, message)
+
 				payload.Requested = true
 				response.SetPayload(&payload)
 			}
@@ -514,33 +569,52 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 
 func DeleteCustomerCustomerIDHandler(params operations.DeleteCustomerCustomerIDParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.DeleteCustomerCustomerIDOKBody{Deleted: false, Tradespeople: []string{}}
 	response := operations.NewDeleteCustomerCustomerIDOK().WithPayload(&payload)
 
-	cuStripeID, err := database.GetCustomerStripeID(customerID)
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
+
+	_, err = database.GetCustomerStripeID(customerID)
 	if err != nil {
 		log.Printf("Failed to get customer %s stripe ID, %v", customerID, err)
 		return response
 	}
 
-	invoiceListParams := &stripe.InvoiceListParams{
-		Customer: stripe.String(cuStripeID),
-		Status:   stripe.String("draft"),
-	}
-	i := invoice.List(invoiceListParams)
-	for i.Next() {
+	deleted, err := database.DeleteCustomerAccount(customerID)
+	if err != nil {
+		log.Printf("Failed to delete customer %s account, %v", customerID, err)
 		return response
 	}
+	payload.Deleted = deleted
+	response.SetPayload(&payload)
 
 	return response
 }
 
 func GetCustomerCustomerIDQuotesHandler(params operations.GetCustomerCustomerIDQuotesParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetCustomerCustomerIDQuotesOK()
 	quotes := []*operations.GetCustomerCustomerIDQuotesOKBodyItems0{}
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -585,9 +659,20 @@ func GetCustomerCustomerIDQuotesHandler(params operations.GetCustomerCustomerIDQ
 func GetCustomerCustomerIDQuoteQuoteIDHandler(params operations.GetCustomerCustomerIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	quoteID := params.QuoteID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetCustomerCustomerIDQuoteQuoteIDOK()
 	_quote := operations.GetCustomerCustomerIDQuoteQuoteIDOKBody{}
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
+
 	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT tq.tradespersonId, tq.request, q.title, q.description FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.customerId=? AND tq.quote=?")
@@ -660,9 +745,20 @@ func GetCustomerCustomerIDQuoteQuoteIDHandler(params operations.GetCustomerCusto
 func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCustomerCustomerIDQuoteQuoteIDAcceptParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	quoteID := params.QuoteID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostCustomerCustomerIDQuoteQuoteIDAcceptOKBody{Accepted: false}
 	response := operations.NewPostCustomerCustomerIDQuoteQuoteIDAcceptOK().WithPayload(&payload)
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
+
 	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT q.quote, tq.tradespersonId, tq.request FROM tradesperson_quotes tq INNER JOIN quotes q ON q.id=tq.quoteId WHERE tq.customerId=? AND tq.quote=?")

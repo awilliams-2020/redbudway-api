@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"redbudway-api/database"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
@@ -51,7 +52,11 @@ func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Ser
 		}
 		fixedPrice.Price = floatPrice
 		fixedPrice.Title = stripeProduct.Name
-		fixedPrice.Image = stripeProduct.Images[0]
+		if len(stripeProduct.Images) > 0 {
+			fixedPrice.Image = stripeProduct.Images[0]
+		} else {
+			fixedPrice.Image = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+		}
 		fixedPrice.VanityURL = vanityURL.String
 		fixedPrice.Business = name
 		fixedPrice.TradespersonID = tradespersonID

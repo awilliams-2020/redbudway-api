@@ -36,6 +36,217 @@ func init() {
   "host": "redbudway.com",
   "basePath": "/v1",
   "paths": {
+    "/admin": {
+      "post": {
+        "parameters": [
+          {
+            "description": "The admin account to create.",
+            "name": "admin",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "user",
+                "password",
+                "masterPass"
+              ],
+              "properties": {
+                "masterPass": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "user": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created admin account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "adminId": {
+                  "type": "string"
+                },
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/login": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Log in to admin account.",
+            "name": "admin",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "user",
+                "password"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string"
+                },
+                "user": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "adminId": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                },
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{adminId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid admin accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New admin access token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{adminId}/tradespeople": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of tradespeople",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "tradespersonId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/customer": {
       "post": {
         "parameters": [
@@ -1313,10 +1524,12 @@ func init() {
               "type": "object",
               "properties": {
                 "city": {
-                  "type": "string"
+                  "type": "string",
+                  "x-omitempty": false
                 },
                 "state": {
-                  "type": "string"
+                  "type": "string",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1801,6 +2014,18 @@ func init() {
                 "accessToken": {
                   "type": "string"
                 },
+                "email": {
+                  "type": "string"
+                },
+                "expiresIn": {
+                  "type": "number"
+                },
+                "googleAccessToken": {
+                  "type": "string"
+                },
+                "picture": {
+                  "type": "string"
+                },
                 "refreshToken": {
                   "type": "string"
                 },
@@ -1888,6 +2113,11 @@ func init() {
         }
       },
       "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "type": "string",
@@ -2415,7 +2645,8 @@ func init() {
                 },
                 "total": {
                   "type": "integer",
-                  "format": "int64"
+                  "format": "int64",
+                  "x-omitempty": false
                 },
                 "url": {
                   "type": "string"
@@ -2901,7 +3132,8 @@ func init() {
                 },
                 "total": {
                   "type": "integer",
-                  "format": "int64"
+                  "format": "int64",
+                  "x-omitempty": false
                 },
                 "url": {
                   "type": "string"
@@ -4058,6 +4290,11 @@ func init() {
             "name": "priceId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "name": "accessToken",
+            "in": "query"
           }
         ],
         "responses": {
@@ -4068,6 +4305,9 @@ func init() {
               "properties": {
                 "fixedPrice": {
                   "$ref": "#/definitions/ServiceDetails"
+                },
+                "googleTimeSlots": {
+                  "$ref": "#/definitions/GoogleTimeSlots"
                 },
                 "otherServices": {
                   "$ref": "#/definitions/OtherServices"
@@ -4151,6 +4391,148 @@ func init() {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/google-token": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson google accessToken.",
+            "name": "google",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "accessToken"
+              ],
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid google token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "expiresIn": {
+                  "type": "number"
+                },
+                "picture": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson google code.",
+            "name": "google",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid google token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "expiresIn": {
+                  "type": "number"
+                },
+                "picture": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "accessToken",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked google token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "revoked": {
+                  "type": "boolean"
+                }
               }
             }
           }
@@ -4592,52 +4974,103 @@ func init() {
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Google access token",
+            "name": "accessToken",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "Stripe onboarding URL",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "interval": {
-                    "type": "string"
-                  },
-                  "price": {
-                    "type": "number",
-                    "format": "double"
-                  },
-                  "subscription": {
-                    "type": "boolean",
-                    "x-omitempty": false
-                  },
-                  "timeSlots": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "customers": {
-                          "type": "array",
-                          "items": {
-                            "$ref": "#/definitions/Customer"
-                          },
-                          "x-omitempty": false
-                        },
-                        "segmentSize": {
-                          "type": "number",
-                          "format": "double"
-                        },
-                        "startTime": {
-                          "type": "string"
+              "type": "object",
+              "properties": {
+                "googleTimeSlots": {
+                  "$ref": "#/definitions/GoogleTimeSlots"
+                },
+                "services": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "interval": {
+                        "type": "string"
+                      },
+                      "price": {
+                        "type": "number",
+                        "format": "double",
+                        "x-omitempty": false
+                      },
+                      "subscription": {
+                        "type": "boolean",
+                        "x-omitempty": false
+                      },
+                      "timeSlots": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "customers": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/definitions/Customer"
+                              },
+                              "x-omitempty": false
+                            },
+                            "endTime": {
+                              "type": "string"
+                            },
+                            "quantity": {
+                              "type": "integer",
+                              "format": "int64"
+                            },
+                            "startTime": {
+                              "type": "string"
+                            }
+                          }
                         }
+                      },
+                      "title": {
+                        "type": "string"
                       }
                     }
                   },
-                  "title": {
-                    "type": "string"
-                  }
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/selling-fee": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson selling fee",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fee": {
+                  "type": "integer",
+                  "format": "int64"
                 }
               }
             }
@@ -4793,44 +5226,25 @@ func init() {
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Access Token",
+            "name": "accessToken",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "Service time slots",
             "schema": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "interval": {
-                    "type": "string"
-                  },
-                  "subscription": {
-                    "type": "boolean",
-                    "x-omitempty": false
-                  },
-                  "timeSlots": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "segmentSize": {
-                          "type": "string"
-                        },
-                        "startTime": {
-                          "type": "string"
-                        },
-                        "taken": {
-                          "type": "boolean",
-                          "x-omitempty": false
-                        },
-                        "takenBy": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
+              "type": "object",
+              "properties": {
+                "googleTimeSlots": {
+                  "$ref": "#/definitions/GoogleTimeSlots"
+                },
+                "otherServices": {
+                  "$ref": "#/definitions/OtherServices"
                 }
               }
             }
@@ -4880,6 +5294,26 @@ func init() {
         }
       }
     },
+    "GoogleTimeSlots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "endTime": {
+            "type": "string"
+          },
+          "recurrence": {
+            "type": "string"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "timeZone": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "OtherServices": {
       "type": "array",
       "items": {
@@ -4907,7 +5341,8 @@ func init() {
       "properties": {
         "price": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "x-omitempty": false
         },
         "quantity": {
           "type": "integer",
@@ -4983,6 +5418,9 @@ func init() {
         "business": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "image": {
           "type": "string"
         },
@@ -4991,7 +5429,8 @@ func init() {
           "x-omitempty": false
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "x-omitempty": false
         },
         "priceId": {
           "type": "string"
@@ -5066,7 +5505,8 @@ func init() {
           "x-omitempty": false
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "x-omitempty": false
         },
         "priceId": {
           "type": "string"
@@ -5132,7 +5572,12 @@ func init() {
     "TimeSlot": {
       "type": "object",
       "properties": {
-        "curPeople": {
+        "booked": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "bookings": {
           "type": "integer",
           "format": "int64",
           "x-omitempty": false
@@ -5164,12 +5609,9 @@ func init() {
           "type": "integer",
           "format": "int64"
         },
-        "maxPeople": {
+        "quantity": {
           "type": "integer",
           "format": "int64"
-        },
-        "segmentSize": {
-          "type": "string"
         },
         "startTime": {
           "type": "string"
@@ -5241,6 +5683,203 @@ func init() {
   "host": "redbudway.com",
   "basePath": "/v1",
   "paths": {
+    "/admin": {
+      "post": {
+        "parameters": [
+          {
+            "description": "The admin account to create.",
+            "name": "admin",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "user",
+                "password",
+                "masterPass"
+              ],
+              "properties": {
+                "masterPass": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password"
+                },
+                "user": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created admin account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "adminId": {
+                  "type": "string"
+                },
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/login": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Log in to admin account.",
+            "name": "admin",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "user",
+                "password"
+              ],
+              "properties": {
+                "password": {
+                  "type": "string"
+                },
+                "user": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid email and password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "adminId": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                },
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{adminId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid admin accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New admin access token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "refreshToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{adminId}/tradespeople": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of tradespeople",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetAdminAdminIDTradespeopleOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
     "/customer": {
       "post": {
         "parameters": [
@@ -6478,10 +7117,12 @@ func init() {
               "type": "object",
               "properties": {
                 "city": {
-                  "type": "string"
+                  "type": "string",
+                  "x-omitempty": false
                 },
                 "state": {
-                  "type": "string"
+                  "type": "string",
+                  "x-omitempty": false
                 }
               }
             }
@@ -6938,6 +7579,18 @@ func init() {
                 "accessToken": {
                   "type": "string"
                 },
+                "email": {
+                  "type": "string"
+                },
+                "expiresIn": {
+                  "type": "number"
+                },
+                "googleAccessToken": {
+                  "type": "string"
+                },
+                "picture": {
+                  "type": "string"
+                },
                 "refreshToken": {
                   "type": "string"
                 },
@@ -7025,6 +7678,11 @@ func init() {
         }
       },
       "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "type": "string",
@@ -7513,7 +8171,8 @@ func init() {
                 },
                 "total": {
                   "type": "integer",
-                  "format": "int64"
+                  "format": "int64",
+                  "x-omitempty": false
                 },
                 "url": {
                   "type": "string"
@@ -7984,7 +8643,8 @@ func init() {
                 },
                 "total": {
                   "type": "integer",
-                  "format": "int64"
+                  "format": "int64",
+                  "x-omitempty": false
                 },
                 "url": {
                   "type": "string"
@@ -9067,6 +9727,11 @@ func init() {
             "name": "priceId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "name": "accessToken",
+            "in": "query"
           }
         ],
         "responses": {
@@ -9077,6 +9742,9 @@ func init() {
               "properties": {
                 "fixedPrice": {
                   "$ref": "#/definitions/ServiceDetails"
+                },
+                "googleTimeSlots": {
+                  "$ref": "#/definitions/GoogleTimeSlots"
                 },
                 "otherServices": {
                   "$ref": "#/definitions/OtherServices"
@@ -9160,6 +9828,148 @@ func init() {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/Service"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/google-token": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson google accessToken.",
+            "name": "google",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "required": [
+                "accessToken"
+              ],
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid google token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "expiresIn": {
+                  "type": "number"
+                },
+                "picture": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson google code.",
+            "name": "google",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Valid google token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "accessToken": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "expiresIn": {
+                  "type": "number"
+                },
+                "picture": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "accessToken",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked google token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "revoked": {
+                  "type": "boolean"
+                }
               }
             }
           }
@@ -9583,15 +10393,62 @@ func init() {
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Google access token",
+            "name": "accessToken",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "Stripe onboarding URL",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/GetTradespersonTradespersonIDScheduleOKBodyItems0"
+              "type": "object",
+              "properties": {
+                "googleTimeSlots": {
+                  "$ref": "#/definitions/GoogleTimeSlots"
+                },
+                "services": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ServicesItems0"
+                  },
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/selling-fee": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson selling fee",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "fee": {
+                  "type": "integer",
+                  "format": "int64"
+                }
               }
             }
           }
@@ -9746,15 +10603,26 @@ func init() {
             "name": "tradespersonId",
             "in": "path",
             "required": true
+          },
+          {
+            "type": "string",
+            "description": "Access Token",
+            "name": "accessToken",
+            "in": "query"
           }
         ],
         "responses": {
           "200": {
             "description": "Service time slots",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/GetTradespersonTradespersonIDTimeSlotsOKBodyItems0"
+              "type": "object",
+              "properties": {
+                "googleTimeSlots": {
+                  "$ref": "#/definitions/GoogleTimeSlots"
+                },
+                "otherServices": {
+                  "$ref": "#/definitions/OtherServices"
+                }
               }
             }
           }
@@ -9799,6 +10667,23 @@ func init() {
           "type": "string"
         },
         "phone": {
+          "type": "string"
+        }
+      }
+    },
+    "GetAdminAdminIDTradespeopleOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tradespersonId": {
           "type": "string"
         }
       }
@@ -10023,82 +10908,25 @@ func init() {
         }
       }
     },
-    "GetTradespersonTradespersonIDScheduleOKBodyItems0": {
-      "type": "object",
-      "properties": {
-        "interval": {
-          "type": "string"
-        },
-        "price": {
-          "type": "number",
-          "format": "double"
-        },
-        "subscription": {
-          "type": "boolean",
-          "x-omitempty": false
-        },
-        "timeSlots": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0"
-          }
-        },
-        "title": {
-          "type": "string"
-        }
+    "GoogleTimeSlots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/GoogleTimeSlotsItems0"
       }
     },
-    "GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0": {
+    "GoogleTimeSlotsItems0": {
       "type": "object",
       "properties": {
-        "customers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Customer"
-          },
-          "x-omitempty": false
-        },
-        "segmentSize": {
-          "type": "number",
-          "format": "double"
-        },
-        "startTime": {
-          "type": "string"
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDTimeSlotsOKBodyItems0": {
-      "type": "object",
-      "properties": {
-        "interval": {
+        "endTime": {
           "type": "string"
         },
-        "subscription": {
-          "type": "boolean",
-          "x-omitempty": false
-        },
-        "timeSlots": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0"
-          }
-        }
-      }
-    },
-    "GetTradespersonTradespersonIDTimeSlotsOKBodyItems0TimeSlotsItems0": {
-      "type": "object",
-      "properties": {
-        "segmentSize": {
+        "recurrence": {
           "type": "string"
         },
         "startTime": {
           "type": "string"
         },
-        "taken": {
-          "type": "boolean",
-          "x-omitempty": false
-        },
-        "takenBy": {
+        "timeZone": {
           "type": "string"
         }
       }
@@ -10133,7 +10961,8 @@ func init() {
       "properties": {
         "price": {
           "type": "integer",
-          "format": "int64"
+          "format": "int64",
+          "x-omitempty": false
         },
         "quantity": {
           "type": "integer",
@@ -10257,6 +11086,9 @@ func init() {
         "business": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "image": {
           "type": "string"
         },
@@ -10265,7 +11097,8 @@ func init() {
           "x-omitempty": false
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "x-omitempty": false
         },
         "priceId": {
           "type": "string"
@@ -10340,7 +11173,8 @@ func init() {
           "x-omitempty": false
         },
         "price": {
-          "type": "number"
+          "type": "number",
+          "x-omitempty": false
         },
         "priceId": {
           "type": "string"
@@ -10409,6 +11243,54 @@ func init() {
         }
       }
     },
+    "ServicesItems0": {
+      "type": "object",
+      "properties": {
+        "interval": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "x-omitempty": false
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "timeSlots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServicesItems0TimeSlotsItems0"
+          }
+        },
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "ServicesItems0TimeSlotsItems0": {
+      "type": "object",
+      "properties": {
+        "customers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Customer"
+          },
+          "x-omitempty": false
+        },
+        "endTime": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "startTime": {
+          "type": "string"
+        }
+      }
+    },
     "SubscriptionsItems0": {
       "type": "object",
       "properties": {
@@ -10457,7 +11339,12 @@ func init() {
     "TimeSlot": {
       "type": "object",
       "properties": {
-        "curPeople": {
+        "booked": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "bookings": {
           "type": "integer",
           "format": "int64",
           "x-omitempty": false
@@ -10478,12 +11365,9 @@ func init() {
           "type": "integer",
           "format": "int64"
         },
-        "maxPeople": {
+        "quantity": {
           "type": "integer",
           "format": "int64"
-        },
-        "segmentSize": {
-          "type": "string"
         },
         "startTime": {
           "type": "string"

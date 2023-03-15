@@ -10,12 +10,13 @@ import (
 	"github.com/stripe/stripe-go/v72/product"
 	"github.com/stripe/stripe-go/v72/sub"
 
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 )
 
-func getService(priceId string) *operations.GetTradespersonTradespersonIDScheduleOKBodyItems0 {
-	service := &operations.GetTradespersonTradespersonIDScheduleOKBodyItems0{}
+func getService(priceId string) *operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0 {
+	service := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0{}
 
 	stripePrice, _ := price.Get(
 		priceId,
@@ -30,14 +31,16 @@ func getService(priceId string) *operations.GetTradespersonTradespersonIDSchedul
 	return service
 }
 
-func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) *models.Customer {
+func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*models.Customer, int64) {
 	_customer := &models.Customer{}
+	quantity := int64(0)
 
 	if subscription {
 		stripeSubscription, _ := sub.Get(
 			subscriptionID.String,
 			nil,
 		)
+		quantity = stripeSubscription.Items.Data[0].Quantity
 		stripeCustomer, err := customer.Get(stripeSubscription.Customer.ID, nil)
 		if err != nil {
 			log.Printf("Failed to get stripe customer %v", err)
@@ -58,6 +61,7 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) *m
 			invoiceID.String,
 			nil,
 		)
+		quantity = stripeInvoice.Lines.Data[0].Quantity
 		_customer.Name = *stripeInvoice.CustomerName
 		_customer.Address = &models.Address{
 			City:    stripeInvoice.CustomerAddress.City,
@@ -69,12 +73,12 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) *m
 		_customer.Email = stripeInvoice.CustomerEmail
 		_customer.Phone = *stripeInvoice.CustomerPhone
 	}
-	return _customer
+	return _customer, quantity
 }
 
-func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradespersonTradespersonIDScheduleOK, error) {
+func GetTradespersonSchedule(tradespersonID string, accessToken *string) (*operations.GetTradespersonTradespersonIDScheduleOK, error) {
 	response := operations.NewGetTradespersonTradespersonIDScheduleOK()
-	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.segmentSize, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE ( (DATE(fpts.startTime) >= CURRENT_DATE() AND fp.subscription=False) || fp.subscription=True ) AND fp.tradespersonId=? GROUP BY fpts.id")
+	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.endTime, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE ( (DATE(fpts.startTime) >= CURRENT_DATE() AND fp.subscription=False) || fp.subscription=True ) AND fp.tradespersonId=? AND cts.active=true GROUP BY fpts.id")
 	if err != nil {
 		return response, err
 	}
@@ -85,12 +89,12 @@ func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradesperson
 		return response, err
 	}
 	var startTime, subInterval, priceId string
-	var segmentSize float64
+	var endTime string
 	var subscription bool
 	var subscriptionID, invoiceID sql.NullString
-	m := make(map[string]*operations.GetTradespersonTradespersonIDScheduleOKBodyItems0)
+	m := make(map[string]*operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0)
 	for rows.Next() {
-		if err := rows.Scan(&startTime, &segmentSize, &subscriptionID, &invoiceID, &priceId, &subscription, &subInterval); err != nil {
+		if err := rows.Scan(&startTime, &endTime, &subscriptionID, &invoiceID, &priceId, &subscription, &subInterval); err != nil {
 			return response, err
 		}
 		service, exist := m[priceId]
@@ -99,31 +103,47 @@ func GetTradespersonSchedule(tradespersonID string) (*operations.GetTradesperson
 			service.Subscription = subscription
 			service.Interval = subInterval
 			timeSlots := service.TimeSlots
-			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0{}
+			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0{}
 			timeSlot.StartTime = startTime
-			timeSlot.SegmentSize = segmentSize
-			timeSlot.Customers = append(timeSlot.Customers, getCustomer(subscription, subscriptionID, invoiceID))
+			timeSlot.EndTime = endTime
+			customer, quantity := getCustomer(subscription, subscriptionID, invoiceID)
+			timeSlot.Customers = append(timeSlot.Customers, customer)
+			timeSlot.Quantity = quantity
 			timeSlots = append(timeSlots, timeSlot)
 			service.TimeSlots = timeSlots
 			m[priceId] = service
 		} else {
 			timeSlots := service.TimeSlots
-			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyItems0TimeSlotsItems0{}
+			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0{}
 			timeSlot.StartTime = startTime
-			timeSlot.SegmentSize = segmentSize
-			timeSlot.Customers = append(timeSlot.Customers, getCustomer(subscription, subscriptionID, invoiceID))
+			timeSlot.EndTime = endTime
+			customer, quantity := getCustomer(subscription, subscriptionID, invoiceID)
+			timeSlot.Customers = append(timeSlot.Customers, customer)
+			timeSlot.Quantity = quantity
 			timeSlots = append(timeSlots, timeSlot)
 			service.TimeSlots = timeSlots
 			m[priceId] = service
 		}
 	}
 
-	payload := []*operations.GetTradespersonTradespersonIDScheduleOKBodyItems0{}
+	payload := &operations.GetTradespersonTradespersonIDScheduleOKBody{}
+	payload.Services = []*operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0{}
 	for _, service := range m {
-		payload = append(payload, service)
+		payload.Services = append(payload.Services, service)
 	}
 
-	response.Payload = payload
+	response.SetPayload(payload)
+
+	googleTimeSlots := models.GoogleTimeSlots{}
+	if accessToken != nil {
+		googleTimeSlots = internal.GetGoogleTimeSlots(*accessToken)
+		if err != nil {
+			log.Printf("Failed to get google time slots, %s", err)
+			return response, nil
+		}
+	}
+	payload.GoogleTimeSlots = googleTimeSlots
+	response.SetPayload(payload)
 
 	return response, nil
 }

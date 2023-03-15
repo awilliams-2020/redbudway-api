@@ -39,8 +39,10 @@ paths:
             properties:
               city:
                 type: string
+                x-omitempty: false
               state:
                 type: string
+                x-omitempty: false
   /forgot-password:
     get:
       parameters:
@@ -116,6 +118,14 @@ paths:
               accessToken:
                 type: string
               refreshToken:
+                type: string
+              googleAccessToken:
+                type: string
+              expiresIn:
+                type: number
+              email:
+                type: string
+              picture:
                 type: string
   /tradesperson/{tradespersonId}/logout:
     post:
@@ -225,6 +235,8 @@ paths:
                 type: boolean
                 x-omitempty: false
     delete:
+      security:
+        - Bearer: []
       parameters:
       - in: path
         name: tradespersonId
@@ -240,6 +252,25 @@ paths:
               deleted:
                 type: boolean
                 x-omitempty: false
+  /tradesperson/{tradespersonId}/selling-fee:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A tradesperson selling fee
+          schema:
+            type: object
+            properties:
+              fee:
+                type: integer
+                format: int64
   /tradesperson/{tradespersonId}/access-token:
     get:
       security:
@@ -278,6 +309,92 @@ paths:
                 type: string
               accessToken:
                 type: string
+  /tradesperson/{tradespersonId}/google-token:
+    post:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: string
+        - in: body
+          name: google
+          description: The tradesperson google code.
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+      responses:
+        '200':
+          description: Valid google token
+          schema:
+            type: object
+            properties:
+              accessToken:
+                type: string
+              expiresIn:
+                type: number
+              email:
+                type: string
+              picture:
+                type: string
+    put:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: string
+        - in: body
+          name: google
+          description: The tradesperson google accessToken.
+          schema:
+            type: object
+            required:
+              - accessToken
+            properties:
+              accessToken:
+                type: string
+      responses:
+        '200':
+          description: Valid google token
+          schema:
+            type: object
+            properties:
+              accessToken:
+                type: string
+              expiresIn:
+                type: number
+              email:
+                type: string
+              picture:
+                type: string
+    delete:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: string
+        - in: query
+          name: accessToken
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Revoked google token
+          schema:
+            type: object
+            properties:
+              revoked:
+                type: boolean
   /tradesperson/{tradespersonId}/email:
     post:
       security:
@@ -479,39 +596,53 @@ paths:
         description: Tradesperson ID
         required: true
         type: string
+      - in: query
+        name: accessToken
+        description: Google access token
+        required: false
+        type: string
       responses:
         '200':
           description: Stripe onboarding URL
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                title:
-                  type: string
-                subscription:
-                  type: boolean
-                  x-omitempty: false
-                interval:
-                  type: string
-                price:
-                  type: number
-                  format: double
-                timeSlots:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      startTime:
-                        type: string
-                      segmentSize:
-                        type: number
-                        format: double
-                      customers:
-                        type: array
-                        x-omitempty: false
-                        items:
-                          $ref: '#/definitions/Customer'
+            type: object
+            properties:
+              services:
+                type: array
+                x-omitempty: false
+                items:
+                  type: object
+                  properties:
+                    title:
+                      type: string
+                    subscription:
+                      type: boolean
+                      x-omitempty: false
+                    interval:
+                      type: string
+                    price:
+                      type: number
+                      format: double
+                      x-omitempty: false
+                    timeSlots:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          startTime:
+                            type: string
+                          endTime:
+                            type: string
+                          quantity:
+                            type: integer
+                            format: int64
+                          customers:
+                            type: array
+                            x-omitempty: false
+                            items:
+                              $ref: '#/definitions/Customer'
+              googleTimeSlots:
+                $ref: '#/definitions/GoogleTimeSlots'
   /tradesperson/{tradespersonId}/time-slots:
     get:
       security:
@@ -522,33 +653,21 @@ paths:
         description: Tradesperson ID
         required: true
         type: string
+      - in: query
+        name: accessToken
+        description: Access Token
+        required: false
+        type: string
       responses:
         '200':
           description: Service time slots
           schema:
-            type: array
-            items:
-              type: object
-              properties:
-                subscription:
-                  type: boolean
-                  x-omitempty: false
-                interval:
-                  type: string
-                timeSlots:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      startTime:
-                        type: string
-                      segmentSize:
-                        type: string
-                      taken:
-                        type: boolean
-                        x-omitempty: false
-                      takenBy:
-                        type: string
+            type: object
+            properties:
+              otherServices:
+                $ref: '#/definitions/OtherServices'
+              googleTimeSlots:
+                $ref: '#/definitions/GoogleTimeSlots'
   /tradesperson/{tradespersonId}/fixed-prices:
     get:
       security:
@@ -623,6 +742,10 @@ paths:
           name: priceId
           required: true
           type: string
+        - in: query
+          name: accessToken
+          required: false
+          type: string
       responses:
         '200':
           description: Tradesperson fixed-price services
@@ -633,6 +756,8 @@ paths:
                 $ref: '#/definitions/ServiceDetails'
               otherServices:
                 $ref: '#/definitions/OtherServices'
+              googleTimeSlots:
+                $ref: '#/definitions/GoogleTimeSlots'
     put:
       security:
         - Bearer: []
@@ -1175,6 +1300,7 @@ paths:
               total:
                 type: integer
                 format: int64
+                x-omitempty: false
               status:
                 type: string
               number:
@@ -1884,6 +2010,7 @@ paths:
               total:
                 type: integer
                 format: int64
+                x-omitempty: false
               paid:
                 type: boolean
                 x-omitempty: false
@@ -3029,6 +3156,137 @@ paths:
               accepted:
                 type: boolean
                 x-omitempty: false
+  /admin/login:
+    post:
+      parameters:
+        - in: body
+          name: admin
+          description: Log in to admin account.
+          schema:
+            type: object
+            required:
+              - user
+              - password
+            properties:
+              user:
+                type: string
+              password:
+                type: string
+      responses:
+        '200':
+          description: Valid email and password
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+                x-omitempty: false
+              adminId:
+                type: string
+              accessToken:
+                type: string
+              refreshToken:
+                type: string
+  /admin:
+    post:
+      parameters:
+        - in: body
+          name: admin
+          description: The admin account to create.
+          schema:
+            type: object
+            required:
+              - user
+              - password
+              - masterPass
+            properties:
+              user:
+                type: string
+              password:
+                type: string
+                format: password
+              masterPass:
+                type: string
+                format: password
+      responses:
+        '201':
+          description: Created admin account
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+                x-omitempty: false
+              adminId:
+                type: string
+              accessToken:
+                type: string
+              refreshToken:
+                type: string
+  /admin/{adminId}/access-token:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: adminId
+          description: Admin ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A valid admin accessToken
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+                x-omitempty: false
+    post:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: adminId
+          description: Admin ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: New admin access token
+          schema:
+            type: object
+            properties:
+              refreshToken:
+                type: string
+              accessToken:
+                type: string
+  /admin/{adminId}/tradespeople:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: adminId
+          description: Admin ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A list of tradespeople
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                image:
+                  type: string
+                email:
+                  type: string
+                name:
+                  type: string
+                tradespersonId:
+                  type: string
 definitions:
   Service:
     type: object
@@ -3049,7 +3307,10 @@ definitions:
         x-omitempty: false
       price:
         type: number
+        x-omitempty: false
       title:
+        type: string
+      description:
         type: string
       image:
         type: string
@@ -3103,6 +3364,7 @@ definitions:
         x-omitempty: false
       price:
         type: number
+        x-omitempty: false
       images:
         type: array
         items:
@@ -3205,13 +3467,15 @@ definitions:
         type: string
       futureTime:
         type: string
-      segmentSize:
-        type: string
-      curPeople:
+      bookings:
         type: integer
         format: int64
         x-omitempty: false
-      maxPeople:
+      booked:
+        type: integer
+        format: int64
+        x-omitempty: false
+      quantity:
         type: integer
         format: int64
       customers:
@@ -3288,3 +3552,17 @@ definitions:
       price:
         type: integer
         format: int64
+        x-omitempty: false
+  GoogleTimeSlots:
+    type: array
+    items:
+      type: object
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+        recurrence:
+          type: string
+        timeZone:
+          type: string

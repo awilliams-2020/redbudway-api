@@ -5,6 +5,8 @@ import (
 	"log"
 	"math"
 	"redbudway-api/database"
+	"redbudway-api/internal"
+	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 
 	"github.com/go-openapi/runtime/middleware"
@@ -14,14 +16,24 @@ import (
 func PostTradespersonTradespersonIDFixedPriceHandler(params operations.PostTradespersonTradespersonIDFixedPriceParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	fixedPrice := params.FixedPrice
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDFixedPriceCreated()
 	payload := &operations.PostTradespersonTradespersonIDFixedPriceCreatedBody{}
 	created := false
 	payload.Created = created
 	response.SetPayload(payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT stripeId FROM tradesperson_account WHERE tradespersonId=?")
 	if err != nil {
@@ -52,9 +64,21 @@ func PostTradespersonTradespersonIDFixedPriceHandler(params operations.PostTrade
 func GetTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.GetTradespersonTradespersonIDFixedPricePriceIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	priceID := params.PriceID
+	accessToken := params.AccessToken
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDFixedPricePriceIDOK()
 	payload := operations.GetTradespersonTradespersonIDFixedPricePriceIDOKBody{}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	fixedPrice, fixedPriceID, err := database.GetTradespersonFixedPrice(tradespersonID, priceID)
 	if err != nil {
 		log.Printf("Failed to get fixed price, %s", err)
@@ -65,8 +89,17 @@ func GetTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Get
 		log.Printf("Failed to get other fixed prices, %s", err)
 		return response
 	}
+	googleTimeSlots := models.GoogleTimeSlots{}
+	if accessToken != nil {
+		googleTimeSlots = internal.GetGoogleTimeSlots(*accessToken)
+		if err != nil {
+			log.Printf("Failed to get google time slots, %s", err)
+			return response
+		}
+	}
 	payload.FixedPrice = fixedPrice
 	payload.OtherServices = otherServices
+	payload.GoogleTimeSlots = googleTimeSlots
 	response.SetPayload(&payload)
 
 	return response
@@ -76,13 +109,22 @@ func PutTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Put
 	tradespersonID := params.TradespersonID
 	priceID := params.PriceID
 	fixedPrice := params.FixedPrice
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPutTradespersonTradespersonIDFixedPricePriceIDOK()
 	payload := operations.PutTradespersonTradespersonIDFixedPricePriceIDOKBody{}
 	updated := false
 	payload.Updated = updated
 
-	var err error
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	payload.Updated, err = database.UpdateFixedPrice(tradespersonID, priceID, fixedPrice)
 	if err != nil {
 		log.Printf("Failed to update fixed price, %s", err)
@@ -97,8 +139,19 @@ func PutTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Put
 func GetTradespersonTradespersonIDFixedPricesHandler(params operations.GetTradespersonTradespersonIDFixedPricesParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	page := params.Page
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDFixedPricesOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	payload := database.GetTradespersonFixedPrices(tradespersonID, page)
 	response.SetPayload(payload)
 
@@ -107,9 +160,19 @@ func GetTradespersonTradespersonIDFixedPricesHandler(params operations.GetTrades
 
 func GetTradespersonTradespersonIDFixedPricePagesHandler(params operations.GetTradespersonTradespersonIDFixedPricePagesParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	pages := float64(1)
 	response := operations.NewGetTradespersonTradespersonIDFixedPricePagesOK().WithPayload(int64(pages))
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -139,12 +202,22 @@ func GetTradespersonTradespersonIDFixedPricePagesHandler(params operations.GetTr
 
 func GetTradespersonTradespersonIDFixedPriceReviewsHandler(params operations.GetTradespersonTradespersonIDFixedPriceReviewsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDFixedPriceReviewsOK()
 	reviews := []*operations.GetTradespersonTradespersonIDFixedPriceReviewsOKBodyItems0{}
 	response.SetPayload(reviews)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT fpr.id, fpr.customerId, fpr.rating, fpr.message, DATE_FORMAT(fpr.date, '%M %D %Y') date FROM fixed_price_reviews fpr INNER JOIN fixed_prices fp ON fpr.fixedPriceId=fp.id WHERE fp.tradespersonId=? AND fpr.responded=0")
 	if err != nil {
@@ -191,12 +264,22 @@ func PostTradespersonTradespersonIDFixedPriceReviewHandler(params operations.Pos
 	tradespersonID := params.TradespersonID
 	respMsg := *params.Review.Response
 	reviewID := *params.Review.ReviewID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDFixedPriceReviewOK()
 	payload := operations.PostTradespersonTradespersonIDFixedPriceReviewOKBody{Responded: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT fpr.id FROM fixed_price_reviews fpr INNER JOIN fixed_prices fp ON fpr.fixedPriceId=fp.id WHERE fp.tradespersonId=? AND fpr.responded=0 AND fpr.id=?")
 	if err != nil {
@@ -245,14 +328,24 @@ func PostTradespersonTradespersonIDFixedPriceReviewHandler(params operations.Pos
 func PostTradespersonTradespersonIDQuoteHandler(params operations.PostTradespersonTradespersonIDQuoteParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	quote := params.Quote
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDQuoteCreated()
 	payload := &operations.PostTradespersonTradespersonIDQuoteCreatedBody{}
 	created := false
 	payload.Created = created
 	response.SetPayload(payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT stripeId FROM tradesperson_account WHERE tradespersonId=?")
 	if err != nil {
@@ -283,8 +376,19 @@ func PostTradespersonTradespersonIDQuoteHandler(params operations.PostTradespers
 func GetTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.GetTradespersonTradespersonIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	quoteID := params.QuoteID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDQuoteQuoteIDOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	quote, err := database.GetTradespersonQuote(tradespersonID, quoteID)
 	if err != nil {
 		log.Printf("Failed to get quote, %s", err)
@@ -300,13 +404,21 @@ func PutTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.PutTrade
 	tradespersonID := params.TradespersonID
 	quoteID := params.QuoteID
 	quote := params.Quote
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPutTradespersonTradespersonIDQuoteQuoteIDOK()
 	payload := operations.PutTradespersonTradespersonIDQuoteQuoteIDOKBody{}
-
 	payload.Updated = false
 
-	var err error
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	payload.Updated, err = database.UpdateTradespersonQuote(tradespersonID, quoteID, quote)
 	if err != nil {
 		log.Printf("Failed to update quote, %s", err)
@@ -319,12 +431,22 @@ func PutTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.PutTrade
 
 func GetTradespersonTradespersonIDQuoteReviewsHandler(params operations.GetTradespersonTradespersonIDQuoteReviewsParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDQuoteReviewsOK()
 	reviews := []*operations.GetTradespersonTradespersonIDQuoteReviewsOKBodyItems0{}
 	response.SetPayload(reviews)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT qr.id, qr.customerId, qr.rating, qr.message, DATE_FORMAT(qr.date, '%M %D %Y') date FROM quote_reviews qr INNER JOIN quotes q ON qr.quoteId=q.id WHERE q.tradespersonId=? AND qr.responded=0")
 	if err != nil {
@@ -372,12 +494,22 @@ func PostTradespersonTradespersonIDQuoteReviewHandler(params operations.PostTrad
 	tradespersonID := params.TradespersonID
 	respMsg := *params.Review.Response
 	reviewID := *params.Review.ReviewID
-
-	db := database.GetConnection()
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDQuoteReviewOK()
 	payload := operations.PostTradespersonTradespersonIDQuoteReviewOKBody{Responded: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT qr.id FROM quote_reviews qr INNER JOIN quotes q ON qr.quoteId=q.id WHERE q.tradespersonId=? AND qr.responded=0 AND qr.id=?")
 	if err != nil {
@@ -427,6 +559,17 @@ func GetTradespersonTradespersonIDQuotesHandler(params operations.GetTradesperso
 	tradespersonID := params.TradespersonID
 	page := params.Page
 	response := operations.NewGetTradespersonTradespersonIDQuotesOK()
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
 	services := database.GetTradespersonQuotes(tradespersonID, page)
 	response.SetPayload(services)
 
@@ -435,9 +578,19 @@ func GetTradespersonTradespersonIDQuotesHandler(params operations.GetTradesperso
 
 func GetTradespersonTradespersonIDQuotePagesHandler(params operations.GetTradespersonTradespersonIDQuotePagesParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	pages := float64(1)
 	response := operations.NewGetTradespersonTradespersonIDQuotePagesOK().WithPayload(int64(pages))
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 

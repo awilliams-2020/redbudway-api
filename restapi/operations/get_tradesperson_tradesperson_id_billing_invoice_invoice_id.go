@@ -107,7 +107,7 @@ type GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody struct {
 	TimeSlot *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBodyTimeSlot `json:"timeSlot,omitempty"`
 
 	// total
-	Total int64 `json:"total,omitempty"`
+	Total int64 `json:"total"`
 
 	// url
 	URL string `json:"url,omitempty"`

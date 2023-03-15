@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 )
@@ -30,6 +31,10 @@ type GetTradespersonTradespersonIDTimeSlotsParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
+	/*Access Token
+	  In: query
+	*/
+	AccessToken *string
 	/*Tradesperson ID
 	  Required: true
 	  In: path
@@ -46,6 +51,13 @@ func (o *GetTradespersonTradespersonIDTimeSlotsParams) BindRequest(r *http.Reque
 
 	o.HTTPRequest = r
 
+	qs := runtime.Values(r.URL.Query())
+
+	qAccessToken, qhkAccessToken, _ := qs.GetOK("accessToken")
+	if err := o.bindAccessToken(qAccessToken, qhkAccessToken, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	rTradespersonID, rhkTradespersonID, _ := route.Params.GetOK("tradespersonId")
 	if err := o.bindTradespersonID(rTradespersonID, rhkTradespersonID, route.Formats); err != nil {
 		res = append(res, err)
@@ -53,6 +65,24 @@ func (o *GetTradespersonTradespersonIDTimeSlotsParams) BindRequest(r *http.Reque
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// bindAccessToken binds and validates parameter AccessToken from query.
+func (o *GetTradespersonTradespersonIDTimeSlotsParams) bindAccessToken(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.AccessToken = &raw
+
 	return nil
 }
 

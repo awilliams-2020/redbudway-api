@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"redbudway-api/database"
-	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"redbudway-api/stripe"
@@ -95,25 +95,25 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 	fixedPrices := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDFixedPricesOK().WithPayload(fixedPrices)
 
-	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.subscription, fp.subInterval, fp.selectPlaces, fpsc.cities FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId LEFT JOIN fixed_price_state_cities fpsc ON fpsc.fixedPriceId=fp.id WHERE (fp.selectPlaces=false OR fpsc.state=?) AND fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId LEFT JOIN fixed_price_state_cities fpsc ON fpsc.fixedPriceId=fp.id WHERE (fp.selectPlaces=false OR fpsc.state=?) AND (fp.selectPlaces=false OR JSON_CONTAINS(fpsc.cities, JSON_OBJECT('name', ?))) AND fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(state, vanityOrID, vanityOrID)
+	rows, err := stmt.Query(state, city, vanityOrID, vanityOrID)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response
 	}
 
 	var id int64
-	var interval, citiesJson sql.NullString
-	var subscription, selectPlaces bool
+	var interval sql.NullString
+	var subscription bool
 	var priceID string
 	for rows.Next() {
-		if err := rows.Scan(&id, &priceID, &subscription, &interval, &selectPlaces, &citiesJson); err != nil {
+		if err := rows.Scan(&id, &priceID, &subscription, &interval); err != nil {
 			log.Printf("Failed to scan for profile fixed prices, %s", err)
 			return response
 		}
@@ -142,13 +142,15 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 		}
 		fixedPrice.Price = floatPrice
 		fixedPrice.Title = stripeProduct.Name
-		fixedPrice.Image = stripeProduct.Images[0]
+		if len(stripeProduct.Images) > 0 {
+			fixedPrice.Image = stripeProduct.Images[0]
+		} else {
+			fixedPrice.Image = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+		}
 
-		if !fixedPrice.Subscription {
-			fixedPrice.AvailableTimeSlots, err = database.GetAvailableTimeSlots(id, subscription)
-			if err != nil {
-				log.Printf("Failed to get timeslots %s", err)
-			}
+		fixedPrice.AvailableTimeSlots, err = database.GetAvailableTimeSlots(id, subscription)
+		if err != nil {
+			log.Printf("Failed to get timeslots %s", err)
 		}
 
 		fixedPrice.Reviews, fixedPrice.Rating, err = database.GetFixedPriceReviewsRating(id)
@@ -156,18 +158,9 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 			log.Printf("Failed to get reviews and rating %s", err)
 		}
 
-		if selectPlaces {
-			if citiesJson.Valid {
-				cityExist, _ := internal.SelectedCities(citiesJson.String, city)
-				if cityExist {
-					fixedPrices = append(fixedPrices, fixedPrice)
-				}
-			}
-		} else {
-			fixedPrices = append(fixedPrices, fixedPrice)
-		}
-		response.SetPayload(fixedPrices)
+		fixedPrices = append(fixedPrices, fixedPrice)
 	}
+	response.SetPayload(fixedPrices)
 
 	return response
 }
@@ -182,25 +175,23 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 	quotes := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDQuotesOK().WithPayload(quotes)
 
-	stmt, err := db.Prepare("SELECT q.id, q.quote, q.title, q.selectPlaces, qsc.cities FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities qsc ON qsc.quoteId=q.id WHERE (q.selectPlaces=false OR qsc.state=?) AND q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT q.id, q.quote, q.title FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities qsc ON qsc.quoteId=q.id WHERE (q.selectPlaces=false OR qsc.state=?) AND (q.selectPlaces=false OR JSON_CONTAINS(qsc.cities, JSON_OBJECT('name', ?))) AND q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(state, vanityOrID, vanityOrID)
+	rows, err := stmt.Query(state, city, vanityOrID, vanityOrID)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response
 	}
 
 	var ID int64
-	var citiesJson sql.NullString
 	var quoteID, title string
-	var selectPlaces bool
 	for rows.Next() {
-		if err := rows.Scan(&ID, &quoteID, &title, &selectPlaces, &citiesJson); err != nil {
+		if err := rows.Scan(&ID, &quoteID, &title); err != nil {
 			log.Printf("Failed to scan for profile quotes, %s", err)
 			return response
 		}
@@ -217,18 +208,9 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 			log.Printf("Failed to get quote image %s", err)
 		}
 
-		if selectPlaces {
-			if citiesJson.Valid {
-				cityExist, _ := internal.SelectedCities(citiesJson.String, city)
-				if cityExist {
-					quotes = append(quotes, quote)
-				}
-			}
-		} else {
-			quotes = append(quotes, quote)
-		}
-		response.SetPayload(quotes)
+		quotes = append(quotes, quote)
 	}
+	response.SetPayload(quotes)
 
 	return response
 }

@@ -2,7 +2,13 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
+	"os"
 	"redbudway-api/database"
 	"redbudway-api/email"
 	"redbudway-api/internal"
@@ -32,6 +38,103 @@ func ValidateCustomerRefreshToken(customerID, bearerHeader string) (bool, error)
 		valid, err = database.CheckCustomerRefreshToken(customerID, accessToken)
 		if err != nil {
 			log.Printf("Failed to check customer refresh token, %s", err)
+			return valid, err
+		}
+	}
+	return valid, nil
+}
+
+func ValidateCustomerAccessToken(customerID, bearerHeader string) (bool, error) {
+	accessToken := strings.Split(bearerHeader, " ")[1]
+	valid := false
+	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return valid, err
+	}
+	if claims.Audience[0] == "customer" && claims.Subject == customerID && claims.ID == "access" {
+		valid, err = database.CheckCustomerAccessToken(customerID, accessToken)
+		if err != nil {
+			log.Printf("Failed to check customer access token, %s", err)
+			return valid, err
+		}
+	}
+	return valid, nil
+}
+
+func ValidateTradespersonRefreshToken(tradespersonID, bearerHeader string) (bool, error) {
+	accessToken := strings.Split(bearerHeader, " ")[1]
+	valid := false
+	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return valid, err
+	}
+	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "refresh" {
+		valid, err = database.CheckTradespersonRefreshToken(tradespersonID, accessToken)
+		if err != nil {
+			log.Printf("Failed to check tradesperson refresh token, %s", err)
+			return valid, err
+		}
+	}
+	return valid, nil
+}
+
+func ValidateTradespersonAccessToken(tradespersonID, bearerHeader string) (bool, error) {
+	accessToken := strings.Split(bearerHeader, " ")[1]
+	valid := false
+	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return valid, err
+	}
+	if claims.Audience[0] == "admin" && claims.ID == "access" {
+		valid, err = database.CheckAdminAccessToken(claims.Subject, accessToken)
+		if err != nil {
+			log.Printf("Failed to check admin access token, %s", err)
+			return valid, err
+		}
+	}
+	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "access" {
+		valid, err = database.CheckTradespersonAccessToken(tradespersonID, accessToken)
+		if err != nil {
+			log.Printf("Failed to check tradesperson access token, %s", err)
+			return valid, err
+		}
+	}
+	return valid, nil
+}
+
+func ValidateAdminRefreshToken(tradespersonID, bearerHeader string) (bool, error) {
+	accessToken := strings.Split(bearerHeader, " ")[1]
+	valid := false
+	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return valid, err
+	}
+	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "refresh" {
+		valid, err = database.CheckAdminRefreshToken(tradespersonID, accessToken)
+		if err != nil {
+			log.Printf("Failed to check tradesperson refresh token, %s", err)
+			return valid, err
+		}
+	}
+	return valid, nil
+}
+
+func ValidateAdminAccessToken(adminID, bearerHeader string) (bool, error) {
+	accessToken := strings.Split(bearerHeader, " ")[1]
+	valid := false
+	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return valid, err
+	}
+	if claims.Audience[0] == "admin" && claims.Subject == adminID && claims.ID == "access" {
+		valid, err = database.CheckAdminAccessToken(adminID, accessToken)
+		if err != nil {
+			log.Printf("Failed to check admin access token, %s", err)
 			return valid, err
 		}
 	}
@@ -86,24 +189,6 @@ func PostCustomerCustomerIDAccessTokenHandler(params operations.PostCustomerCust
 	return response
 }
 
-func ValidateTradespersonRefreshToken(tradespersonID, bearerHeader string) (bool, error) {
-	accessToken := strings.Split(bearerHeader, " ")[1]
-	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
-	if err != nil {
-		log.Printf("Failed to get registered claims from token, %v", err)
-		return valid, err
-	}
-	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "refresh" {
-		valid, err = database.CheckTradespersonRefreshToken(tradespersonID, accessToken)
-		if err != nil {
-			log.Printf("Failed to check tradesperson refresh token, %s", err)
-			return valid, err
-		}
-	}
-	return valid, nil
-}
-
 func PostTradespersonTradespersonIDAccessTokenHandler(params operations.PostTradespersonTradespersonIDAccessTokenParams, principal interface{}) middleware.Responder {
 	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
 	tradespersonID := params.TradespersonID
@@ -151,22 +236,162 @@ func PostTradespersonTradespersonIDAccessTokenHandler(params operations.PostTrad
 	return response
 }
 
-func ValidateTradespersonAccessToken(tradespersonID, bearerHeader string) (bool, error) {
-	accessToken := strings.Split(bearerHeader, " ")[1]
-	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
-	if err != nil {
-		log.Printf("Failed to get registered claims from token, %v", err)
-		return valid, err
+func PostTradespersonTradespersonIDGoogleTokenHandler(params operations.PostTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	code := params.Google.Code
+
+	payload := operations.PostTradespersonTradespersonIDGoogleTokenOKBody{}
+	response := operations.NewPostTradespersonTradespersonIDGoogleTokenOK().WithPayload(&payload)
+	data := url.Values{
+		"client_id":     {os.Getenv("CLIENT_ID")},
+		"client_secret": {os.Getenv("CLIENT_SECRET")},
+		"code":          {code},
+		"grant_type":    {"authorization_code"},
+		"redirect_uri":  {"https://" + os.Getenv("SUBDOMAIN") + "redbudway.com"},
 	}
-	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "access" {
-		valid, err = database.CheckTradespersonAccessToken(tradespersonID, accessToken)
+
+	resp, err := http.PostForm("https://oauth2.googleapis.com/token", data)
+	if err != nil {
+		log.Printf("Failed to get user google token, %v", err)
+		return response
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read body in %v", err)
+	}
+	var res map[string]interface{}
+
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		log.Printf("Failed to unmarshal response, %v", err)
+		return response
+	}
+
+	accessToken := res["access_token"].(string)
+	expiresIn := res["expires_in"].(float64)
+	refreshToken := res["refresh_token"].(string)
+	idToken := res["id_token"].(string)
+
+	userInfo, err := internal.DecodeJWT(idToken)
+	if err != nil {
+		log.Printf("Failed to get user google info, %v", err)
+		return response
+	}
+
+	updated, err := database.SaveTradespersonGoogleTokens(tradespersonID, refreshToken, accessToken)
+	if err != nil {
+		log.Printf("Failed to save tradesperson google tokens, %v", err)
+	}
+	if updated {
+		payload.AccessToken = accessToken
+		payload.ExpiresIn = expiresIn
+		payload.Email = userInfo["email"].(string)
+		payload.Picture = userInfo["picture"].(string)
+		response.SetPayload(&payload)
+	}
+
+	return response
+}
+
+func GetTradespersonTradespersonIDGoogleTokenHandler(tradespersonID, accessToken string) (map[string]interface{}, error) {
+	var res map[string]interface{}
+
+	refreshToken, err := database.GetGoogleRefreshToken(tradespersonID, accessToken)
+	if err != nil {
+		log.Printf("Failed to get tradesperson %s google refresh token from access token %s, %v", tradespersonID, accessToken, err)
+		return res, err
+	}
+	data := url.Values{
+		"client_id":     {os.Getenv("CLIENT_ID")},
+		"client_secret": {os.Getenv("CLIENT_SECRET")},
+		"refresh_token": {refreshToken},
+		"grant_type":    {"refresh_token"},
+		"access_type":   {"offline"},
+	}
+
+	resp, err := http.PostForm("https://oauth2.googleapis.com/token", data)
+	if err != nil {
+		log.Printf("Failed to refresh user google token, %v", err)
+		return res, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read body in %v", err)
+	}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		log.Printf("Failed to unmarshal response, %v", err)
+		return res, err
+	}
+	if res["error"] != nil {
+		return res, errors.New(string(body))
+	}
+
+	return res, nil
+}
+
+func PutTradespersonTradespersonIDGoogleTokenHandler(params operations.PutTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	accessToken := *params.Google.AccessToken
+
+	payload := operations.PutTradespersonTradespersonIDGoogleTokenOKBody{}
+	response := operations.NewPutTradespersonTradespersonIDGoogleTokenOK().WithPayload(&payload)
+
+	res, err := GetTradespersonTradespersonIDGoogleTokenHandler(tradespersonID, accessToken)
+	if err != nil {
+		log.Printf("Failed to get tradesperson google token, %v", err)
+		return response
+	}
+
+	accessToken = res["access_token"].(string)
+	updated, err := database.UpdateTradespersonGoogleAccessToken(tradespersonID, accessToken)
+	if err != nil || !updated {
+		log.Printf("Failed to update tradesperson google access token, %s", err)
+		return response
+	}
+	expiresIn := res["expires_in"].(float64)
+
+	payload.Email, payload.Picture, err = GetTradespersonGoogleInfo(tradespersonID, accessToken)
+	if err != nil {
+		log.Printf("Failed to get tradesperson google info , %v", err)
+		return response
+	}
+
+	payload.AccessToken = accessToken
+	payload.ExpiresIn = expiresIn
+	response.SetPayload(&payload)
+
+	return response
+}
+
+func DeleteTradespersonTradespersonIDGoogleTokenHandler(params operations.DeleteTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	accessToken := params.AccessToken
+
+	payload := operations.DeleteTradespersonTradespersonIDGoogleTokenOKBody{Revoked: false}
+	response := operations.NewDeleteTradespersonTradespersonIDGoogleTokenOK().WithPayload(&payload)
+
+	cleared, err := database.ClearGoogleTokens(tradespersonID, accessToken)
+	if err != nil {
+		log.Printf("Failed to delete tradesperson google token, %v", err)
+		return response
+	}
+	if cleared {
+		resp, err := http.PostForm("https://oauth2.googleapis.com/revoke?token="+accessToken+"", nil)
 		if err != nil {
-			log.Printf("Failed to check tradesperson access token, %s", err)
-			return valid, err
+			log.Printf("Failed to delete user google token, %v", err)
+			return response
+		}
+
+		if resp.StatusCode == http.StatusOK {
+			payload.Revoked = true
+			response.SetPayload(&payload)
 		}
 	}
-	return valid, nil
+
+	return response
 }
 
 func GetTradespersonTradespersonIDAccessTokenHandler(params operations.GetTradespersonTradespersonIDAccessTokenParams, principal interface{}) middleware.Responder {
@@ -187,24 +412,6 @@ func GetTradespersonTradespersonIDAccessTokenHandler(params operations.GetTrades
 	return response
 }
 
-func ValidateCustomerAccessToken(customerID, bearerHeader string) (bool, error) {
-	accessToken := strings.Split(bearerHeader, " ")[1]
-	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
-	if err != nil {
-		log.Printf("Failed to get registered claims from token, %v", err)
-		return valid, err
-	}
-	if claims.Audience[0] == "customer" && claims.Subject == customerID && claims.ID == "access" {
-		valid, err = database.CheckCustomerAccessToken(customerID, accessToken)
-		if err != nil {
-			log.Printf("Failed to check customer access token, %s", err)
-			return valid, err
-		}
-	}
-	return valid, nil
-}
-
 func GetCustomerCustomerIDAccessTokenHandler(params operations.GetCustomerCustomerIDAccessTokenParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
@@ -220,6 +427,40 @@ func GetCustomerCustomerIDAccessTokenHandler(params operations.GetCustomerCustom
 
 	response.SetPayload(&payload)
 	return response
+}
+
+func GetTradespersonGoogleInfo(tradespersonID, accessToken string) (string, string, error) {
+	var res map[string]interface{}
+
+	var email, picture string
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, "https://www.googleapis.com/oauth2/v1/userinfo", nil)
+	if err != nil {
+		log.Printf("Failed to create new request, %v", err)
+		return email, picture, err
+	}
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Failed to get tradesperson google info, %v", err)
+		return email, picture, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read body in %v", err)
+	}
+	err = json.Unmarshal(body, &res)
+	if err != nil {
+		log.Printf("Failed to unmarshal response, %v", err)
+		return email, picture, err
+	}
+	email = res["email"].(string)
+	picture = res["picture"].(string)
+
+	return email, picture, nil
 }
 
 func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams) middleware.Responder {
@@ -265,6 +506,38 @@ func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams)
 			payload.RefreshToken = refreshToken
 			payload.AccessToken = accessToken
 			response.SetPayload(&payload)
+
+			gAccessToken, err := database.GetTradespersonGoogleAccessToken(tradespersonID)
+			if err != nil {
+				log.Printf("Failed to get tradesperson google access token, %v", err)
+				return response
+			}
+
+			if gAccessToken == "" {
+				return response
+			}
+
+			res, err := GetTradespersonTradespersonIDGoogleTokenHandler(tradespersonID, gAccessToken)
+			if err != nil {
+				log.Printf("Failed to get tradesperson google token , %v", err)
+				return response
+			}
+			gAccessToken = res["access_token"].(string)
+			expiresIn := res["expires_in"].(float64)
+			payload.GoogleAccessToken = gAccessToken
+			payload.ExpiresIn = expiresIn
+
+			updated, err := database.UpdateTradespersonGoogleAccessToken(tradespersonID, gAccessToken)
+			if err != nil || !updated {
+				log.Printf("Failed to update tradesperson google access token, %s", err)
+				return response
+			}
+
+			payload.Email, payload.Picture, err = GetTradespersonGoogleInfo(tradespersonID, gAccessToken)
+			if err != nil {
+				log.Printf("Failed to get tradesperson google info , %v", err)
+				return response
+			}
 		}
 	default:
 		log.Printf("Unkown default case %s", err)
@@ -513,7 +786,6 @@ func GetCustomerCustomerIDReverifyHandler(params operations.GetCustomerCustomerI
 	}
 
 	return response
-
 }
 
 func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middleware.Responder {
@@ -623,5 +895,121 @@ func PostResetPasswordHandler(params operations.PostResetPasswordParams) middlew
 	payload.Updated = rowsAffected == 1
 	response.SetPayload(&payload)
 
+	return response
+}
+
+func PostAdminLoginHandler(params operations.PostAdminLoginParams) middleware.Responder {
+	admin := params.Admin
+
+	payload := operations.PostAdminLoginOKBody{Valid: false}
+	response := operations.NewPostAdminLoginOK().WithPayload(&payload)
+
+	db := database.GetConnection()
+	stmt, err := db.Prepare("SELECT adminId, password FROM admin_account WHERE user=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return response
+	}
+	defer stmt.Close()
+	var adminID string
+	var hashPassword string
+	row := stmt.QueryRow(*admin.User)
+	switch err = row.Scan(&adminID, &hashPassword); err {
+	case sql.ErrNoRows:
+		log.Println("Admin doesn't exist")
+	case nil:
+		if internal.CheckPasswordHash(*admin.Password, hashPassword) {
+			accessToken, err := internal.GenerateToken(adminID, "admin", "access", time.Minute*ACCESS_TIME)
+			if err != nil {
+				log.Printf("Failed to generate access token, %s", err)
+				return response
+			}
+			refreshToken, err := internal.GenerateToken(adminID, "admin", "refresh", time.Minute*REFRESH_TIME)
+			if err != nil {
+				log.Printf("Failed to generate refresh token, %s", err)
+				return response
+			}
+
+			isSaved, err := database.SaveAdminTokens(adminID, refreshToken, accessToken)
+			if err != nil {
+				log.Printf("Failed to save admin tokens, %v", err)
+				return response
+			}
+
+			payload.Valid = isSaved
+			payload.AdminID = adminID
+			payload.RefreshToken = refreshToken
+			payload.AccessToken = accessToken
+			response.SetPayload(&payload)
+		}
+	default:
+		log.Printf("%v", err)
+	}
+
+	return response
+}
+
+func PostAdminAdminIDAccessTokenHandler(params operations.PostAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
+	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
+	adminID := params.AdminID
+
+	payload := operations.PostAdminAdminIDAccessTokenOKBody{}
+	response := operations.NewPostAdminAdminIDAccessTokenOK().WithPayload(&payload)
+
+	valid, err := ValidateAdminRefreshToken(adminID, bearerHeader)
+	if err != nil || !valid {
+		if !valid {
+			cleared, err := database.ClearAdminTokens(adminID)
+			if !cleared || err != nil {
+				log.Printf("Failed to clear admin tokens, %v", err)
+				return response
+			}
+		}
+		log.Printf("Failed to validate admin (%s) refresh token, %v", adminID, err)
+		return response
+	}
+
+	//CHECK ACCESS TOKEN IS EXPIRED, IF NOT RESET TOKENS; BAD ACTOR
+
+	accessToken, err := internal.GenerateToken(adminID, "admin", "access", time.Minute*ACCESS_TIME)
+	if err != nil {
+		log.Printf("Failed to generate access token, %s", err)
+		return response
+	}
+	refreshToken, err := internal.GenerateToken(adminID, "admin", "refresh", time.Minute*REFRESH_TIME)
+	if err != nil {
+		log.Printf("Failed to generate refresh token, %s", err)
+		return response
+	}
+
+	updated, err := database.UpdateAdminTokens(adminID, refreshToken, accessToken)
+	if err != nil {
+		log.Printf("Failed to update admin tokens, %v", err)
+		return response
+	}
+
+	if updated {
+		payload.RefreshToken = refreshToken
+		payload.AccessToken = accessToken
+		response.SetPayload(&payload)
+	}
+
+	return response
+}
+
+func GetAdminAdminIDAccessTokenHandler(params operations.GetAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
+	customerID := params.AdminID
+	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
+
+	payload := operations.GetAdminAdminIDAccessTokenOKBody{Valid: false}
+	response := operations.NewGetAdminAdminIDAccessTokenOK().WithPayload(&payload)
+
+	var err error
+	payload.Valid, err = ValidateAdminAccessToken(customerID, bearerHeader)
+	if err != nil {
+		log.Printf("Failed to validate customer (%s) access token, %v", customerID, err)
+	}
+
+	response.SetPayload(&payload)
 	return response
 }

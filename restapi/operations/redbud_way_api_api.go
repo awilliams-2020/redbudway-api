@@ -45,11 +45,20 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		DeleteCustomerCustomerIDHandler: DeleteCustomerCustomerIDHandlerFunc(func(params DeleteCustomerCustomerIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteCustomerCustomerID has not yet been implemented")
 		}),
-		DeleteTradespersonTradespersonIDHandler: DeleteTradespersonTradespersonIDHandlerFunc(func(params DeleteTradespersonTradespersonIDParams) middleware.Responder {
+		DeleteTradespersonTradespersonIDHandler: DeleteTradespersonTradespersonIDHandlerFunc(func(params DeleteTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteTradespersonTradespersonID has not yet been implemented")
 		}),
 		DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler: DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandlerFunc(func(params DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID has not yet been implemented")
+		}),
+		DeleteTradespersonTradespersonIDGoogleTokenHandler: DeleteTradespersonTradespersonIDGoogleTokenHandlerFunc(func(params DeleteTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDGoogleToken has not yet been implemented")
+		}),
+		GetAdminAdminIDAccessTokenHandler: GetAdminAdminIDAccessTokenHandlerFunc(func(params GetAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetAdminAdminIDAccessToken has not yet been implemented")
+		}),
+		GetAdminAdminIDTradespeopleHandler: GetAdminAdminIDTradespeopleHandlerFunc(func(params GetAdminAdminIDTradespeopleParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetAdminAdminIDTradespeople has not yet been implemented")
 		}),
 		GetCustomerCustomerIDAccessTokenHandler: GetCustomerCustomerIDAccessTokenHandlerFunc(func(params GetCustomerCustomerIDAccessTokenParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetCustomerCustomerIDAccessToken has not yet been implemented")
@@ -204,6 +213,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		GetTradespersonTradespersonIDScheduleHandler: GetTradespersonTradespersonIDScheduleHandlerFunc(func(params GetTradespersonTradespersonIDScheduleParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDSchedule has not yet been implemented")
 		}),
+		GetTradespersonTradespersonIDSellingFeeHandler: GetTradespersonTradespersonIDSellingFeeHandlerFunc(func(params GetTradespersonTradespersonIDSellingFeeParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDSellingFee has not yet been implemented")
+		}),
 		GetTradespersonTradespersonIDSettingsHandler: GetTradespersonTradespersonIDSettingsHandlerFunc(func(params GetTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDSettings has not yet been implemented")
 		}),
@@ -212,6 +224,15 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		}),
 		GetTradespersonTradespersonIDTimeSlotsHandler: GetTradespersonTradespersonIDTimeSlotsHandlerFunc(func(params GetTradespersonTradespersonIDTimeSlotsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDTimeSlots has not yet been implemented")
+		}),
+		PostAdminHandler: PostAdminHandlerFunc(func(params PostAdminParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostAdmin has not yet been implemented")
+		}),
+		PostAdminAdminIDAccessTokenHandler: PostAdminAdminIDAccessTokenHandlerFunc(func(params PostAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostAdminAdminIDAccessToken has not yet been implemented")
+		}),
+		PostAdminLoginHandler: PostAdminLoginHandlerFunc(func(params PostAdminLoginParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostAdminLogin has not yet been implemented")
 		}),
 		PostCustomerHandler: PostCustomerHandlerFunc(func(params PostCustomerParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostCustomer has not yet been implemented")
@@ -321,6 +342,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		PostTradespersonTradespersonIDFixedPriceReviewHandler: PostTradespersonTradespersonIDFixedPriceReviewHandlerFunc(func(params PostTradespersonTradespersonIDFixedPriceReviewParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDFixedPriceReview has not yet been implemented")
 		}),
+		PostTradespersonTradespersonIDGoogleTokenHandler: PostTradespersonTradespersonIDGoogleTokenHandlerFunc(func(params PostTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDGoogleToken has not yet been implemented")
+		}),
 		PostTradespersonTradespersonIDLogoutHandler: PostTradespersonTradespersonIDLogoutHandlerFunc(func(params PostTradespersonTradespersonIDLogoutParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDLogout has not yet been implemented")
 		}),
@@ -344,6 +368,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		}),
 		PutTradespersonTradespersonIDFixedPricePriceIDHandler: PutTradespersonTradespersonIDFixedPricePriceIDHandlerFunc(func(params PutTradespersonTradespersonIDFixedPricePriceIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PutTradespersonTradespersonIDFixedPricePriceID has not yet been implemented")
+		}),
+		PutTradespersonTradespersonIDGoogleTokenHandler: PutTradespersonTradespersonIDGoogleTokenHandlerFunc(func(params PutTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PutTradespersonTradespersonIDGoogleToken has not yet been implemented")
 		}),
 		PutTradespersonTradespersonIDPasswordHandler: PutTradespersonTradespersonIDPasswordHandlerFunc(func(params PutTradespersonTradespersonIDPasswordParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PutTradespersonTradespersonIDPassword has not yet been implemented")
@@ -410,6 +437,12 @@ type RedbudWayAPIAPI struct {
 	DeleteTradespersonTradespersonIDHandler DeleteTradespersonTradespersonIDHandler
 	// DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler sets the operation handler for the delete tradesperson tradesperson ID billing invoice invoice ID operation
 	DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler
+	// DeleteTradespersonTradespersonIDGoogleTokenHandler sets the operation handler for the delete tradesperson tradesperson ID google token operation
+	DeleteTradespersonTradespersonIDGoogleTokenHandler DeleteTradespersonTradespersonIDGoogleTokenHandler
+	// GetAdminAdminIDAccessTokenHandler sets the operation handler for the get admin admin ID access token operation
+	GetAdminAdminIDAccessTokenHandler GetAdminAdminIDAccessTokenHandler
+	// GetAdminAdminIDTradespeopleHandler sets the operation handler for the get admin admin ID tradespeople operation
+	GetAdminAdminIDTradespeopleHandler GetAdminAdminIDTradespeopleHandler
 	// GetCustomerCustomerIDAccessTokenHandler sets the operation handler for the get customer customer ID access token operation
 	GetCustomerCustomerIDAccessTokenHandler GetCustomerCustomerIDAccessTokenHandler
 	// GetCustomerCustomerIDBillingLinkHandler sets the operation handler for the get customer customer ID billing link operation
@@ -512,12 +545,20 @@ type RedbudWayAPIAPI struct {
 	GetTradespersonTradespersonIDQuotesHandler GetTradespersonTradespersonIDQuotesHandler
 	// GetTradespersonTradespersonIDScheduleHandler sets the operation handler for the get tradesperson tradesperson ID schedule operation
 	GetTradespersonTradespersonIDScheduleHandler GetTradespersonTradespersonIDScheduleHandler
+	// GetTradespersonTradespersonIDSellingFeeHandler sets the operation handler for the get tradesperson tradesperson ID selling fee operation
+	GetTradespersonTradespersonIDSellingFeeHandler GetTradespersonTradespersonIDSellingFeeHandler
 	// GetTradespersonTradespersonIDSettingsHandler sets the operation handler for the get tradesperson tradesperson ID settings operation
 	GetTradespersonTradespersonIDSettingsHandler GetTradespersonTradespersonIDSettingsHandler
 	// GetTradespersonTradespersonIDStatusHandler sets the operation handler for the get tradesperson tradesperson ID status operation
 	GetTradespersonTradespersonIDStatusHandler GetTradespersonTradespersonIDStatusHandler
 	// GetTradespersonTradespersonIDTimeSlotsHandler sets the operation handler for the get tradesperson tradesperson ID time slots operation
 	GetTradespersonTradespersonIDTimeSlotsHandler GetTradespersonTradespersonIDTimeSlotsHandler
+	// PostAdminHandler sets the operation handler for the post admin operation
+	PostAdminHandler PostAdminHandler
+	// PostAdminAdminIDAccessTokenHandler sets the operation handler for the post admin admin ID access token operation
+	PostAdminAdminIDAccessTokenHandler PostAdminAdminIDAccessTokenHandler
+	// PostAdminLoginHandler sets the operation handler for the post admin login operation
+	PostAdminLoginHandler PostAdminLoginHandler
 	// PostCustomerHandler sets the operation handler for the post customer operation
 	PostCustomerHandler PostCustomerHandler
 	// PostCustomerCustomerIDAccessTokenHandler sets the operation handler for the post customer customer ID access token operation
@@ -590,6 +631,8 @@ type RedbudWayAPIAPI struct {
 	PostTradespersonTradespersonIDFixedPriceHandler PostTradespersonTradespersonIDFixedPriceHandler
 	// PostTradespersonTradespersonIDFixedPriceReviewHandler sets the operation handler for the post tradesperson tradesperson ID fixed price review operation
 	PostTradespersonTradespersonIDFixedPriceReviewHandler PostTradespersonTradespersonIDFixedPriceReviewHandler
+	// PostTradespersonTradespersonIDGoogleTokenHandler sets the operation handler for the post tradesperson tradesperson ID google token operation
+	PostTradespersonTradespersonIDGoogleTokenHandler PostTradespersonTradespersonIDGoogleTokenHandler
 	// PostTradespersonTradespersonIDLogoutHandler sets the operation handler for the post tradesperson tradesperson ID logout operation
 	PostTradespersonTradespersonIDLogoutHandler PostTradespersonTradespersonIDLogoutHandler
 	// PostTradespersonTradespersonIDQuoteHandler sets the operation handler for the post tradesperson tradesperson ID quote operation
@@ -606,6 +649,8 @@ type RedbudWayAPIAPI struct {
 	PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler
 	// PutTradespersonTradespersonIDFixedPricePriceIDHandler sets the operation handler for the put tradesperson tradesperson ID fixed price price ID operation
 	PutTradespersonTradespersonIDFixedPricePriceIDHandler PutTradespersonTradespersonIDFixedPricePriceIDHandler
+	// PutTradespersonTradespersonIDGoogleTokenHandler sets the operation handler for the put tradesperson tradesperson ID google token operation
+	PutTradespersonTradespersonIDGoogleTokenHandler PutTradespersonTradespersonIDGoogleTokenHandler
 	// PutTradespersonTradespersonIDPasswordHandler sets the operation handler for the put tradesperson tradesperson ID password operation
 	PutTradespersonTradespersonIDPasswordHandler PutTradespersonTradespersonIDPasswordHandler
 	// PutTradespersonTradespersonIDQuoteQuoteIDHandler sets the operation handler for the put tradesperson tradesperson ID quote quote ID operation
@@ -701,6 +746,15 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler == nil {
 		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler")
+	}
+	if o.DeleteTradespersonTradespersonIDGoogleTokenHandler == nil {
+		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDGoogleTokenHandler")
+	}
+	if o.GetAdminAdminIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "GetAdminAdminIDAccessTokenHandler")
+	}
+	if o.GetAdminAdminIDTradespeopleHandler == nil {
+		unregistered = append(unregistered, "GetAdminAdminIDTradespeopleHandler")
 	}
 	if o.GetCustomerCustomerIDAccessTokenHandler == nil {
 		unregistered = append(unregistered, "GetCustomerCustomerIDAccessTokenHandler")
@@ -855,6 +909,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.GetTradespersonTradespersonIDScheduleHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDScheduleHandler")
 	}
+	if o.GetTradespersonTradespersonIDSellingFeeHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDSellingFeeHandler")
+	}
 	if o.GetTradespersonTradespersonIDSettingsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDSettingsHandler")
 	}
@@ -863,6 +920,15 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.GetTradespersonTradespersonIDTimeSlotsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDTimeSlotsHandler")
+	}
+	if o.PostAdminHandler == nil {
+		unregistered = append(unregistered, "PostAdminHandler")
+	}
+	if o.PostAdminAdminIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "PostAdminAdminIDAccessTokenHandler")
+	}
+	if o.PostAdminLoginHandler == nil {
+		unregistered = append(unregistered, "PostAdminLoginHandler")
 	}
 	if o.PostCustomerHandler == nil {
 		unregistered = append(unregistered, "PostCustomerHandler")
@@ -972,6 +1038,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.PostTradespersonTradespersonIDFixedPriceReviewHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDFixedPriceReviewHandler")
 	}
+	if o.PostTradespersonTradespersonIDGoogleTokenHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDGoogleTokenHandler")
+	}
 	if o.PostTradespersonTradespersonIDLogoutHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDLogoutHandler")
 	}
@@ -995,6 +1064,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.PutTradespersonTradespersonIDFixedPricePriceIDHandler == nil {
 		unregistered = append(unregistered, "PutTradespersonTradespersonIDFixedPricePriceIDHandler")
+	}
+	if o.PutTradespersonTradespersonIDGoogleTokenHandler == nil {
+		unregistered = append(unregistered, "PutTradespersonTradespersonIDGoogleTokenHandler")
 	}
 	if o.PutTradespersonTradespersonIDPasswordHandler == nil {
 		unregistered = append(unregistered, "PutTradespersonTradespersonIDPasswordHandler")
@@ -1114,6 +1186,18 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/billing/invoice/{invoiceId}"] = NewDeleteTradespersonTradespersonIDBillingInvoiceInvoiceID(o.context, o.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler)
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/google-token"] = NewDeleteTradespersonTradespersonIDGoogleToken(o.context, o.DeleteTradespersonTradespersonIDGoogleTokenHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/admin/{adminId}/access-token"] = NewGetAdminAdminIDAccessToken(o.context, o.GetAdminAdminIDAccessTokenHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/admin/{adminId}/tradespeople"] = NewGetAdminAdminIDTradespeople(o.context, o.GetAdminAdminIDTradespeopleHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -1321,6 +1405,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/selling-fee"] = NewGetTradespersonTradespersonIDSellingFee(o.context, o.GetTradespersonTradespersonIDSellingFeeHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/settings"] = NewGetTradespersonTradespersonIDSettings(o.context, o.GetTradespersonTradespersonIDSettingsHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -1330,6 +1418,18 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/time-slots"] = NewGetTradespersonTradespersonIDTimeSlots(o.context, o.GetTradespersonTradespersonIDTimeSlotsHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/admin"] = NewPostAdmin(o.context, o.PostAdminHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/admin/{adminId}/access-token"] = NewPostAdminAdminIDAccessToken(o.context, o.PostAdminAdminIDAccessTokenHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/admin/login"] = NewPostAdminLogin(o.context, o.PostAdminLoginHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -1477,6 +1577,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/google-token"] = NewPostTradespersonTradespersonIDGoogleToken(o.context, o.PostTradespersonTradespersonIDGoogleTokenHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
 	o.handlers["POST"]["/tradesperson/{tradespersonId}/logout"] = NewPostTradespersonTradespersonIDLogout(o.context, o.PostTradespersonTradespersonIDLogoutHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
@@ -1506,6 +1610,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}
 	o.handlers["PUT"]["/tradesperson/{tradespersonId}/fixed-price/{priceId}"] = NewPutTradespersonTradespersonIDFixedPricePriceID(o.context, o.PutTradespersonTradespersonIDFixedPricePriceIDHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/tradesperson/{tradespersonId}/google-token"] = NewPutTradespersonTradespersonIDGoogleToken(o.context, o.PutTradespersonTradespersonIDGoogleTokenHandler)
 	if o.handlers["PUT"] == nil {
 		o.handlers["PUT"] = make(map[string]http.Handler)
 	}

@@ -20,9 +20,19 @@ import (
 func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operations.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDBillingInvoiceInvoiceIDOK()
 	_invoice := operations.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody{}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -75,18 +85,13 @@ func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 		service.Description = stripeProduct.Description
 		_invoice.Service = &service
 
-		startTime, segmentSize, err := database.GetInvoiceStartTimeSegmentSize(invoiceID)
+		startTime, endTime, err := database.GetInvoiceStartTimeEndTime(invoiceID)
 		if err != nil {
-			log.Printf("Failed to get invoice %s startTime, segmentSize, %s", invoiceID, err)
+			log.Printf("Failed to get invoice %s startTime, endTime, %s", invoiceID, err)
 		}
-		if startTime != "" && segmentSize != "" {
+		if startTime != "" && endTime != "" {
 			timeSlot := &operations.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBodyTimeSlot{}
 			timeSlot.StartTime = startTime
-			endTime, err := internal.CreateEndTime(startTime, segmentSize)
-			if err != nil {
-				log.Printf("Failed to create endTime, %v", err)
-				return response
-			}
 			timeSlot.EndTime = endTime
 			_invoice.TimeSlot = timeSlot
 		}
@@ -116,10 +121,20 @@ func PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
 	description := params.Body.Description
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPutTradespersonTradespersonIDBillingInvoiceInvoiceIDOK()
 	payload := operations.PutTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody{Updated: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -158,10 +173,20 @@ func PutTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operations.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewDeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOK()
 	payload := operations.DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody{Deleted: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -191,17 +216,11 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			return response
 		}
 
-		decimalPrice := stripeInvoice.Lines.Data[0].Price.UnitAmountDecimal / float64(100.00)
+		decimalPrice := float64(stripeInvoice.Total) / float64(100.00)
 
-		startTime, segmentSize, err := database.GetInvoiceStartTimeSegmentSize(invoiceID)
+		startTime, endTime, err := database.GetInvoiceStartTimeEndTime(invoiceID)
 		if err != nil {
-			log.Printf("Failed to get invoice %s startTime and segmentSize, %v", invoiceID, err)
-			return response
-		}
-
-		endTime, err := internal.CreateEndTime(startTime, segmentSize)
-		if err != nil {
-			log.Printf("Failed to create endTime for invoice %s, %v", invoiceID, err)
+			log.Printf("Failed to get invoice %s startTime and endTime, %v", invoiceID, err)
 			return response
 		}
 
@@ -211,7 +230,7 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			return response
 		}
 
-		if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
+		if err := database.UpdateTimeSlotByInvoice(invoiceID, stripeInvoice.Lines.Data[0].Quantity); err != nil {
 			log.Printf("Failed to update time slot current people, %v", err)
 			return response
 		}
@@ -244,10 +263,20 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler(params operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeOK()
 	payload := operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeOKBody{Finalized: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -273,7 +302,7 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler(params
 			return response
 		}
 
-		if stripeInvoice.Status == "open" {
+		if stripeInvoice.Status == "open" || stripeInvoice.Status == "paid" {
 			if err := email.SentInvoice(stripeInvoice); err != nil {
 				log.Printf("Failed to email customer sent invoice, %v", err)
 			}
@@ -291,10 +320,20 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDFinalizeHandler(params
 func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOK()
 	payload := operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOKBody{Voided: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -324,17 +363,11 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 			return response
 		}
 
-		decimalPrice := stripeInvoice.Lines.Data[0].Price.UnitAmountDecimal / float64(100.00)
+		decimalPrice := float64(stripeInvoice.Total) / float64(100.00)
 
-		startTime, segmentSize, err := database.GetInvoiceStartTimeSegmentSize(invoiceID)
+		startTime, endTime, err := database.GetInvoiceStartTimeEndTime(invoiceID)
 		if err != nil {
-			log.Printf("Failed to get invoice %s startTime and segmentSize, %v", invoiceID, err)
-			return response
-		}
-
-		endTime, err := internal.CreateEndTime(startTime, segmentSize)
-		if err != nil {
-			log.Printf("Failed to create endTime for invoice %s, %v", invoiceID, err)
+			log.Printf("Failed to get invoice %s startTime and endTime, %v", invoiceID, err)
 			return response
 		}
 
@@ -344,7 +377,7 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 			return response
 		}
 
-		if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
+		if err := database.UpdateTimeSlotByInvoice(invoiceID, stripeInvoice.Lines.Data[0].Quantity); err != nil {
 			log.Printf("Failed to update time slot current people,, %v", err)
 			return response
 		}
@@ -376,10 +409,20 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler(params operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundOK()
 	payload := operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundOKBody{Refunded: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -405,41 +448,43 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler(params o
 			return response
 		}
 
-		params := &stripe.RefundParams{
-			Charge:          stripe.String(stripeInvoice.Charge.ID),
-			ReverseTransfer: stripe.Bool(true),
-		}
-		stripeRefund, err := refund.New(params)
-		if err != nil {
-			log.Printf("Failed to refund charge for invoice, %s", err)
-			return response
-		}
-
-		if stripeRefund.Status == "succeeded" || stripeRefund.Status == "pending" {
-			err := database.CreateInvoiceRefund(invoiceID, stripeRefund.ID)
-			if err != nil {
-				log.Printf("Failed to create refund in database, %v", err)
+		if stripeInvoice.Total != 0 {
+			params := &stripe.RefundParams{
+				Charge:          stripe.String(stripeInvoice.Charge.ID),
+				ReverseTransfer: stripe.Bool(true),
 			}
-
-			if err := database.UpdateTimeSlotByInvoice(invoiceID); err != nil {
-				log.Printf("Failed to update time slot current people, %s, %v", invoiceID, err)
-			}
-
-			payload.Refunded = true
-			response.SetPayload(&payload)
-
-			stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.ID, nil)
+			stripeRefund, err := refund.New(params)
 			if err != nil {
+				log.Printf("Failed to refund charge for invoice, %s", err)
 				return response
 			}
 
-			decimalPrice := float64(stripeInvoice.Lines.Data[0].Price.UnitAmount / 100.00)
+			if stripeRefund.Status == "succeeded" || stripeRefund.Status == "pending" {
+				err := database.CreateInvoiceRefund(invoiceID, stripeRefund.ID)
+				if err != nil {
+					log.Printf("Failed to create refund in database, %v", err)
+				}
 
-			err = email.SendCustomerRefund(stripeInvoice, stripeProduct, decimalPrice)
-			if err != nil {
-				log.Printf("Failed to send customer refund email, %v", err)
+				if err := database.UpdateTimeSlotByInvoice(invoiceID, stripeInvoice.Lines.Data[0].Quantity); err != nil {
+					log.Printf("Failed to update time slot current people, %s, %v", invoiceID, err)
+				}
+
+				payload.Refunded = true
+				response.SetPayload(&payload)
+
+				stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.ID, nil)
+				if err != nil {
+					return response
+				}
+
+				decimalPrice := float64(stripeInvoice.Total / 100.00)
+
+				err = email.SendCustomerRefund(stripeInvoice, stripeProduct, decimalPrice)
+				if err != nil {
+					log.Printf("Failed to send customer refund email, %v", err)
+				}
+
 			}
-
 		}
 	default:
 		log.Printf("Unkown %v", err)
@@ -451,10 +496,20 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler(params o
 func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleHandler(params operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	invoiceID := params.InvoiceID
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleOK()
 	payload := operations.PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectibleOKBody{Uncollectible: false}
 	response.SetPayload(&payload)
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -496,9 +551,19 @@ func GetTradespersonTradespersonIDBillingInvoicesHandler(params operations.GetTr
 	quarter := params.Quarter
 	year := params.Year
 	page := *params.Page
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	response := operations.NewGetTradespersonTradespersonIDBillingInvoicesOK()
 	invoices := []*operations.GetTradespersonTradespersonIDBillingInvoicesOKBodyItems0{}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 
@@ -554,9 +619,19 @@ func GetTradespersonTradespersonIDBillingInvoicePagesHandler(params operations.G
 	tradespersonID := params.TradespersonID
 	quarter := params.Quarter
 	year := params.Year
+	token := params.HTTPRequest.Header.Get("Authorization")
 
 	pages := float64(1)
 	response := operations.NewGetTradespersonTradespersonIDBillingInvoicePagesOK().WithPayload(int64(pages))
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
 
 	db := database.GetConnection()
 

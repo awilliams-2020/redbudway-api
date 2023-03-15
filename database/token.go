@@ -42,6 +42,46 @@ func ClearTradespersonTokens(tradespersonID string) (bool, error) {
 	return rowsAffected == 1, nil
 }
 
+func ClearGoogleTokens(tradespersonID, accessToken string) (bool, error) {
+	stmt, err := db.Prepare("UPDATE google_token SET refresh_token='', access_token='' WHERE tradespersonId=? AND access_token=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	results, err := stmt.Exec(tradespersonID, accessToken)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := results.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rowsAffected == 1, nil
+}
+
+func ClearAdminTokens(adminID string) (bool, error) {
+	stmt, err := db.Prepare("UPDATE admin_token SET refresh_token='', access_token='' WHERE adminId=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	results, err := stmt.Exec(adminID)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := results.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rowsAffected == 1, nil
+}
+
 func UpdateCustomerTokens(customerID, refreshToken, accessToken string) (bool, error) {
 	stmt, err := db.Prepare("UPDATE customer_token SET refresh_token=?, access_token=? WHERE customerId=?")
 	if err != nil {
@@ -70,6 +110,26 @@ func UpdateTradespersonTokens(tradespersonID, refreshToken, accessToken string) 
 	defer stmt.Close()
 
 	results, err := stmt.Exec(refreshToken, accessToken, tradespersonID)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := results.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rowsAffected == 1, nil
+}
+
+func UpdateAdminTokens(adminID, refreshToken, accessToken string) (bool, error) {
+	stmt, err := db.Prepare("UPDATE admin_token SET refresh_token=?, access_token=? WHERE adminId=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	results, err := stmt.Exec(refreshToken, accessToken, adminID)
 	if err != nil {
 		return false, err
 	}
@@ -199,6 +259,162 @@ func SaveTradespersonTokens(tradespersonID, refreshToken, accessToken string) (b
 	return saved, nil
 }
 
+func SaveTradespersonGoogleTokens(tradespersonID, refreshToken, accessToken string) (bool, error) {
+	saved := false
+
+	stmt, err := db.Prepare("SELECT tradespersonId FROM google_token WHERE tradespersonId=?")
+	if err != nil {
+		return saved, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID)
+
+	switch err = row.Scan(&tradespersonID); err {
+	case sql.ErrNoRows:
+		stmt, err := db.Prepare("INSERT INTO google_token (tradespersonId, refresh_token, access_token) VALUES (?, ?, ?)")
+		if err != nil {
+			return saved, err
+		}
+		defer stmt.Close()
+
+		results, err := stmt.Exec(tradespersonID, refreshToken, accessToken)
+		if err != nil {
+			return saved, err
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			return saved, err
+		}
+
+		if rowsAffected == 1 {
+			saved = true
+		}
+	case nil:
+		stmt, err := db.Prepare("UPDATE google_token SET refresh_token=?, access_token=? WHERE tradespersonId=?")
+		if err != nil {
+			return saved, err
+		}
+		defer stmt.Close()
+
+		results, err := stmt.Exec(refreshToken, accessToken, tradespersonID)
+		if err != nil {
+			return saved, err
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			return saved, err
+		}
+
+		if rowsAffected == 1 {
+			saved = true
+		}
+	default:
+		return saved, err
+	}
+
+	return saved, nil
+}
+
+func UpdateTradespersonGoogleAccessToken(tradespersonID, accessToken string) (bool, error) {
+	saved := false
+
+	stmt, err := db.Prepare("SELECT tradespersonId FROM google_token WHERE tradespersonId=?")
+	if err != nil {
+		return saved, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID)
+
+	switch err = row.Scan(&tradespersonID); err {
+	case nil:
+		stmt, err := db.Prepare("UPDATE google_token SET access_token=? WHERE tradespersonId=?")
+		if err != nil {
+			return saved, err
+		}
+		defer stmt.Close()
+
+		results, err := stmt.Exec(accessToken, tradespersonID)
+		if err != nil {
+			return saved, err
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			return saved, err
+		}
+
+		if rowsAffected == 1 {
+			saved = true
+		}
+	default:
+		return saved, err
+	}
+
+	return saved, nil
+}
+
+func SaveAdminTokens(adminID, refreshToken, accessToken string) (bool, error) {
+	saved := false
+
+	stmt, err := db.Prepare("SELECT adminId FROM admin_token WHERE adminId=?")
+	if err != nil {
+		return saved, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(adminID)
+	switch err = row.Scan(&adminID); err {
+	case sql.ErrNoRows:
+		stmt, err := db.Prepare("INSERT INTO admin_token (adminId, refresh_token, access_token) VALUES (?, ?, ?)")
+		if err != nil {
+			return saved, err
+		}
+		defer stmt.Close()
+
+		results, err := stmt.Exec(adminID, refreshToken, accessToken)
+		if err != nil {
+			return saved, err
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			return saved, err
+		}
+
+		if rowsAffected == 1 {
+			saved = true
+		}
+	case nil:
+		stmt, err := db.Prepare("UPDATE admin_token SET refresh_token=?, access_token=? WHERE adminId=?")
+		if err != nil {
+			return saved, err
+		}
+		defer stmt.Close()
+
+		results, err := stmt.Exec(refreshToken, accessToken, adminID)
+		if err != nil {
+			return saved, err
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			return saved, err
+		}
+
+		if rowsAffected == 1 {
+			saved = true
+		}
+	default:
+		return saved, err
+	}
+
+	return saved, nil
+}
+
 func CheckCustomerAccessToken(customerID, token string) (bool, error) {
 	valid := false
 
@@ -289,4 +505,82 @@ func CheckTradespersonRefreshToken(tradespersonID, token string) (bool, error) {
 	}
 
 	return valid, nil
+}
+
+func CheckAdminAccessToken(adminID, token string) (bool, error) {
+	valid := false
+
+	stmt, err := db.Prepare("SELECT access_token FROM admin_token WHERE adminId=?")
+	if err != nil {
+		return valid, err
+	}
+	defer stmt.Close()
+
+	accessToken := ""
+	if err := stmt.QueryRow(adminID).Scan(&accessToken); err != nil {
+		return valid, err
+	}
+
+	if accessToken != "" {
+		if accessToken == token {
+			valid = true
+		}
+	}
+
+	return valid, nil
+}
+
+func CheckAdminRefreshToken(adminID, token string) (bool, error) {
+	valid := false
+
+	stmt, err := db.Prepare("SELECT refresh_token FROM admin_token WHERE adminId=?")
+	if err != nil {
+		return valid, err
+	}
+	defer stmt.Close()
+
+	refreshToken := ""
+	if err := stmt.QueryRow(adminID).Scan(&refreshToken); err != nil {
+		return valid, err
+	}
+
+	if refreshToken != "" {
+		if refreshToken == token {
+			valid = true
+		}
+	}
+
+	return valid, nil
+}
+
+func GetGoogleRefreshToken(tradespersonID, accessToken string) (string, error) {
+	refreshToken := ""
+
+	stmt, err := db.Prepare("SELECT refresh_token FROM google_token WHERE tradespersonId=? AND access_token=?")
+	if err != nil {
+		return refreshToken, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.QueryRow(tradespersonID, accessToken).Scan(&refreshToken); err != nil {
+		return refreshToken, err
+	}
+
+	return refreshToken, nil
+}
+
+func GetTradespersonGoogleAccessToken(tradespersonID string) (string, error) {
+	accessToken := ""
+
+	stmt, err := db.Prepare("SELECT access_token FROM google_token WHERE tradespersonId=?")
+	if err != nil {
+		return accessToken, err
+	}
+	defer stmt.Close()
+
+	if err := stmt.QueryRow(tradespersonID).Scan(&accessToken); err != nil {
+		return accessToken, err
+	}
+
+	return accessToken, nil
 }

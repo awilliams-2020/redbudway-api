@@ -2,7 +2,9 @@ package internal
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -62,4 +64,21 @@ func GetRegisteredClaims(bearerHeader string) (jwt.RegisteredClaims, error) {
 		return claims, err
 	}
 	return claims, nil
+}
+
+func DecodeJWT(idToken string) (map[string]interface{}, error) {
+	var userInfo map[string]interface{}
+	data := strings.Split(idToken, ".")
+	sDec, err := base64.StdEncoding.DecodeString(data[1])
+	if err != nil {
+		fmt.Printf("%v", err)
+		return userInfo, err
+	}
+
+	err = json.Unmarshal(sDec, &userInfo)
+	if err != nil {
+		fmt.Printf("%v", err)
+		return userInfo, err
+	}
+	return userInfo, nil
 }
