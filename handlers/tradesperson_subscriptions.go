@@ -66,22 +66,21 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 		if customerSubs[cuStripeID] != nil {
 			c := customerSubs[cuStripeID]
 			subscriptions := c.(map[string]interface{})
-			if stripeSubscription.LatestInvoice != nil {
-				//check customer isn't already set
-				stripeInvoice, err := invoice.Get(stripeSubscription.LatestInvoice.ID, nil)
-				if err != nil {
-					log.Printf("Failed to get stripe invoice with ID %s, %s", stripeSubscription.LatestInvoice.ID, err)
-					return response
-				}
-				subscriptions["name"] = *stripeInvoice.CustomerName
+			// if stripeSubscription.LatestInvoice != nil {
+			// 	stripeInvoice, err := invoice.Get(stripeSubscription.LatestInvoice.ID, nil)
+			// 	if err != nil {
+			// 		log.Printf("Failed to get stripe invoice with ID %s, %s", stripeSubscription.LatestInvoice.ID, err)
+			// 		return response
+			// 	}
+			// 	subscriptions["name"] = *stripeInvoice.CustomerName
 
-			} else {
-				stripeCustomer, err := customer.Get(stripeSubscription.Customer.ID, nil)
-				if err != nil {
-					log.Printf("Failed to get stripe customer, %v", err)
-				}
-				subscriptions["name"] = stripeCustomer.Name
-			}
+			// } else {
+			// 	stripeCustomer, err := customer.Get(stripeSubscription.Customer.ID, nil)
+			// 	if err != nil {
+			// 		log.Printf("Failed to get stripe customer, %v", err)
+			// 	}
+			// 	subscriptions["name"] = stripeCustomer.Name
+			// }
 			if stripeSubscription.Status == "active" {
 				subscriptions["active"] = subscriptions["active"].(int64) + int64(1)
 			} else if stripeSubscription.Status == "canceled" {
@@ -99,7 +98,6 @@ func GetTradespersonTradespersonIDBillingSubscriptionsHandler(params operations.
 			subscriptions["canceled"] = int64(0)
 			subscriptions["incomplete"] = int64(0)
 			if stripeSubscription.LatestInvoice != nil {
-				//check customer isn't already set
 				stripeInvoice, err := invoice.Get(stripeSubscription.LatestInvoice.ID, nil)
 				if err != nil {
 					log.Printf("Failed to get stripe invoice with ID %s, %s", stripeSubscription.LatestInvoice.ID, err)
@@ -247,44 +245,43 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 		for i, subscription := range subscriptions {
 			if subscription.Title == stripeProduct.Name {
 				exist = true
-				subscription.Total += stripeSubscription.Items.Data[0].Price.UnitAmount * stripeSubscription.Items.Data[0].Quantity
+				//subscription.Total += stripeSubscription.Items.Data[0].Price.UnitAmount * stripeSubscription.Items.Data[0].Quantity
 				detail := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubscriptionsItems0DetailsItems0{}
 				detail.SubscriptionID = subscriptionID
 				detail.Status = string(stripeSubscription.Status)
-				if stripeSubscription.LatestInvoice != nil {
-					detail.InvoiceID = stripeSubscription.LatestInvoice.ID
-					//check customer isn't already set
-					stripeInvoice, err := invoice.Get(stripeSubscription.LatestInvoice.ID, nil)
-					if err != nil {
-						log.Printf("Failed to get stripe invoice with ID %s, %s", stripeSubscription.LatestInvoice.ID, err)
-						return response
-					}
-					_customer.Name = *stripeInvoice.CustomerName
-					_customer.Email = stripeInvoice.CustomerEmail
-					_customer.Phone = *stripeInvoice.CustomerPhone
-					_customer.Address = &models.Address{
-						LineOne: stripeInvoice.CustomerAddress.Line1,
-						LineTwo: stripeInvoice.CustomerAddress.Line2,
-						City:    stripeInvoice.CustomerAddress.City,
-						State:   stripeInvoice.CustomerAddress.State,
-						ZipCode: stripeInvoice.CustomerAddress.PostalCode,
-					}
-				} else {
-					stripeCustomer, err := customer.Get(stripeID, nil)
-					if err != nil {
-						log.Printf("Failed to get stripe customer, %v", err)
-					}
-					_customer.Name = stripeCustomer.Name
-					_customer.Email = stripeCustomer.Email
-					_customer.Phone = stripeCustomer.Phone
-					_customer.Address = &models.Address{
-						LineOne: stripeCustomer.Address.Line1,
-						LineTwo: stripeCustomer.Address.Line2,
-						City:    stripeCustomer.Address.City,
-						State:   stripeCustomer.Address.State,
-						ZipCode: stripeCustomer.Address.PostalCode,
-					}
-				}
+				// if stripeSubscription.LatestInvoice != nil {
+				// 	detail.InvoiceID = stripeSubscription.LatestInvoice.ID
+				// 	stripeInvoice, err := invoice.Get(stripeSubscription.LatestInvoice.ID, nil)
+				// 	if err != nil {
+				// 		log.Printf("Failed to get stripe invoice with ID %s, %s", stripeSubscription.LatestInvoice.ID, err)
+				// 		return response
+				// 	}
+				// 	_customer.Name = *stripeInvoice.CustomerName
+				// 	_customer.Email = stripeInvoice.CustomerEmail
+				// 	_customer.Phone = *stripeInvoice.CustomerPhone
+				// 	_customer.Address = &models.Address{
+				// 		LineOne: stripeInvoice.CustomerAddress.Line1,
+				// 		LineTwo: stripeInvoice.CustomerAddress.Line2,
+				// 		City:    stripeInvoice.CustomerAddress.City,
+				// 		State:   stripeInvoice.CustomerAddress.State,
+				// 		ZipCode: stripeInvoice.CustomerAddress.PostalCode,
+				// 	}
+				// } else {
+				// 	stripeCustomer, err := customer.Get(stripeID, nil)
+				// 	if err != nil {
+				// 		log.Printf("Failed to get stripe customer, %v", err)
+				// 	}
+				// 	_customer.Name = stripeCustomer.Name
+				// 	_customer.Email = stripeCustomer.Email
+				// 	_customer.Phone = stripeCustomer.Phone
+				// 	_customer.Address = &models.Address{
+				// 		LineOne: stripeCustomer.Address.Line1,
+				// 		LineTwo: stripeCustomer.Address.Line2,
+				// 		City:    stripeCustomer.Address.City,
+				// 		State:   stripeCustomer.Address.State,
+				// 		ZipCode: stripeCustomer.Address.PostalCode,
+				// 	}
+				// }
 				timeSlot, err := database.GetSubscriptionTimeSlot(subscriptionID, fixedPriceID)
 				if err != nil {
 					log.Printf("Failed to get subscription %s time slot, %v", subscriptionID, err)
@@ -307,7 +304,6 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 			detail.Status = string(stripeSubscription.Status)
 			if stripeSubscription.LatestInvoice != nil {
 				detail.InvoiceID = stripeSubscription.LatestInvoice.ID
-				//check customer isn't already set
 				stripeInvoice, err := invoice.Get(stripeSubscription.LatestInvoice.ID, nil)
 				if err != nil {
 					log.Printf("Failed to get stripe invoice with ID %s, %s", stripeSubscription.LatestInvoice.ID, err)
