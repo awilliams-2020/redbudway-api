@@ -12,22 +12,22 @@ import (
 	"github.com/stripe/stripe-go/v72/product"
 )
 
-func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDetails, *operations.GetFixedPricePriceIDOKBodyBusiness, error) {
+func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *operations.GetFixedPricePriceIDOKBodyBusiness, error) {
 	fixedPrice := &models.ServiceDetails{}
 	business := &operations.GetFixedPricePriceIDOKBodyBusiness{}
 
-	stmt, err := db.Prepare("SELECT ta.name, ta.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId LEFT JOIN fixed_price_state_cities fpsc ON fpsc.fixedPriceId=fp.id WHERE (fp.selectPlaces=false OR fpsc.state=?) AND (fp.selectPlaces=false OR JSON_CONTAINS(fpsc.cities, JSON_OBJECT('name', ?))) AND fp.archived=false AND fp.priceId=?")
+	stmt, err := db.Prepare("SELECT ta.name, ta.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory, fp.subscription, fp.subInterval, fp.selectPlaces FROM fixed_prices fp INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND fp.priceId=?")
 	if err != nil {
 		return fixedPrice, business, err
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRow(state, city, priceID)
+	row := stmt.QueryRow(priceID)
 	var fixedPriceID int64
 	var vanityURL, interval sql.NullString
 	var name, tradespersonID, category, subCategory string
-	var subscription, archived bool
-	switch err = row.Scan(&name, &tradespersonID, &vanityURL, &fixedPriceID, &category, &subCategory, &subscription, &interval); err {
+	var subscription, archived, selectPlaces bool
+	switch err = row.Scan(&name, &tradespersonID, &vanityURL, &fixedPriceID, &category, &subCategory, &subscription, &interval, &selectPlaces); err {
 	case sql.ErrNoRows:
 		return fixedPrice, business, err
 	case nil:
@@ -43,6 +43,7 @@ func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDe
 			fixedPrice.Interval = interval.String
 		}
 		fixedPrice.Archived = archived
+		fixedPrice.SelectPlaces = &selectPlaces
 		p, err := price.Get(priceID, nil)
 		if err != nil {
 			return fixedPrice, business, err
@@ -68,12 +69,18 @@ func GetFixedPriceServiceDetails(priceID, state, city string) (*models.ServiceDe
 		if err != nil {
 			return fixedPrice, business, err
 		}
-
+		fixedPrice.Includes, fixedPrice.NotIncludes, err = GetIncludes(fixedPriceID)
+		if err != nil {
+			return fixedPrice, business, err
+		}
 		fixedPrice.Reviews, fixedPrice.Rating, err = GetFixedPriceReviewsRating(fixedPriceID)
 		if err != nil {
 			log.Printf("Failed to get reviews and rating %s", err)
 		}
-
+		fixedPrice.StatesAndCities, err = GetFixedPriceStatesAndCities(fixedPriceID)
+		if err != nil {
+			return fixedPrice, business, err
+		}
 	default:
 		return fixedPrice, business, err
 	}

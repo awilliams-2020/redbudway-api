@@ -16,9 +16,6 @@ import (
 type GetProfileVanityOrIDFixedPricesURL struct {
 	VanityOrID string
 
-	City  string
-	State string
-
 	_basePath string
 	// avoid unkeyed usage
 	_ struct{}
@@ -57,20 +54,6 @@ func (o *GetProfileVanityOrIDFixedPricesURL) Build() (*url.URL, error) {
 		_basePath = "/v1"
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
-
-	qs := make(url.Values)
-
-	cityQ := o.City
-	if cityQ != "" {
-		qs.Set("city", cityQ)
-	}
-
-	stateQ := o.State
-	if stateQ != "" {
-		qs.Set("state", stateQ)
-	}
-
-	_result.RawQuery = qs.Encode()
 
 	return &_result, nil
 }

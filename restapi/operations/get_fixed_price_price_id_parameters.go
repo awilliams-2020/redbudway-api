@@ -9,10 +9,8 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/validate"
 )
 
 // NewGetFixedPricePriceIDParams creates a new GetFixedPricePriceIDParams object
@@ -32,21 +30,11 @@ type GetFixedPricePriceIDParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*
-	  Required: true
-	  In: query
-	*/
-	City string
 	/*Price ID
 	  Required: true
 	  In: path
 	*/
 	PriceID string
-	/*
-	  Required: true
-	  In: query
-	*/
-	State string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -58,46 +46,13 @@ func (o *GetFixedPricePriceIDParams) BindRequest(r *http.Request, route *middlew
 
 	o.HTTPRequest = r
 
-	qs := runtime.Values(r.URL.Query())
-
-	qCity, qhkCity, _ := qs.GetOK("city")
-	if err := o.bindCity(qCity, qhkCity, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
 	rPriceID, rhkPriceID, _ := route.Params.GetOK("priceId")
 	if err := o.bindPriceID(rPriceID, rhkPriceID, route.Formats); err != nil {
-		res = append(res, err)
-	}
-
-	qState, qhkState, _ := qs.GetOK("state")
-	if err := o.bindState(qState, qhkState, route.Formats); err != nil {
 		res = append(res, err)
 	}
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-// bindCity binds and validates parameter City from query.
-func (o *GetFixedPricePriceIDParams) bindCity(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("city", "query", rawData)
-	}
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: true
-	// AllowEmptyValue: false
-
-	if err := validate.RequiredString("city", "query", raw); err != nil {
-		return err
-	}
-	o.City = raw
-
 	return nil
 }
 
@@ -111,27 +66,6 @@ func (o *GetFixedPricePriceIDParams) bindPriceID(rawData []string, hasKey bool, 
 	// Required: true
 	// Parameter is provided by construction from the route
 	o.PriceID = raw
-
-	return nil
-}
-
-// bindState binds and validates parameter State from query.
-func (o *GetFixedPricePriceIDParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("state", "query", rawData)
-	}
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: true
-	// AllowEmptyValue: false
-
-	if err := validate.RequiredString("state", "query", raw); err != nil {
-		return err
-	}
-	o.State = raw
 
 	return nil
 }

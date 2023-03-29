@@ -86,7 +86,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, filters strin
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_filters fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND fi.filter IN (" + query + ") AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_filters fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND fi.filter IN (" + query + ") AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices, err
@@ -114,7 +114,7 @@ func getSubCategoryFixedPrices(state, city, category, subCategory string, page i
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices, err
@@ -142,7 +142,7 @@ func getCategoryFixedPrices(state, city, category string, page int64) ([]*models
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices, err
@@ -170,7 +170,7 @@ func getAllFixedPrices(state, city string, page int64) ([]*models.Service, error
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
 	if err != nil {
 		return fixedPrices, err
 	}
@@ -192,44 +192,194 @@ func getAllFixedPrices(state, city string, page int64) ([]*models.Service, error
 	return fixedPrices, nil
 }
 
+func getFixedPricesWithFiltersWOL(category, subCategory, filters string, page int64) ([]*models.Service, error) {
+	filterArry := strings.Split(filters, ",")
+	query := ""
+	for _, filter := range filterArry {
+		query += "'" + filter + "',"
+	}
+	query = query[:len(query)-1]
+	fixedPrices := []*models.Service{}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_filters fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND fi.filter IN (" + query + ") AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return fixedPrices, err
+	}
+	defer stmt.Close()
+
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(category, subCategory, offset, PAGE_SIZE)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return fixedPrices, err
+	}
+
+	fixedPrices, err = processFixedPriceRows(db, rows, fixedPrices)
+	if err != nil {
+		log.Println("Failed to process rows")
+		return fixedPrices, err
+	}
+
+	return fixedPrices, nil
+}
+
+func getSubCategoryFixedPricesWOL(category, subCategory string, page int64) ([]*models.Service, error) {
+	fixedPrices := []*models.Service{}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return fixedPrices, err
+	}
+	defer stmt.Close()
+
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(category, subCategory, offset, PAGE_SIZE)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return fixedPrices, err
+	}
+
+	fixedPrices, err = processFixedPriceRows(db, rows, fixedPrices)
+	if err != nil {
+		log.Println("Failed to process rows")
+		return fixedPrices, err
+	}
+
+	return fixedPrices, nil
+}
+
+func getCategoryFixedPricesWOL(category string, page int64) ([]*models.Service, error) {
+	fixedPrices := []*models.Service{}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE f.category=? AND f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return fixedPrices, err
+	}
+	defer stmt.Close()
+
+	offset := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(category, offset, PAGE_SIZE)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return fixedPrices, err
+	}
+
+	fixedPrices, err = processFixedPriceRows(db, rows, fixedPrices)
+	if err != nil {
+		log.Println("Failed to process rows")
+		return fixedPrices, err
+	}
+
+	return fixedPrices, nil
+}
+
+func getAllFixedPricesWOL(page int64) ([]*models.Service, error) {
+	fixedPrices := []*models.Service{}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT a.name, f.id, f.tradespersonId, f.priceId, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE f.archived=false GROUP BY f.id ORDER BY f.id DESC LIMIT ?, ?")
+	if err != nil {
+		return fixedPrices, err
+	}
+	defer stmt.Close()
+
+	offSet := (page - 1) * int64(PAGE_SIZE)
+	rows, err := stmt.Query(offSet, PAGE_SIZE)
+	if err != nil {
+		log.Println("Failed to execute select statement")
+		return fixedPrices, err
+	}
+
+	fixedPrices, err = processFixedPriceRows(db, rows, fixedPrices)
+	if err != nil {
+		log.Println("Failed to process rows")
+		return fixedPrices, err
+	}
+
+	return fixedPrices, nil
+}
+
 func GetFixedPricesHandler(params operations.GetFixedPricesParams) middleware.Responder {
-	state := params.State
-	city := params.City
+	state := ""
+	city := ""
+	if params.State != nil {
+		state = *params.State
+	}
+	if params.City != nil {
+		city = *params.City
+	}
 	page := *params.Page
 	response := operations.NewGetFixedPricesOK()
 	fixedPrices := []*models.Service{}
 	response.SetPayload(fixedPrices)
 
-	if city == "" || state == "" {
-		return response
-	}
-
 	var err error
 	if params.Category == nil && params.SubCategory == nil {
-		fixedPrices, err = getAllFixedPrices(state, city, page)
-		if err != nil {
-			log.Printf("%s", err)
-			return response
-		}
-	} else if params.Category != nil && params.SubCategory == nil {
-		fixedPrices, err = getCategoryFixedPrices(state, city, *params.Category, page)
-		if err != nil {
-			log.Printf("%s", err)
-			return response
-		}
-	} else if params.Category != nil && params.SubCategory != nil {
-
-		if params.Filters == nil {
-			fixedPrices, err = getSubCategoryFixedPrices(state, city, *params.Category, *params.SubCategory, page)
+		if city == "" && state == "" {
+			fixedPrices, err = getAllFixedPricesWOL(page)
 			if err != nil {
 				log.Printf("%s", err)
 				return response
 			}
 		} else {
-			fixedPrices, err = getFixedPricesWithFilters(state, city, *params.Category, *params.SubCategory, *params.Filters, page)
+			fixedPrices, err = getAllFixedPrices(state, city, page)
 			if err != nil {
 				log.Printf("%s", err)
 				return response
+			}
+		}
+	} else if params.Category != nil && params.SubCategory == nil {
+		if city == "" && state == "" {
+			fixedPrices, err = getCategoryFixedPricesWOL(*params.Category, page)
+			if err != nil {
+				log.Printf("%s", err)
+				return response
+			}
+		} else {
+			fixedPrices, err = getCategoryFixedPrices(state, city, *params.Category, page)
+			if err != nil {
+				log.Printf("%s", err)
+				return response
+			}
+		}
+	} else if params.Category != nil && params.SubCategory != nil {
+		if city == "" && state == "" {
+			if params.Filters == nil {
+				fixedPrices, err = getSubCategoryFixedPricesWOL(*params.Category, *params.SubCategory, page)
+				if err != nil {
+					log.Printf("%s", err)
+					return response
+				}
+			} else {
+				fixedPrices, err = getFixedPricesWithFiltersWOL(*params.Category, *params.SubCategory, *params.Filters, page)
+				if err != nil {
+					log.Printf("%s", err)
+					return response
+				}
+			}
+		} else {
+			if params.Filters == nil {
+				fixedPrices, err = getSubCategoryFixedPrices(state, city, *params.Category, *params.SubCategory, page)
+				if err != nil {
+					log.Printf("%s", err)
+					return response
+				}
+			} else {
+				fixedPrices, err = getFixedPricesWithFilters(state, city, *params.Category, *params.SubCategory, *params.Filters, page)
+				if err != nil {
+					log.Printf("%s", err)
+					return response
+				}
 			}
 		}
 	}
@@ -250,7 +400,7 @@ func getFixedPricesWithFiltersPages(pages float64, state, city, category, subCat
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_filters fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND fi.filter IN (" + query + ") AND f.archived=false")
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_filters fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND fi.filter IN (" + query + ") AND f.archived=false")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return pages, err
@@ -269,7 +419,7 @@ func getFixedPricesWithFiltersPages(pages float64, state, city, category, subCat
 func getSubCategoryFixedPricePages(pages float64, state, city, category, subCategory string) (float64, error) {
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false")
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return pages, err
@@ -287,7 +437,7 @@ func getSubCategoryFixedPricePages(pages float64, state, city, category, subCate
 func getCategoryFixedPricePages(pages float64, state, city, category string) (float64, error) {
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false")
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false")
 	if err != nil {
 		return pages, err
 	}
@@ -305,7 +455,7 @@ func getAllFixedPricePages(pages float64, state, city string) (float64, error) {
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE (f.selectPlaces=false OR c.state=?) AND (f.selectPlaces=false OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false")
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE (f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false")
 	if err != nil {
 		return pages, err
 	}
@@ -319,9 +469,94 @@ func getAllFixedPricePages(pages float64, state, city string) (float64, error) {
 	return pages, nil
 }
 
+func getFixedPricesWithFiltersPagesWOL(pages float64, category, subCategory, filters string) (float64, error) {
+	filterArry := strings.Split(filters, ",")
+	query := ""
+	for _, filter := range filterArry {
+		query += "'" + filter + "',"
+	}
+	query = query[:len(query)-1]
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices f LEFT JOIN fixed_price_filters fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND fi.filter IN (" + query + ") AND f.archived=false")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return pages, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(category, subCategory).Scan(&pages)
+	if err != nil {
+		log.Printf("Failed to execute select statement %s", err)
+		return pages, err
+	}
+
+	return pages, nil
+}
+
+func getSubCategoryFixedPricePagesWOL(pages float64, category, subCategory string) (float64, error) {
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices WHERE category=? AND subcategory=? AND archived=false")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return pages, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(category, subCategory).Scan(&pages)
+	if err != nil {
+		return pages, err
+	}
+
+	return pages, nil
+}
+
+func getCategoryFixedPricePagesWOL(pages float64, category string) (float64, error) {
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices WHERE category=? AND archived=false")
+	if err != nil {
+		return pages, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(category).Scan(&pages)
+	if err != nil {
+		return pages, err
+	}
+
+	return pages, nil
+}
+
+func getAllFixedPricePagesWOL(pages float64) (float64, error) {
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM fixed_prices WHERE archived=false")
+	if err != nil {
+		return pages, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow().Scan(&pages)
+	if err != nil {
+		return pages, err
+	}
+
+	return pages, nil
+}
+
 func GetFixedPricePagesHandler(params operations.GetFixedPricePagesParams) middleware.Responder {
-	state := params.State
-	city := params.City
+	state := ""
+	city := ""
+	if params.State != nil {
+		state = *params.State
+	}
+	if params.City != nil {
+		city = *params.City
+	}
 
 	pages := float64(1)
 	response := operations.NewGetFixedPricePagesOK().WithPayload(int64(pages))

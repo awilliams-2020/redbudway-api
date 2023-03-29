@@ -36,6 +36,36 @@ func init() {
   "host": "redbudway.com",
   "basePath": "/v1",
   "paths": {
+    "/address": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "address",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "City and State of end user",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "state": {
+                  "type": "string",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin": {
       "post": {
         "parameters": [
@@ -1250,14 +1280,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -1294,18 +1322,6 @@ func init() {
             "description": "Price ID",
             "name": "priceId",
             "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
             "required": true
           }
         ],
@@ -1434,14 +1450,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -1567,18 +1581,6 @@ func init() {
             "name": "vanityOrId",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
-            "required": true
           }
         ],
         "responses": {
@@ -1603,18 +1605,6 @@ func init() {
             "name": "vanityOrId",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
-            "required": true
           }
         ],
         "responses": {
@@ -1636,14 +1626,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -1680,18 +1668,6 @@ func init() {
             "description": "Quote ID",
             "name": "quoteId",
             "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
             "required": true
           }
         ],
@@ -1820,14 +1796,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -5500,9 +5474,21 @@ func init() {
             "type": "string"
           }
         },
+        "includes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "interval": {
           "type": "string",
           "x-omitempty": false
+        },
+        "notIncludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "price": {
           "type": "number",
@@ -5683,6 +5669,36 @@ func init() {
   "host": "redbudway.com",
   "basePath": "/v1",
   "paths": {
+    "/address": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "name": "address",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "City and State of end user",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "city": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "state": {
+                  "type": "string",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin": {
       "post": {
         "parameters": [
@@ -6871,14 +6887,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -6915,18 +6929,6 @@ func init() {
             "description": "Price ID",
             "name": "priceId",
             "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
             "required": true
           }
         ],
@@ -7027,14 +7029,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -7160,18 +7160,6 @@ func init() {
             "name": "vanityOrId",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
-            "required": true
           }
         ],
         "responses": {
@@ -7196,18 +7184,6 @@ func init() {
             "name": "vanityOrId",
             "in": "path",
             "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
-            "required": true
           }
         ],
         "responses": {
@@ -7229,14 +7205,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -7273,18 +7247,6 @@ func init() {
             "description": "Quote ID",
             "name": "quoteId",
             "in": "path",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "state",
-            "in": "query",
-            "required": true
-          },
-          {
-            "type": "string",
-            "name": "city",
-            "in": "query",
             "required": true
           }
         ],
@@ -7385,14 +7347,12 @@ func init() {
           {
             "type": "string",
             "name": "state",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
             "name": "city",
-            "in": "query",
-            "required": true
+            "in": "query"
           },
           {
             "type": "string",
@@ -11168,9 +11128,21 @@ func init() {
             "type": "string"
           }
         },
+        "includes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "interval": {
           "type": "string",
           "x-omitempty": false
+        },
+        "notIncludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "price": {
           "type": "number",

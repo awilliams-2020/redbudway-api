@@ -124,6 +124,41 @@ func GetFilters(fixedPriceID int64) ([]string, error) {
 	return filters, nil
 }
 
+func GetIncludes(fixedPriceID int64) ([]string, []string, error) {
+	includes := []string{}
+	notIncludes := []string{}
+
+	stmt, err := db.Prepare("SELECT included, items FROM fixed_price_includes WHERE fixedPriceId=?")
+	if err != nil {
+		return includes, notIncludes, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(fixedPriceID)
+	if err != nil {
+		return includes, notIncludes, err
+	}
+
+	var included bool
+	var includesJSON string
+	for rows.Next() {
+		if err := rows.Scan(&included, &includesJSON); err != nil {
+			return includes, notIncludes, err
+		}
+		var tempIncludes []string
+		err := json.Unmarshal([]byte(includesJSON), &tempIncludes)
+		if err != nil {
+			return includes, notIncludes, err
+		}
+		if included {
+			includes = tempIncludes
+		} else {
+			notIncludes = tempIncludes
+		}
+	}
+	return includes, notIncludes, nil
+}
+
 func GetFixedPriceStatesAndCities(fixedPriceID int64) ([]*models.ServiceDetailsStatesAndCitiesItems0, error) {
 	StatesAndCities := []*models.ServiceDetailsStatesAndCitiesItems0{}
 
@@ -138,15 +173,15 @@ func GetFixedPriceStatesAndCities(fixedPriceID int64) ([]*models.ServiceDetailsS
 		return StatesAndCities, err
 	}
 
-	var state, citiesBlob string
+	var state, citiesJSON string
 	for rows.Next() {
-		if err := rows.Scan(&state, &citiesBlob); err != nil {
+		if err := rows.Scan(&state, &citiesJSON); err != nil {
 			return StatesAndCities, err
 		}
 		statesAndCitiesItem := &models.ServiceDetailsStatesAndCitiesItems0{}
 		statesAndCitiesItem.State = state
 		var cities []*models.ServiceDetailsStatesAndCitiesItems0CitiesItems0
-		err := json.Unmarshal([]byte(citiesBlob), &cities)
+		err := json.Unmarshal([]byte(citiesJSON), &cities)
 		if err != nil {
 			fmt.Println("error:", err)
 		}
@@ -297,6 +332,10 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 			return fixedPrice, fixedPriceID, err
 		}
 		fixedPrice.Filters, err = GetFilters(fixedPriceID)
+		if err != nil {
+			return fixedPrice, fixedPriceID, err
+		}
+		fixedPrice.Includes, fixedPrice.NotIncludes, err = GetIncludes(fixedPriceID)
 		if err != nil {
 			return fixedPrice, fixedPriceID, err
 		}
@@ -452,6 +491,70 @@ func updateStatesAndCities(fixedPriceID int64, fixedPrice *models.ServiceDetails
 	return nil
 }
 
+func updateIncludes(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	includes, err := json.Marshal(fixedPrice.Includes)
+	if err != nil {
+		return err
+	}
+	notIncludes, err := json.Marshal(fixedPrice.NotIncludes)
+	if err != nil {
+		return err
+	}
+	stmt, err := db.Prepare("SELECT included FROM fixed_price_includes WHERE fixedPriceId=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(fixedPriceID)
+	if err != nil {
+		return err
+	}
+
+	exist := false
+	var included bool
+	for rows.Next() {
+		if err := rows.Scan(&included); err != nil {
+			return err
+		}
+		exist = true
+		if included {
+			stmt, err := db.Prepare("UPDATE fixed_price_includes SET items=? WHERE fixedPriceId=? AND included=?")
+			if err != nil {
+				return err
+			}
+			defer stmt.Close()
+			_, err = stmt.Exec(string(includes), fixedPriceID, included)
+			if err != nil {
+				return err
+			}
+		} else {
+			stmt, err := db.Prepare("UPDATE fixed_price_includes SET items=? WHERE fixedPriceId=? AND included=?")
+			if err != nil {
+				return err
+			}
+			defer stmt.Close()
+			_, err = stmt.Exec(string(notIncludes), fixedPriceID, included)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	if !exist {
+		stmt, err := db.Prepare("INSERT INTO fixed_price_includes (fixedPriceId, included, items) VALUES (?, ?, ?), (?, ?, ?)")
+		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+		_, err = stmt.Exec(fixedPriceID, true, string(includes), fixedPriceID, false, string(notIncludes))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.ServiceDetails) (bool, error) {
 	updated := false
 
@@ -501,6 +604,10 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 		}
 
 		if err := UpdateTimeSlots(fixedPriceID, fixedPrice); err != nil {
+			return updated, err
+		}
+
+		if err := updateIncludes(fixedPriceID, fixedPrice); err != nil {
 			return updated, err
 		}
 		updated = true

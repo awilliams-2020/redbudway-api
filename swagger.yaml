@@ -43,6 +43,25 @@ paths:
               state:
                 type: string
                 x-omitempty: false
+  /address:
+    get:
+      parameters:
+        - in: query
+          name: address
+          type: string
+          required: true
+      responses:
+        '200':
+          description: City and State of end user
+          schema:
+            type: object
+            properties:
+              city:
+                type: string
+                x-omitempty: false
+              state:
+                type: string
+                x-omitempty: false
   /forgot-password:
     get:
       parameters:
@@ -2192,14 +2211,6 @@ paths:
           description: Tradesperson vanity URL or ID
           required: true
           type: string
-        - in: query
-          name: state
-          type: string
-          required: true
-        - in: query
-          name: city
-          type: string
-          required: true
       responses:
         '200':
           description: Tradesperson fixed-price services
@@ -2215,14 +2226,6 @@ paths:
           description: Tradesperson vanity URL or ID
           required: true
           type: string
-        - in: query
-          name: state
-          type: string
-          required: true
-        - in: query
-          name: city
-          type: string
-          required: true
       responses:
         '200':
           description: Tradesperson fixed-price services
@@ -2238,14 +2241,6 @@ paths:
         description: Price ID
         required: true
         type: string
-      - in: query
-        name: state
-        type: string
-        required: true
-      - in: query
-        name: city
-        type: string
-        required: true
       responses:
         '200':
           description: Fixed Price Details
@@ -2332,11 +2327,9 @@ paths:
         - in: query
           name: state
           type: string
-          required: true
         - in: query
           name: city
           type: string
-          required: true
         - in: query
           name: category
           type: string
@@ -2363,11 +2356,9 @@ paths:
         - in: query
           name: state
           type: string
-          required: true
         - in: query
           name: city
           type: string
-          required: true
         - in: query
           name: category
           type: string
@@ -2391,14 +2382,6 @@ paths:
         description: Quote ID
         required: true
         type: string
-      - in: query
-        name: state
-        type: string
-        required: true
-      - in: query
-        name: city
-        type: string
-        required: true
       responses:
         '200':
           description: Quote details
@@ -2485,11 +2468,9 @@ paths:
         - in: query
           name: state
           type: string
-          required: true
         - in: query
           name: city
           type: string
-          required: true
         - in: query
           name: category
           type: string
@@ -2516,11 +2497,9 @@ paths:
         - in: query
           name: state
           type: string
-          required: true
         - in: query
           name: city
           type: string
-          required: true
         - in: query
           name: category
           type: string
@@ -3402,6 +3381,14 @@ definitions:
         items:
           $ref: '#/definitions/TimeSlot'
       filters:
+        type: array
+        items:
+          type: string
+      includes:
+        type: array
+        items:
+          type: string
+      notIncludes:
         type: array
         items:
           type: string

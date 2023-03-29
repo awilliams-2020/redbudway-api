@@ -12,7 +12,6 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/validate"
 )
 
 // NewGetFixedPricePagesParams creates a new GetFixedPricePagesParams object
@@ -37,19 +36,17 @@ type GetFixedPricePagesParams struct {
 	*/
 	Category *string
 	/*
-	  Required: true
 	  In: query
 	*/
-	City string
+	City *string
 	/*
 	  In: query
 	*/
 	Filters *string
 	/*
-	  Required: true
 	  In: query
 	*/
-	State string
+	State *string
 	/*
 	  In: query
 	*/
@@ -117,21 +114,18 @@ func (o *GetFixedPricePagesParams) bindCategory(rawData []string, hasKey bool, f
 
 // bindCity binds and validates parameter City from query.
 func (o *GetFixedPricePagesParams) bindCity(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("city", "query", rawData)
-	}
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
 	}
 
-	// Required: true
+	// Required: false
 	// AllowEmptyValue: false
 
-	if err := validate.RequiredString("city", "query", raw); err != nil {
-		return err
+	if raw == "" { // empty values pass all other validations
+		return nil
 	}
-	o.City = raw
+	o.City = &raw
 
 	return nil
 }
@@ -156,21 +150,18 @@ func (o *GetFixedPricePagesParams) bindFilters(rawData []string, hasKey bool, fo
 
 // bindState binds and validates parameter State from query.
 func (o *GetFixedPricePagesParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	if !hasKey {
-		return errors.Required("state", "query", rawData)
-	}
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
 	}
 
-	// Required: true
+	// Required: false
 	// AllowEmptyValue: false
 
-	if err := validate.RequiredString("state", "query", raw); err != nil {
-		return err
+	if raw == "" { // empty values pass all other validations
+		return nil
 	}
-	o.State = raw
+	o.State = &raw
 
 	return nil
 }

@@ -14,9 +14,9 @@ import (
 // GetQuotePagesURL generates an URL for the get quote pages operation
 type GetQuotePagesURL struct {
 	Category    *string
-	City        string
+	City        *string
 	Filters     *string
-	State       string
+	State       *string
 	SubCategory *string
 
 	_basePath string
@@ -61,7 +61,10 @@ func (o *GetQuotePagesURL) Build() (*url.URL, error) {
 		qs.Set("category", categoryQ)
 	}
 
-	cityQ := o.City
+	var cityQ string
+	if o.City != nil {
+		cityQ = *o.City
+	}
 	if cityQ != "" {
 		qs.Set("city", cityQ)
 	}
@@ -74,7 +77,10 @@ func (o *GetQuotePagesURL) Build() (*url.URL, error) {
 		qs.Set("filters", filtersQ)
 	}
 
-	stateQ := o.State
+	var stateQ string
+	if o.State != nil {
+		stateQ = *o.State
+	}
 	if stateQ != "" {
 		qs.Set("state", stateQ)
 	}

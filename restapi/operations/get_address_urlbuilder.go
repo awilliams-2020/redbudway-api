@@ -9,12 +9,11 @@ import (
 	"errors"
 	"net/url"
 	golangswaggerpaths "path"
-	"strings"
 )
 
-// GetQuoteQuoteIDURL generates an URL for the get quote quote ID operation
-type GetQuoteQuoteIDURL struct {
-	QuoteID string
+// GetAddressURL generates an URL for the get address operation
+type GetAddressURL struct {
+	Address string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -24,7 +23,7 @@ type GetQuoteQuoteIDURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetQuoteQuoteIDURL) WithBasePath(bp string) *GetQuoteQuoteIDURL {
+func (o *GetAddressURL) WithBasePath(bp string) *GetAddressURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -32,22 +31,15 @@ func (o *GetQuoteQuoteIDURL) WithBasePath(bp string) *GetQuoteQuoteIDURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *GetQuoteQuoteIDURL) SetBasePath(bp string) {
+func (o *GetAddressURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *GetQuoteQuoteIDURL) Build() (*url.URL, error) {
+func (o *GetAddressURL) Build() (*url.URL, error) {
 	var _result url.URL
 
-	var _path = "/quote/{quoteId}"
-
-	quoteID := o.QuoteID
-	if quoteID != "" {
-		_path = strings.Replace(_path, "{quoteId}", quoteID, -1)
-	} else {
-		return nil, errors.New("quoteId is required on GetQuoteQuoteIDURL")
-	}
+	var _path = "/address"
 
 	_basePath := o._basePath
 	if _basePath == "" {
@@ -55,11 +47,20 @@ func (o *GetQuoteQuoteIDURL) Build() (*url.URL, error) {
 	}
 	_result.Path = golangswaggerpaths.Join(_basePath, _path)
 
+	qs := make(url.Values)
+
+	addressQ := o.Address
+	if addressQ != "" {
+		qs.Set("address", addressQ)
+	}
+
+	_result.RawQuery = qs.Encode()
+
 	return &_result, nil
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *GetQuoteQuoteIDURL) Must(u *url.URL, err error) *url.URL {
+func (o *GetAddressURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -70,17 +71,17 @@ func (o *GetQuoteQuoteIDURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *GetQuoteQuoteIDURL) String() string {
+func (o *GetAddressURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *GetQuoteQuoteIDURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *GetAddressURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on GetQuoteQuoteIDURL")
+		return nil, errors.New("scheme is required for a full url on GetAddressURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on GetQuoteQuoteIDURL")
+		return nil, errors.New("host is required for a full url on GetAddressURL")
 	}
 
 	base, err := o.Build()
@@ -94,6 +95,6 @@ func (o *GetQuoteQuoteIDURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *GetQuoteQuoteIDURL) StringFull(scheme, host string) string {
+func (o *GetAddressURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

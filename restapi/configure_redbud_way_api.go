@@ -94,6 +94,8 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.GetForgotPasswordHandler = operations.GetForgotPasswordHandlerFunc(handlers.GetForgotPasswordHandler)
 
+	api.GetAddressHandler = operations.GetAddressHandlerFunc(handlers.GetAddressHandler)
+
 	api.GetLocationHandler = operations.GetLocationHandlerFunc(handlers.GetLocationHandler)
 
 	api.GetQuoteQuoteIDHandler = operations.GetQuoteQuoteIDHandlerFunc(handlers.GetQuoteQuoteIDHandler)

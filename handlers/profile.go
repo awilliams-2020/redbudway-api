@@ -87,22 +87,20 @@ func GetProfileVanityOrIDHandler(params operations.GetProfileVanityOrIDParams) m
 
 func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOrIDFixedPricesParams) middleware.Responder {
 	vanityOrID := params.VanityOrID
-	state := params.State
-	city := params.City
 
 	db := database.GetConnection()
 
 	fixedPrices := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDFixedPricesOK().WithPayload(fixedPrices)
 
-	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId LEFT JOIN fixed_price_state_cities fpsc ON fpsc.fixedPriceId=fp.id WHERE (fp.selectPlaces=false OR fpsc.state=?) AND (fp.selectPlaces=false OR JSON_CONTAINS(fpsc.cities, JSON_OBJECT('name', ?))) AND fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(state, city, vanityOrID, vanityOrID)
+	rows, err := stmt.Query(vanityOrID, vanityOrID)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response
@@ -167,22 +165,20 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 
 func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuotesParams) middleware.Responder {
 	vanityOrID := params.VanityOrID
-	state := params.State
-	city := params.City
 
 	db := database.GetConnection()
 
 	quotes := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDQuotesOK().WithPayload(quotes)
 
-	stmt, err := db.Prepare("SELECT q.id, q.quote, q.title FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities qsc ON qsc.quoteId=q.id WHERE (q.selectPlaces=false OR qsc.state=?) AND (q.selectPlaces=false OR JSON_CONTAINS(qsc.cities, JSON_OBJECT('name', ?))) AND q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT q.id, q.quote, q.title FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId WHERE q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	rows, err := stmt.Query(state, city, vanityOrID, vanityOrID)
+	rows, err := stmt.Query(vanityOrID, vanityOrID)
 	if err != nil {
 		log.Printf("Failed to execute select statement %s", err)
 		return response

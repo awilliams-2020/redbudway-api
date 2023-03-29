@@ -42,8 +42,14 @@ type ServiceDetails struct {
 	// Required: true
 	Images []string `json:"images"`
 
+	// includes
+	Includes []string `json:"includes"`
+
 	// interval
 	Interval string `json:"interval"`
+
+	// not includes
+	NotIncludes []string `json:"notIncludes"`
 
 	// price
 	Price float64 `json:"price"`

@@ -10,12 +10,10 @@ import (
 
 func GetFixedPricePriceIDHandler(params operations.GetFixedPricePriceIDParams) middleware.Responder {
 	priceID := params.PriceID
-	state := params.State
-	city := params.City
 
 	payload := operations.GetFixedPricePriceIDOKBody{}
 	response := operations.NewGetFixedPricePriceIDOK().WithPayload(&payload)
-	fixedPrice, business, err := database.GetFixedPriceServiceDetails(priceID, state, city)
+	fixedPrice, business, err := database.GetFixedPriceServiceDetails(priceID)
 	if err != nil {
 		log.Printf("Failed to get public fixed price, %s", err)
 		return response

@@ -54,6 +54,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		DeleteTradespersonTradespersonIDGoogleTokenHandler: DeleteTradespersonTradespersonIDGoogleTokenHandlerFunc(func(params DeleteTradespersonTradespersonIDGoogleTokenParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDGoogleToken has not yet been implemented")
 		}),
+		GetAddressHandler: GetAddressHandlerFunc(func(params GetAddressParams) middleware.Responder {
+			return middleware.NotImplemented("operation GetAddress has not yet been implemented")
+		}),
 		GetAdminAdminIDAccessTokenHandler: GetAdminAdminIDAccessTokenHandlerFunc(func(params GetAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetAdminAdminIDAccessToken has not yet been implemented")
 		}),
@@ -439,6 +442,8 @@ type RedbudWayAPIAPI struct {
 	DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler
 	// DeleteTradespersonTradespersonIDGoogleTokenHandler sets the operation handler for the delete tradesperson tradesperson ID google token operation
 	DeleteTradespersonTradespersonIDGoogleTokenHandler DeleteTradespersonTradespersonIDGoogleTokenHandler
+	// GetAddressHandler sets the operation handler for the get address operation
+	GetAddressHandler GetAddressHandler
 	// GetAdminAdminIDAccessTokenHandler sets the operation handler for the get admin admin ID access token operation
 	GetAdminAdminIDAccessTokenHandler GetAdminAdminIDAccessTokenHandler
 	// GetAdminAdminIDTradespeopleHandler sets the operation handler for the get admin admin ID tradespeople operation
@@ -749,6 +754,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.DeleteTradespersonTradespersonIDGoogleTokenHandler == nil {
 		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDGoogleTokenHandler")
+	}
+	if o.GetAddressHandler == nil {
+		unregistered = append(unregistered, "GetAddressHandler")
 	}
 	if o.GetAdminAdminIDAccessTokenHandler == nil {
 		unregistered = append(unregistered, "GetAdminAdminIDAccessTokenHandler")
@@ -1190,6 +1198,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/google-token"] = NewDeleteTradespersonTradespersonIDGoogleToken(o.context, o.DeleteTradespersonTradespersonIDGoogleTokenHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/address"] = NewGetAddress(o.context, o.GetAddressHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

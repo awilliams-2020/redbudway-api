@@ -16,10 +16,10 @@ import (
 // GetQuotesURL generates an URL for the get quotes operation
 type GetQuotesURL struct {
 	Category    *string
-	City        string
+	City        *string
 	Filters     *string
 	Page        *int64
-	State       string
+	State       *string
 	SubCategory *string
 
 	_basePath string
@@ -64,7 +64,10 @@ func (o *GetQuotesURL) Build() (*url.URL, error) {
 		qs.Set("category", categoryQ)
 	}
 
-	cityQ := o.City
+	var cityQ string
+	if o.City != nil {
+		cityQ = *o.City
+	}
 	if cityQ != "" {
 		qs.Set("city", cityQ)
 	}
@@ -85,7 +88,10 @@ func (o *GetQuotesURL) Build() (*url.URL, error) {
 		qs.Set("page", pageQ)
 	}
 
-	stateQ := o.State
+	var stateQ string
+	if o.State != nil {
+		stateQ = *o.State
+	}
 	if stateQ != "" {
 		qs.Set("state", stateQ)
 	}
