@@ -54,6 +54,7 @@ func GetNextPage(accessToken, pageToken string) (models.GoogleTimeSlots, error) 
 		for _, item := range items {
 			event := models.GoogleTimeSlotsItems0{}
 			i := item.(map[string]interface{})
+			event.Title = i["summary"].(string)
 			s := i["start"].(map[string]interface{})
 			if s["dateTime"] != nil {
 				event.StartTime = s["dateTime"].(string)
@@ -124,6 +125,7 @@ func GetGoogleTimeSlots(accessToken string) models.GoogleTimeSlots {
 	for _, item := range items {
 		event := models.GoogleTimeSlotsItems0{}
 		i := item.(map[string]interface{})
+		event.Title = i["summary"].(string)
 		s := i["start"].(map[string]interface{})
 		if s["dateTime"] != nil {
 			event.StartTime = s["dateTime"].(string)

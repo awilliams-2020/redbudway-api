@@ -3545,6 +3545,8 @@ definitions:
     items:
       type: object
       properties:
+        title:
+          type: string
         startTime:
           type: string
         endTime:

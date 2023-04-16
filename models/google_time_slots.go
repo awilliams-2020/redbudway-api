@@ -88,6 +88,9 @@ type GoogleTimeSlotsItems0 struct {
 
 	// time zone
 	TimeZone string `json:"timeZone,omitempty"`
+
+	// title
+	Title string `json:"title,omitempty"`
 }
 
 // Validate validates this google time slots items0

@@ -5284,6 +5284,9 @@ func init() {
           },
           "timeZone": {
             "type": "string"
+          },
+          "title": {
+            "type": "string"
           }
         }
       }
@@ -10887,6 +10890,9 @@ func init() {
           "type": "string"
         },
         "timeZone": {
+          "type": "string"
+        },
+        "title": {
           "type": "string"
         }
       }
