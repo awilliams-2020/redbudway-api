@@ -4958,7 +4958,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Stripe onboarding URL",
+            "description": "Tradesperson schedule",
             "schema": {
               "type": "object",
               "properties": {
@@ -4990,16 +4990,33 @@ func init() {
                             "customers": {
                               "type": "array",
                               "items": {
-                                "$ref": "#/definitions/Customer"
+                                "type": "object",
+                                "properties": {
+                                  "info": {
+                                    "$ref": "#/definitions/Customer"
+                                  },
+                                  "invoiceId": {
+                                    "type": "string"
+                                  },
+                                  "quantity": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                  },
+                                  "status": {
+                                    "type": "string"
+                                  },
+                                  "stripeId": {
+                                    "type": "string"
+                                  },
+                                  "subscriptionId": {
+                                    "type": "string"
+                                  }
+                                }
                               },
                               "x-omitempty": false
                             },
                             "endTime": {
                               "type": "string"
-                            },
-                            "quantity": {
-                              "type": "integer",
-                              "format": "int64"
                             },
                             "startTime": {
                               "type": "string"
@@ -10366,7 +10383,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Stripe onboarding URL",
+            "description": "Tradesperson schedule",
             "schema": {
               "type": "object",
               "properties": {
@@ -11253,18 +11270,38 @@ func init() {
         "customers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Customer"
+            "$ref": "#/definitions/ServicesItems0TimeSlotsItems0CustomersItems0"
           },
           "x-omitempty": false
         },
         "endTime": {
           "type": "string"
         },
+        "startTime": {
+          "type": "string"
+        }
+      }
+    },
+    "ServicesItems0TimeSlotsItems0CustomersItems0": {
+      "type": "object",
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/Customer"
+        },
+        "invoiceId": {
+          "type": "string"
+        },
         "quantity": {
           "type": "integer",
           "format": "int64"
         },
-        "startTime": {
+        "status": {
+          "type": "string"
+        },
+        "stripeId": {
+          "type": "string"
+        },
+        "subscriptionId": {
           "type": "string"
         }
       }

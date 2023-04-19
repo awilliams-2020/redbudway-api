@@ -622,7 +622,7 @@ paths:
         type: string
       responses:
         '200':
-          description: Stripe onboarding URL
+          description: Tradesperson schedule
           schema:
             type: object
             properties:
@@ -652,14 +652,25 @@ paths:
                             type: string
                           endTime:
                             type: string
-                          quantity:
-                            type: integer
-                            format: int64
                           customers:
                             type: array
                             x-omitempty: false
                             items:
-                              $ref: '#/definitions/Customer'
+                              type: object
+                              properties:
+                                info:
+                                  $ref: '#/definitions/Customer'
+                                quantity:
+                                  type: integer
+                                  format: int64
+                                invoiceId:
+                                  type: string
+                                subscriptionId:
+                                  type: string
+                                status:
+                                  type: string
+                                stripeId:
+                                  type: string
               googleTimeSlots:
                 $ref: '#/definitions/GoogleTimeSlots'
   /tradesperson/{tradespersonId}/time-slots:

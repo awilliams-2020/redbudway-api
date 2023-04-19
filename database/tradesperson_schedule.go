@@ -2,7 +2,9 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"strconv"
 
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/invoice"
@@ -26,21 +28,30 @@ func getService(priceId string) *operations.GetTradespersonTradespersonIDSchedul
 		stripePrice.Product.ID,
 		nil,
 	)
-	service.Price = stripePrice.UnitAmountDecimal
+	strPrice := fmt.Sprintf("%.2f", stripePrice.UnitAmountDecimal/float64(100.00))
+	floatPrice, err := strconv.ParseFloat(strPrice, 64)
+	if err != nil {
+		log.Printf("Failed to parse float, %v", err)
+	}
+	service.Price = floatPrice
 	service.Title = stripeProduct.Name
 	return service
 }
 
-func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*models.Customer, int64) {
+func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*models.Customer, int64, string, string) {
 	_customer := &models.Customer{}
 	quantity := int64(0)
+	status := ""
+	stripeID := ""
 
 	if subscription {
 		stripeSubscription, _ := sub.Get(
 			subscriptionID.String,
 			nil,
 		)
+		status = string(stripeSubscription.Status)
 		quantity = stripeSubscription.Items.Data[0].Quantity
+		stripeID = stripeSubscription.Customer.ID
 		stripeCustomer, err := customer.Get(stripeSubscription.Customer.ID, nil)
 		if err != nil {
 			log.Printf("Failed to get stripe customer %v", err)
@@ -61,7 +72,9 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*
 			invoiceID.String,
 			nil,
 		)
+		status = string(stripeInvoice.Status)
 		quantity = stripeInvoice.Lines.Data[0].Quantity
+		stripeID = stripeInvoice.Customer.ID
 		_customer.Name = *stripeInvoice.CustomerName
 		_customer.Address = &models.Address{
 			City:    stripeInvoice.CustomerAddress.City,
@@ -73,7 +86,7 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*
 		_customer.Email = stripeInvoice.CustomerEmail
 		_customer.Phone = *stripeInvoice.CustomerPhone
 	}
-	return _customer, quantity
+	return _customer, quantity, status, stripeID
 }
 
 func GetTradespersonSchedule(tradespersonID string, accessToken *string) (*operations.GetTradespersonTradespersonIDScheduleOK, error) {
@@ -106,9 +119,19 @@ func GetTradespersonSchedule(tradespersonID string, accessToken *string) (*opera
 			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0{}
 			timeSlot.StartTime = startTime
 			timeSlot.EndTime = endTime
-			customer, quantity := getCustomer(subscription, subscriptionID, invoiceID)
+			customer := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0{}
+			info, quantity, status, stripeID := getCustomer(subscription, subscriptionID, invoiceID)
+			customer.Info = info
+			customer.Quantity = quantity
+			customer.Status = status
+			customer.StripeID = stripeID
+			if invoiceID.Valid {
+				customer.InvoiceID = invoiceID.String
+			}
+			if subscriptionID.Valid {
+				customer.SubscriptionID = subscriptionID.String
+			}
 			timeSlot.Customers = append(timeSlot.Customers, customer)
-			timeSlot.Quantity = quantity
 			timeSlots = append(timeSlots, timeSlot)
 			service.TimeSlots = timeSlots
 			m[priceId] = service
@@ -117,9 +140,19 @@ func GetTradespersonSchedule(tradespersonID string, accessToken *string) (*opera
 			timeSlot := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0{}
 			timeSlot.StartTime = startTime
 			timeSlot.EndTime = endTime
-			customer, quantity := getCustomer(subscription, subscriptionID, invoiceID)
+			customer := &operations.GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0{}
+			info, quantity, status, stripeID := getCustomer(subscription, subscriptionID, invoiceID)
+			customer.Info = info
+			customer.Quantity = quantity
+			customer.Status = status
+			customer.StripeID = stripeID
+			if invoiceID.Valid {
+				customer.InvoiceID = invoiceID.String
+			}
+			if subscriptionID.Valid {
+				customer.SubscriptionID = subscriptionID.String
+			}
 			timeSlot.Customers = append(timeSlot.Customers, customer)
-			timeSlot.Quantity = quantity
 			timeSlots = append(timeSlots, timeSlot)
 			service.TimeSlots = timeSlots
 			m[priceId] = service

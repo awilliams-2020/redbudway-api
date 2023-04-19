@@ -337,13 +337,10 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0) UnmarshalBin
 type GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0 struct {
 
 	// customers
-	Customers []*models.Customer `json:"customers"`
+	Customers []*GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0 `json:"customers"`
 
 	// end time
 	EndTime string `json:"endTime,omitempty"`
-
-	// quantity
-	Quantity int64 `json:"quantity,omitempty"`
 
 	// start time
 	StartTime string `json:"startTime,omitempty"`
@@ -434,6 +431,111 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems
 // UnmarshalBinary interface implementation
 func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0) UnmarshalBinary(b []byte) error {
 	var res GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0
+	if err := swag.ReadJSON(b, &res); err != nil {
+		return err
+	}
+	*o = res
+	return nil
+}
+
+// GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0 get tradesperson tradesperson ID schedule o k body services items0 time slots items0 customers items0
+//
+// swagger:model GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0
+type GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0 struct {
+
+	// info
+	Info *models.Customer `json:"info,omitempty"`
+
+	// invoice Id
+	InvoiceID string `json:"invoiceId,omitempty"`
+
+	// quantity
+	Quantity int64 `json:"quantity,omitempty"`
+
+	// status
+	Status string `json:"status,omitempty"`
+
+	// stripe Id
+	StripeID string `json:"stripeId,omitempty"`
+
+	// subscription Id
+	SubscriptionID string `json:"subscriptionId,omitempty"`
+}
+
+// Validate validates this get tradesperson tradesperson ID schedule o k body services items0 time slots items0 customers items0
+func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.validateInfo(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) validateInfo(formats strfmt.Registry) error {
+	if swag.IsZero(o.Info) { // not required
+		return nil
+	}
+
+	if o.Info != nil {
+		if err := o.Info.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("info")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this get tradesperson tradesperson ID schedule o k body services items0 time slots items0 customers items0 based on the context it is used
+func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := o.contextValidateInfo(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) contextValidateInfo(ctx context.Context, formats strfmt.Registry) error {
+
+	if o.Info != nil {
+		if err := o.Info.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("info")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("info")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// MarshalBinary interface implementation
+func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) MarshalBinary() ([]byte, error) {
+	if o == nil {
+		return nil, nil
+	}
+	return swag.WriteJSON(o)
+}
+
+// UnmarshalBinary interface implementation
+func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) UnmarshalBinary(b []byte) error {
+	var res GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
