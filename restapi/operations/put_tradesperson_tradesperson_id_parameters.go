@@ -33,10 +33,10 @@ type PutTradespersonTradespersonIDParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*The tradesperson to update.
+	/*The tradesperson account to update.
 	  In: body
 	*/
-	Tradesperson PutTradespersonTradespersonIDBody
+	Account PutTradespersonTradespersonIDBody
 	/*
 	  Required: true
 	  In: path
@@ -57,7 +57,7 @@ func (o *PutTradespersonTradespersonIDParams) BindRequest(r *http.Request, route
 		defer r.Body.Close()
 		var body PutTradespersonTradespersonIDBody
 		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("tradesperson", "body", "", err))
+			res = append(res, errors.NewParseError("account", "body", "", err))
 		} else {
 			// validate body object
 			if err := body.Validate(route.Formats); err != nil {
@@ -70,7 +70,7 @@ func (o *PutTradespersonTradespersonIDParams) BindRequest(r *http.Request, route
 			}
 
 			if len(res) == 0 {
-				o.Tradesperson = body
+				o.Account = body
 			}
 		}
 	}

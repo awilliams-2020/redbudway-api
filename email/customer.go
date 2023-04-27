@@ -3,12 +3,9 @@ package email
 import (
 	_ "embed"
 	"fmt"
-	"log"
 	"os"
 	"strings"
-	"time"
 
-	"redbudway-api/internal"
 	"redbudway-api/models"
 
 	"github.com/stripe/stripe-go/v72"
@@ -50,16 +47,11 @@ var quote string
 //go:embed html/refund.html
 var refund string
 
-func SendCustomerVerification(customerName, customerEmail, customerID string) error {
+func SendCustomerVerification(customerName, customerEmail, customerID, token string) error {
 	body := verification
 
 	body = strings.Replace(body, "{SUBDOMAIN}", os.Getenv("SUBDOMAIN"), -1)
 	body = strings.Replace(body, "{CUSTOMERID}", customerID, -1)
-	token, err := internal.GenerateToken(customerID, "customer", "verification", time.Minute*15)
-	if err != nil {
-		log.Printf("Failed to generate JWT, %s", err)
-		return err
-	}
 	body = strings.Replace(body, "{TOKEN}", token, -1)
 
 	return email(customerEmail, customerName, "Email Verification", body)

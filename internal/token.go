@@ -51,19 +51,19 @@ func ValidateToken(bearerHeader string) (interface{}, error) {
 	return token.Valid, err
 }
 
-func GetRegisteredClaims(bearerHeader string) (jwt.RegisteredClaims, error) {
+func GetRegisteredClaims(bearerHeader string) (jwt.RegisteredClaims, bool, error) {
 	bearerToken := strings.Split(bearerHeader, " ")[1]
 	var claims jwt.RegisteredClaims
-	_, err := jwt.ParseWithClaims(bearerToken, &claims, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(bearerToken, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(jwtKey), nil
 	})
 	if err != nil {
-		return claims, err
+		return claims, token.Valid, err
 	}
-	return claims, nil
+	return claims, token.Valid, nil
 }
 
 func DecodeJWT(idToken string) (map[string]interface{}, error) {

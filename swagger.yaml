@@ -78,32 +78,38 @@ paths:
           description: Forgot password
   /reset-password:
     post:
+      security:
+        - Bearer: []
       parameters:
         - in: body
           name: user
           schema:
             type: object
             required:
-              - accountType
               - password
-              - token
-              - userId
             properties:
-              accountType:
-                type: string
               password:
-                type: string
-              token:
-                type: string
-              userId:
                 type: string
       responses:
         '200':
-          description: Update password
+          description: Reset password
           schema:
             type: object
             properties:
               updated:
+                type: boolean
+                x-omitempty: false
+  /reset-email:
+    post:
+      security:
+        - Bearer: []
+      responses:
+        '200':
+          description: Reset email
+          schema:
+            type: object
+            properties:
+              reset:
                 type: boolean
                 x-omitempty: false
   /tradesperson/login:
@@ -146,6 +152,8 @@ paths:
                 type: string
               picture:
                 type: string
+              admin:
+                type: boolean
   /tradesperson/{tradespersonId}/logout:
     post:
       security:
@@ -174,26 +182,14 @@ paths:
           schema:
             type: object
             required:
-              - name
               - email
-              - password
-              - number
-              - address
             properties:
-              name:
-                type: string
-              description:
-                type: string
               email:
                 type: string
                 format: email
               password:
                 type: string
                 format: password
-              number:
-                type: string
-              address:
-                $ref: '#/definitions/Address'
       responses:
         '201':
           description: Created tradesperson account
@@ -223,9 +219,16 @@ paths:
           type: string
       responses:
         '200':
-          description: A tradesperson
+          description: Status of tradesperson stripe account
           schema:
-            $ref: '#/definitions/Tradesperson'
+            type: object
+            properties:
+              enabled:
+                type: boolean
+                x-omitempty: false
+              submitted:
+                type: boolean
+                x-omitempty: false
     put:
       security:
         - Bearer: []
@@ -235,18 +238,20 @@ paths:
         required: true
         type: string
       - in: body
-        name: tradesperson
-        description: The tradesperson to update.
+        name: account
+        description: The tradesperson account to update.
         schema:
           type: object
           properties:
-            image:
+            email:
               type: string
-            description:
+            curPassword:
+              type: string
+            newPassword:
               type: string
       responses:
         '200':
-          description: Updates tradesperson profile
+          description: Updated tradesperson account
           schema:
             type: object
             properties:
@@ -270,8 +275,8 @@ paths:
             properties:
               deleted:
                 type: boolean
-                x-omitempty: false
-  /tradesperson/{tradespersonId}/selling-fee:
+                x-omitempty: false  
+  /tradesperson/{tradespersonId}/profile:
     get:
       security:
         - Bearer: []
@@ -283,13 +288,44 @@ paths:
           type: string
       responses:
         '200':
-          description: A tradesperson selling fee
+          description: A tradesperson
+          schema:
+            $ref: '#/definitions/Tradesperson'
+    put:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: string
+      - in: body
+        name: tradesperson
+        description: The tradesperson to update.
+        schema:
+          $ref: '#/definitions/Tradesperson'
+      responses:
+        '200':
+          description: Updates tradesperson profile
           schema:
             type: object
             properties:
-              fee:
-                type: integer
-                format: int64
+              updated:
+                type: boolean
+                x-omitempty: false
+  /tradesperson/{tradespersonId}/sync:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Sync tradesperson business info
   /tradesperson/{tradespersonId}/access-token:
     get:
       security:
@@ -510,59 +546,6 @@ paths:
       responses:
         '200':
           description: Updates tradesperson profile
-          schema:
-            type: object
-            properties:
-              updated:
-                type: boolean
-                x-omitempty: false
-  /tradesperson/{tradespersonId}/status:
-    get:
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: tradespersonId
-          description: Tradesperson ID
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Status of tradesperson stripe account
-          schema:
-            type: object
-            properties:
-              enabled:
-                type: boolean
-                x-omitempty: false
-              submitted:
-                type: boolean
-                x-omitempty: false
-  /tradesperson/{tradespersonId}/password:
-    put:
-      security:
-        - Bearer: []
-      parameters:
-      - in: path
-        name: tradespersonId
-        required: true
-        type: string
-      - in: body
-        name: tradesperson
-        description: The tradesperson password to update.
-        schema:
-          required:
-            - curPassword
-            - newPassword
-          type: object
-          properties:
-            curPassword:
-              type: string
-            newPassword:
-              type: string
-      responses:
-        '200':
-          description: Tradeperson password updated
           schema:
             type: object
             properties:
@@ -2642,6 +2625,33 @@ paths:
                 type: array
                 items:
                   type: string
+    put:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: customerId
+        required: true
+        type: string
+      - in: body
+        name: account
+        description: The customer account to update.
+        schema:
+          type: object
+          properties:
+            curPassword:
+              type: string
+            newPassword:
+              type: string
+      responses:
+        '200':
+          description: Updated customer account
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+                x-omitempty: false
   /customer/{customerId}/access-token:
     get:
       security:
@@ -2700,6 +2710,8 @@ paths:
                 type: string
   /customer/{customerId}/verify:
     get:
+      security:
+        - Bearer: []
       parameters:
       - in: path
         name: customerId
@@ -2716,20 +2728,14 @@ paths:
                 type: boolean
                 x-omitempty: false
     post:
+      security:
+        - Bearer: []
       parameters:
       - in: path
         name: customerId
         description: Customer ID
         required: true
         type: string
-      - in: body
-        name: body
-        description: The customer account to create.
-        schema:
-          type: object
-          properties:
-            accessToken:
-              type: string
       responses:
         '200':
           description: Verified customer account
@@ -3146,111 +3152,6 @@ paths:
               accepted:
                 type: boolean
                 x-omitempty: false
-  /admin/login:
-    post:
-      parameters:
-        - in: body
-          name: admin
-          description: Log in to admin account.
-          schema:
-            type: object
-            required:
-              - user
-              - password
-            properties:
-              user:
-                type: string
-              password:
-                type: string
-      responses:
-        '200':
-          description: Valid email and password
-          schema:
-            type: object
-            properties:
-              valid:
-                type: boolean
-                x-omitempty: false
-              adminId:
-                type: string
-              accessToken:
-                type: string
-              refreshToken:
-                type: string
-  /admin:
-    post:
-      parameters:
-        - in: body
-          name: admin
-          description: The admin account to create.
-          schema:
-            type: object
-            required:
-              - user
-              - password
-              - masterPass
-            properties:
-              user:
-                type: string
-              password:
-                type: string
-                format: password
-              masterPass:
-                type: string
-                format: password
-      responses:
-        '201':
-          description: Created admin account
-          schema:
-            type: object
-            properties:
-              created:
-                type: boolean
-                x-omitempty: false
-              adminId:
-                type: string
-              accessToken:
-                type: string
-              refreshToken:
-                type: string
-  /admin/{adminId}/access-token:
-    get:
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: adminId
-          description: Admin ID
-          required: true
-          type: string
-      responses:
-        '200':
-          description: A valid admin accessToken
-          schema:
-            type: object
-            properties:
-              valid:
-                type: boolean
-                x-omitempty: false
-    post:
-      security:
-        - Bearer: []
-      parameters:
-        - in: path
-          name: adminId
-          description: Admin ID
-          required: true
-          type: string
-      responses:
-        '200':
-          description: New admin access token
-          schema:
-            type: object
-            properties:
-              refreshToken:
-                type: string
-              accessToken:
-                type: string
   /admin/{adminId}/tradespeople:
     get:
       security:

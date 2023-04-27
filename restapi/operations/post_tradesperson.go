@@ -14,8 +14,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
-
-	"redbudway-api/models"
 )
 
 // PostTradespersonHandlerFunc turns a function with the right signature into a post tradesperson handler
@@ -67,49 +65,21 @@ func (o *PostTradesperson) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // swagger:model PostTradespersonBody
 type PostTradespersonBody struct {
 
-	// address
-	// Required: true
-	Address *models.Address `json:"address"`
-
-	// description
-	Description string `json:"description,omitempty"`
-
 	// email
 	// Required: true
 	// Format: email
 	Email *strfmt.Email `json:"email"`
 
-	// name
-	// Required: true
-	Name *string `json:"name"`
-
-	// number
-	// Required: true
-	Number *string `json:"number"`
-
 	// password
-	// Required: true
 	// Format: password
-	Password *strfmt.Password `json:"password"`
+	Password strfmt.Password `json:"password,omitempty"`
 }
 
 // Validate validates this post tradesperson body
 func (o *PostTradespersonBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateAddress(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := o.validateEmail(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateName(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateNumber(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -120,26 +90,6 @@ func (o *PostTradespersonBody) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (o *PostTradespersonBody) validateAddress(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"address", "body", o.Address); err != nil {
-		return err
-	}
-
-	if o.Address != nil {
-		if err := o.Address.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("tradesperson" + "." + "address")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("tradesperson" + "." + "address")
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 
@@ -156,28 +106,9 @@ func (o *PostTradespersonBody) validateEmail(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *PostTradespersonBody) validateName(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"name", "body", o.Name); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostTradespersonBody) validateNumber(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"number", "body", o.Number); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (o *PostTradespersonBody) validatePassword(formats strfmt.Registry) error {
-
-	if err := validate.Required("tradesperson"+"."+"password", "body", o.Password); err != nil {
-		return err
+	if swag.IsZero(o.Password) { // not required
+		return nil
 	}
 
 	if err := validate.FormatOf("tradesperson"+"."+"password", "body", "password", o.Password.String(), formats); err != nil {
@@ -187,33 +118,8 @@ func (o *PostTradespersonBody) validatePassword(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this post tradesperson body based on the context it is used
+// ContextValidate validates this post tradesperson body based on context it is used
 func (o *PostTradespersonBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.contextValidateAddress(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *PostTradespersonBody) contextValidateAddress(ctx context.Context, formats strfmt.Registry) error {
-
-	if o.Address != nil {
-		if err := o.Address.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("tradesperson" + "." + "address")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("tradesperson" + "." + "address")
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 

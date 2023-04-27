@@ -4,16 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"os"
 	"redbudway-api/database"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
-	"redbudway-api/stripe"
 	"strconv"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
 )
 
 func GetProfileVanityOrIDHandler(params operations.GetProfileVanityOrIDParams) middleware.Responder {
@@ -24,26 +20,40 @@ func GetProfileVanityOrIDHandler(params operations.GetProfileVanityOrIDParams) m
 	response := operations.NewGetProfileVanityOrIDOK()
 	response.SetPayload(tradesperson)
 
-	stmt, err := db.Prepare("SELECT ta.tradespersonId, ta.stripeId, ta.name, ta.description, ta.image, IF(ts.number=true, ta.number, '') as number, IF(ts.email=true, ta.email, '') as email, ts.address  FROM tradesperson_account ta INNER JOIN tradesperson_settings ts ON ts.tradespersonId=ta.tradespersonId WHERE ta.tradespersonId=? OR ts.vanityURL=?")
+	stmt, err := db.Prepare("SELECT ta.tradespersonId, ts.number, ts.email, ts.address  FROM tradesperson_account ta INNER JOIN tradesperson_settings ts ON ts.tradespersonId=ta.tradespersonId WHERE ta.tradespersonId=? OR ts.vanityURL=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
 
-	var name, number, email, stripeID, tradespersonID string
-	var description, image sql.NullString
-	var address bool
+	var tradespersonID string
+	var number, email, address bool
 	row := stmt.QueryRow(vanityOrID, vanityOrID)
-	switch err = row.Scan(&tradespersonID, &stripeID, &name, &description, &image, &number, &email, &address); err {
+	switch err = row.Scan(&tradespersonID, &number, &email, &address); err {
 	case sql.ErrNoRows:
 		//
 	case nil:
-		if description.Valid {
-			tradesperson.Description = description.String
+		_tradesperson, err := database.GetTradespersonProfile(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson profile %s", err)
 		}
-		if image.Valid {
-			tradesperson.Image = image.String
+		tradesperson.Name = _tradesperson.Name
+		tradesperson.Image = _tradesperson.Image
+		tradesperson.Description = _tradesperson.Description
+		tradesperson.Address = &models.Address{}
+		if address {
+			tradesperson.Address.City = _tradesperson.Address.City
+			tradesperson.Address.State = _tradesperson.Address.State
+			tradesperson.Address.LineOne = _tradesperson.Address.LineOne
+			tradesperson.Address.LineTwo = _tradesperson.Address.LineTwo
+			tradesperson.Address.ZipCode = _tradesperson.Address.ZipCode
+		}
+		if number {
+			tradesperson.Number = _tradesperson.Number
+		}
+		if email {
+			tradesperson.Email = _tradesperson.Email
 		}
 
 		jobs, err := database.GetTradespersonJobs(tradespersonID)
@@ -61,23 +71,6 @@ func GetProfileVanityOrIDHandler(params operations.GetProfileVanityOrIDParams) m
 		tradesperson.Rating = rating
 		tradesperson.Reviews = reviews
 
-		tradesperson.Name = name
-		tradesperson.Number = number
-		tradesperson.Email = email
-		if address {
-			stripe, err := stripe.GetConnectAccount(stripeID)
-			if err != nil {
-				log.Print("Failed to get stripe account for tradesperson with ID %s", tradespersonID)
-				return response
-			}
-
-			tradesperson.Address = &models.Address{}
-			tradesperson.Address.City = stripe.BusinessProfile.SupportAddress.City
-			tradesperson.Address.State = stripe.BusinessProfile.SupportAddress.State
-			tradesperson.Address.LineOne = stripe.BusinessProfile.SupportAddress.Line1
-			tradesperson.Address.LineTwo = stripe.BusinessProfile.SupportAddress.Line2
-			tradesperson.Address.ZipCode = stripe.BusinessProfile.SupportAddress.PostalCode
-		}
 		response.SetPayload(tradesperson)
 	default:
 		log.Printf("Unknown %v", err)
@@ -93,7 +86,7 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 	fixedPrices := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDFixedPricesOK().WithPayload(fixedPrices)
 
-	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.title, fp.price, fp.description, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -106,47 +99,29 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 		return response
 	}
 
-	var id int64
+	var id, price int64
 	var interval sql.NullString
-	var subscription bool
-	var priceID string
 	for rows.Next() {
-		if err := rows.Scan(&id, &priceID, &subscription, &interval); err != nil {
+		fixedPrice := &models.Service{}
+		if err := rows.Scan(&id, &fixedPrice.PriceID, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval); err != nil {
 			log.Printf("Failed to scan for profile fixed prices, %s", err)
 			return response
 		}
-
-		fixedPrice := &models.Service{}
-		fixedPrice.Subscription = subscription
 		if interval.Valid {
 			fixedPrice.Interval = interval.String
 		}
-		stripePrice, err := price.Get(priceID, nil)
-		if err != nil {
-			log.Printf("Failed to get stripe price, %v", err)
-			return response
-		}
-		stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
-		if err != nil {
-			log.Printf("Failed to get stripe product, %v", err)
-			return response
-		}
-		fixedPrice.PriceID = priceID
-		strPrice := fmt.Sprintf("%.2f", stripePrice.UnitAmountDecimal/float64(100.00))
+		strPrice := fmt.Sprintf("%.2f", float64(price)/float64(100.00))
 		floatPrice, err := strconv.ParseFloat(strPrice, 64)
 		if err != nil {
 			log.Printf("Failed to parse float, %v", err)
 			return response
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Title = stripeProduct.Name
-		if len(stripeProduct.Images) > 0 {
-			fixedPrice.Image = stripeProduct.Images[0]
-		} else {
-			fixedPrice.Image = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+		fixedPrice.Image, err = database.GetImage(id, "fixed_price")
+		if err != nil {
+			log.Printf("Failed to get fixedPrice image %s", err)
 		}
-
-		fixedPrice.AvailableTimeSlots, err = database.GetAvailableTimeSlots(id, subscription)
+		fixedPrice.AvailableTimeSlots, err = database.GetAvailableTimeSlots(id, fixedPrice.Subscription)
 		if err != nil {
 			log.Printf("Failed to get timeslots %s", err)
 		}
@@ -199,7 +174,7 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 			log.Printf("Failed to get quote reviews and rating %s", err)
 		}
 
-		quote.Image, err = database.GetQuoteImage(ID)
+		quote.Image, err = database.GetImage(ID, "quote")
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}

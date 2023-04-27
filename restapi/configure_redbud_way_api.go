@@ -62,8 +62,6 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.DeleteTradespersonTradespersonIDGoogleTokenHandler = operations.DeleteTradespersonTradespersonIDGoogleTokenHandlerFunc(handlers.DeleteTradespersonTradespersonIDGoogleTokenHandler)
 
-	api.GetAdminAdminIDAccessTokenHandler = operations.GetAdminAdminIDAccessTokenHandlerFunc(handlers.GetAdminAdminIDAccessTokenHandler)
-
 	api.GetAdminAdminIDTradespeopleHandler = operations.GetAdminAdminIDTradespeopleHandlerFunc(handlers.GetAdminAdminIDTradespeopleHandler)
 
 	api.GetCustomerCustomerIDAccessTokenHandler = operations.GetCustomerCustomerIDAccessTokenHandlerFunc(handlers.GetCustomerCustomerIDAccessTokenHandler)
@@ -116,13 +114,13 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.GetTradespersonTradespersonIDHandler = operations.GetTradespersonTradespersonIDHandlerFunc(handlers.GetTradespersonTradespersonIDHandler)
 
-	api.GetTradespersonTradespersonIDSellingFeeHandler = operations.GetTradespersonTradespersonIDSellingFeeHandlerFunc(handlers.GetTradespersonTradespersonIDSellingFeeHandler)
+	api.GetTradespersonTradespersonIDProfileHandler = operations.GetTradespersonTradespersonIDProfileHandlerFunc(handlers.GetTradespersonTradespersonIDProfileHandler)
+
+	api.GetTradespersonTradespersonIDSyncHandler = operations.GetTradespersonTradespersonIDSyncHandlerFunc(handlers.GetTradespersonTradespersonIDSyncHandler)
 
 	api.GetTradespersonTradespersonIDLoginLinkHandler = operations.GetTradespersonTradespersonIDLoginLinkHandlerFunc(handlers.GetTradespersonTradespersonIDLoginLinkHandler)
 
 	api.GetTradespersonTradespersonIDSettingsHandler = operations.GetTradespersonTradespersonIDSettingsHandlerFunc(handlers.GetTradespersonTradespersonIDSettingsHandler)
-
-	api.GetTradespersonTradespersonIDStatusHandler = operations.GetTradespersonTradespersonIDStatusHandlerFunc(handlers.GetTradespersonTradespersonIDStatusHandler)
 
 	api.GetTradespersonTradespersonIDBillingSubscriptionsHandler = operations.GetTradespersonTradespersonIDBillingSubscriptionsHandlerFunc(handlers.GetTradespersonTradespersonIDBillingSubscriptionsHandler)
 
@@ -177,12 +175,6 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 	api.GetTradespersonTradespersonIDTimeSlotsHandler = operations.GetTradespersonTradespersonIDTimeSlotsHandlerFunc(handlers.GetTradespersonTradespersonIDTimeSlotsHandler)
 
 	api.GetCustomerCustomerIDVerifyHandler = operations.GetCustomerCustomerIDVerifyHandlerFunc(handlers.GetCustomerCustomerIDVerifyHandler)
-
-	api.PostAdminHandler = operations.PostAdminHandlerFunc(handlers.PostAdminHandler)
-
-	api.PostAdminLoginHandler = operations.PostAdminLoginHandlerFunc(handlers.PostAdminLoginHandler)
-
-	api.PostAdminAdminIDAccessTokenHandler = operations.PostAdminAdminIDAccessTokenHandlerFunc(handlers.PostAdminAdminIDAccessTokenHandler)
 
 	api.PostCustomerHandler = operations.PostCustomerHandlerFunc(handlers.PostCustomerHandler)
 
@@ -260,7 +252,11 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.PostTradespersonTradespersonIDQuoteReviewHandler = operations.PostTradespersonTradespersonIDQuoteReviewHandlerFunc(handlers.PostTradespersonTradespersonIDQuoteReviewHandler)
 
+	api.PutCustomerCustomerIDHandler = operations.PutCustomerCustomerIDHandlerFunc(handlers.PutCustomerCustomerIDHandler)
+
 	api.PutTradespersonTradespersonIDHandler = operations.PutTradespersonTradespersonIDHandlerFunc(handlers.PutTradespersonTradespersonIDHandler)
+
+	api.PutTradespersonTradespersonIDProfileHandler = operations.PutTradespersonTradespersonIDProfileHandlerFunc(handlers.PutTradespersonTradespersonIDProfileHandler)
 
 	api.PutTradespersonTradespersonIDGoogleTokenHandler = operations.PutTradespersonTradespersonIDGoogleTokenHandlerFunc(handlers.PutTradespersonTradespersonIDGoogleTokenHandler)
 
@@ -275,8 +271,6 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 	api.PutTradespersonTradespersonIDQuoteQuoteIDHandler = operations.PutTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(handlers.PutTradespersonTradespersonIDQuoteQuoteIDHandler)
 
 	api.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler = operations.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandlerFunc(handlers.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler)
-
-	api.PutTradespersonTradespersonIDPasswordHandler = operations.PutTradespersonTradespersonIDPasswordHandlerFunc(handlers.PutTradespersonTradespersonIDPasswordHandler)
 
 	api.PreServerShutdown = func() {}
 

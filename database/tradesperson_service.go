@@ -12,7 +12,6 @@ import (
 	"strconv"
 
 	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
 )
 
 const PAGE_SIZE = float64(9)
@@ -57,13 +56,13 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 	if err != nil {
 		return false, err
 	}
-	stmt, err := db.Prepare("INSERT INTO fixed_prices (tradespersonId, category, subcategory, priceId, subscription, subInterval, selectPlaces, archived) VALUES (?, ?, ?, ?, ?, ?, ?, false)")
+	stmt, err := db.Prepare("INSERT INTO fixed_prices (tradespersonId, priceId, category, subcategory, title, price, description, subscription, subInterval, selectPlaces, archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false)")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(tradespersonID, fixedPrice.Category, fixedPrice.SubCategory, price.ID, fixedPrice.Subscription, fixedPrice.Interval, fixedPrice.SelectPlaces)
+	results, err := stmt.Exec(tradespersonID, price.ID, fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.Title, price.UnitAmountDecimal, fixedPrice.Description, fixedPrice.Subscription, fixedPrice.Interval, fixedPrice.SelectPlaces)
 	if err != nil {
 		return false, err
 	}
@@ -81,6 +80,10 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 			return false, err
 		}
 		if err := stripe.UpdateProduct(images, fixedPrice, price); err != nil {
+			return false, err
+		}
+
+		if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
 			return false, err
 		}
 
@@ -283,67 +286,54 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.ServiceDetails, int64, error) {
 	fixedPrice := &models.ServiceDetails{}
 
-	stmt, err := db.Prepare("SELECT f.id, f.category, f.subCategory, f.subscription, f.subInterval, f.selectPlaces, f.archived FROM tradesperson_account a INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE a.tradespersonId=? AND f.priceId=?")
+	stmt, err := db.Prepare("SELECT f.id, f.category, f.subCategory, f.title, f.price, f.description, f.subscription, f.subInterval, f.selectPlaces, f.archived FROM tradesperson_account a INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE a.tradespersonId=? AND f.priceId=?")
 	if err != nil {
 		return fixedPrice, 0, err
 	}
 	defer stmt.Close()
 
 	row := stmt.QueryRow(tradespersonID, priceID)
-	var fixedPriceID int64
+	var ID, price int64
 	var interval sql.NullString
-	var category, subCategory string
-	var subscription, selectPlaces, archived bool
-	switch err = row.Scan(&fixedPriceID, &category, &subCategory, &subscription, &interval, &selectPlaces, &archived); err {
+	switch err = row.Scan(&ID, &fixedPrice.Category, &fixedPrice.SubCategory, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.SelectPlaces, &fixedPrice.Archived); err {
 	case sql.ErrNoRows:
-		return fixedPrice, fixedPriceID, err
+		return fixedPrice, ID, err
 	case nil:
-		fixedPrice.Category = &category
-		fixedPrice.SubCategory = subCategory
-		fixedPrice.Subscription = subscription
 		if interval.Valid {
 			fixedPrice.Interval = interval.String
 		}
-		fixedPrice.SelectPlaces = &selectPlaces
-		fixedPrice.Archived = archived
-		stripePrice, err := price.Get(priceID, nil)
-		if err != nil {
-			return fixedPrice, fixedPriceID, err
-		}
-		stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
-		if err != nil {
-			return fixedPrice, fixedPriceID, err
-		}
-		strPrice := fmt.Sprintf("%.2f", stripePrice.UnitAmountDecimal/float64(100.00))
+		strPrice := fmt.Sprintf("%.2f", float64(price)/float64(100.00))
 		floatPrice, err := strconv.ParseFloat(strPrice, 64)
 		if err != nil {
-			return fixedPrice, fixedPriceID, err
+			return fixedPrice, ID, err
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Images = stripeProduct.Images
-		fixedPrice.Title = &stripeProduct.Name
-		fixedPrice.Description = &stripeProduct.Description
-		fixedPrice.TimeSlots, err = GetTimeSlots(fixedPriceID)
+
+		fixedPrice.Images, err = GetImages(ID, "fixed_price")
 		if err != nil {
-			return fixedPrice, fixedPriceID, err
+			return fixedPrice, ID, err
 		}
-		fixedPrice.StatesAndCities, err = GetFixedPriceStatesAndCities(fixedPriceID)
+		fixedPrice.TimeSlots, err = GetTimeSlots(ID)
 		if err != nil {
-			return fixedPrice, fixedPriceID, err
+			return fixedPrice, ID, err
 		}
-		fixedPrice.Filters, err = GetFilters(fixedPriceID)
+		fixedPrice.StatesAndCities, err = GetFixedPriceStatesAndCities(ID)
 		if err != nil {
-			return fixedPrice, fixedPriceID, err
+			return fixedPrice, ID, err
 		}
-		fixedPrice.Includes, fixedPrice.NotIncludes, err = GetIncludes(fixedPriceID)
+		fixedPrice.Filters, err = GetFilters(ID)
 		if err != nil {
-			return fixedPrice, fixedPriceID, err
+			return fixedPrice, ID, err
+		}
+		fixedPrice.Includes, fixedPrice.NotIncludes, err = GetIncludes(ID)
+		if err != nil {
+			return fixedPrice, ID, err
 		}
 	default:
-		return fixedPrice, fixedPriceID, err
+		return fixedPrice, ID, err
 	}
 
-	return fixedPrice, fixedPriceID, nil
+	return fixedPrice, ID, nil
 }
 
 func updateFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
@@ -584,14 +574,18 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 	case sql.ErrNoRows:
 		return updated, fmt.Errorf("FixedPriced with priceId %s does not exist", priceID)
 	case nil:
-		stmt, err := db.Prepare("UPDATE fixed_prices SET category=?, subcategory=?, selectPlaces=?, archived=? WHERE priceId=?")
+		stmt, err := db.Prepare("UPDATE fixed_prices SET category=?, subcategory=?, title=?, description=?, selectPlaces=?, archived=? WHERE priceId=?")
 		if err != nil {
 			return updated, err
 		}
 		defer stmt.Close()
 
-		_, err = stmt.Exec(fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.SelectPlaces, fixedPrice.Archived, priceID)
+		_, err = stmt.Exec(fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.Title, fixedPrice.Description, fixedPrice.SelectPlaces, fixedPrice.Archived, priceID)
 		if err != nil {
+			return updated, err
+		}
+
+		if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
 			return updated, err
 		}
 
@@ -621,7 +615,7 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Service {
 	fixedPrices := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, priceId, subscription, subInterval, selectPlaces, archived FROM fixed_prices WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT id, priceId, title, price, description, subscription, subInterval, archived FROM fixed_prices WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices
@@ -635,53 +629,36 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 		return fixedPrices
 	}
 
-	var id int64
+	var ID, price int64
 	var interval sql.NullString
-	var subscription, selectPlaces, archived bool
-	var priceID string
 	for rows.Next() {
-		if err := rows.Scan(&id, &priceID, &subscription, &interval, &selectPlaces, &archived); err != nil {
+		fixedPrice := &models.Service{}
+		if err := rows.Scan(&ID, &fixedPrice.PriceID, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.Archived); err != nil {
 			log.Printf("Failed to scan for fixed_price, %v", err)
 			return fixedPrices
 		}
-		fixedPrice := &models.Service{}
-		fixedPrice.Archived = archived
-		fixedPrice.Subscription = subscription
 		if interval.Valid {
 			fixedPrice.Interval = interval.String
 		}
-		stripePrice, err := price.Get(priceID, nil)
-		if err != nil {
-			log.Printf("Failed to get stripe price, %v", err)
-			return fixedPrices
-		}
-		stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
-		if err != nil {
-			log.Printf("Failed to get stripe product, %v", err)
-			return fixedPrices
-		}
-		fixedPrice.PriceID = priceID
-		strPrice := fmt.Sprintf("%.2f", stripePrice.UnitAmountDecimal/float64(100.00))
+		strPrice := fmt.Sprintf("%.2f", float64(price)/float64(100.00))
 		floatPrice, err := strconv.ParseFloat(strPrice, 64)
 		if err != nil {
 			log.Printf("Failed to parse float, %v", err)
 			return fixedPrices
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Title = stripeProduct.Name
-		if len(stripeProduct.Images) > 0 {
-			fixedPrice.Image = stripeProduct.Images[0]
-		} else {
-			fixedPrice.Image = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+		fixedPrice.Image, err = GetImage(ID, "fixed_price")
+		if err != nil {
+			log.Printf("Failed to get fixedPrice image %s", err)
 		}
 
-		fixedPrice.AvailableTimeSlots, err = GetAvailableTimeSlots(id, subscription)
+		fixedPrice.AvailableTimeSlots, err = GetAvailableTimeSlots(ID, fixedPrice.Subscription)
 		if err != nil {
 			log.Printf("Failed to get timeslots %s", err)
 			return fixedPrices
 		}
 
-		fixedPrice.Reviews, fixedPrice.Rating, err = GetFixedPriceReviewsRating(id)
+		fixedPrice.Reviews, fixedPrice.Rating, err = GetFixedPriceReviewsRating(ID)
 		if err != nil {
 			log.Printf("Failed to get reviews and rating %s", err)
 			return fixedPrices
@@ -694,8 +671,14 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 }
 
 //Find better way
-func updateImages(ID int64, images []*string) error {
-	stmt, err := db.Prepare("DELETE FROM quote_images WHERE quoteId=?")
+func updateImages(ID int64, images []*string, table string) error {
+	deleteSql := "DELETE FROM quote_images WHERE quoteId=?"
+	insertSql := "INSERT INTO quote_images (quoteId, url) VALUES (?, ?)"
+	if table == "fixed_price" {
+		deleteSql = "DELETE FROM fixed_price_images WHERE fixedPriceId=?"
+		insertSql = "INSERT INTO fixed_price_images (fixedPriceId, url) VALUES (?, ?)"
+	}
+	stmt, err := db.Prepare(deleteSql)
 	if err != nil {
 		return err
 	}
@@ -707,7 +690,7 @@ func updateImages(ID int64, images []*string) error {
 	}
 
 	for _, url := range images {
-		stmt, err := db.Prepare("INSERT INTO quote_images (quoteId, url) VALUES (?, ?)")
+		stmt, err := db.Prepare(insertSql)
 		if err != nil {
 			return err
 		}
@@ -783,7 +766,7 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 			return false, err
 		}
 
-		if err = updateImages(ID, images); err != nil {
+		if err = updateImages(ID, images, "quote"); err != nil {
 			return false, err
 		}
 
@@ -799,10 +782,15 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 	return true, nil
 }
 
-func GetQuoteImage(ID int64) (string, error) {
+func GetImage(ID int64, table string) (string, error) {
 	url := ""
+	selectSQL := "SELECT url FROM quote_images WHERE quoteId=?"
 
-	stmt, err := db.Prepare("SELECT url FROM quote_images WHERE quoteId=?")
+	if table == "fixed_price" {
+		selectSQL = "SELECT url FROM fixed_price_images WHERE fixedPriceId=?"
+	}
+
+	stmt, err := db.Prepare(selectSQL)
 	if err != nil {
 		return url, err
 	}
@@ -820,10 +808,13 @@ func GetQuoteImage(ID int64) (string, error) {
 	return url, nil
 }
 
-func GetQuoteImages(ID int64) ([]string, error) {
+func GetImages(ID int64, table string) ([]string, error) {
 	images := []string{}
-
-	stmt, err := db.Prepare("SELECT url FROM quote_images WHERE quoteId=?")
+	selectSQL := "SELECT url FROM quote_images WHERE quoteId=?"
+	if table == "fixed_price" {
+		selectSQL = "SELECT url FROM fixed_price_images WHERE fixedPriceId=?"
+	}
+	stmt, err := db.Prepare(selectSQL)
 	if err != nil {
 		return images, err
 	}
@@ -888,21 +879,12 @@ func GetTradespersonQuote(tradespersonID, quoteID string) (*models.ServiceDetail
 
 	row := stmt.QueryRow(tradespersonID, quoteID)
 	var ID int64
-	var category, subCategory, title, description string
-	var selectPlaces, archived bool
-	switch err = row.Scan(&ID, &category, &subCategory, &title, &description, &selectPlaces, &archived); err {
+	switch err = row.Scan(&ID, &quote.Category, &quote.SubCategory, &quote.Title, &quote.Description, &quote.SelectPlaces, &quote.Archived); err {
 	case sql.ErrNoRows:
 		return quote, err
 	case nil:
 		quote.ID = ID
-		quote.Category = &category
-		quote.SubCategory = subCategory
-		quote.SelectPlaces = &selectPlaces
-		quote.Archived = archived
-		quote.Title = &title
-		quote.Description = &description
-
-		quote.Images, err = GetQuoteImages(ID)
+		quote.Images, err = GetImages(ID, "quote")
 		if err != nil {
 			return quote, err
 		}
@@ -1097,7 +1079,7 @@ func UpdateTradespersonQuote(tradespersonID string, quoteID string, quote *model
 			return updated, err
 		}
 
-		if err := updateImages(ID, images); err != nil {
+		if err := updateImages(ID, images, "quote"); err != nil {
 			return updated, err
 		}
 
@@ -1136,28 +1118,24 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 	}
 
 	var ID int64
-	var quoteID, title, description string
-	var archived bool
+	var description string
 	for rows.Next() {
-		if err := rows.Scan(&ID, &quoteID, &title, &description, &archived); err != nil {
-			log.Printf("Failed to scan row %s", err)
+		quote := models.Service{}
+		if err := rows.Scan(&ID, &quote.QuoteID, &quote.Title, &description, &quote.Archived); err != nil {
+			log.Printf("Failed to scan row %s\n", err)
 			return quotes
 		}
-		quote := models.Service{}
-		quote.Title = title
 		if len(description) > 65 {
 			description = description[:65] + "..."
 		}
 		quote.Description = description
-		quote.QuoteID = quoteID
-		quote.Archived = archived
 		quote.Reviews, quote.Rating, err = GetQuoteRating(ID)
 		if err != nil {
-			log.Printf("Failed to get quote reviews and rating %s", err)
+			log.Printf("Failed to get quote reviews and rating %s\n", err)
 		}
-		quote.Image, err = GetQuoteImage(ID)
+		quote.Image, err = GetImage(ID, "quote")
 		if err != nil {
-			log.Printf("Failed to get quote image %s", err)
+			log.Printf("Failed to get quote image %s\n", err)
 		}
 		quotes = append(quotes, &quote)
 	}

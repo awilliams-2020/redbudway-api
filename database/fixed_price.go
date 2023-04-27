@@ -7,61 +7,39 @@ import (
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"strconv"
-
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
 )
 
 func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *operations.GetFixedPricePriceIDOKBodyBusiness, error) {
 	fixedPrice := &models.ServiceDetails{}
 	business := &operations.GetFixedPricePriceIDOKBodyBusiness{}
 
-	stmt, err := db.Prepare("SELECT ta.name, ta.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory, fp.subscription, fp.subInterval, fp.selectPlaces FROM fixed_prices fp INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND fp.priceId=?")
+	stmt, err := db.Prepare("SELECT tp.name, tp.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory,fp.title, fp.price, fp.description, fp.subscription, fp.subInterval, fp.selectPlaces FROM fixed_prices fp INNER JOIN tradesperson_profile tp ON tp.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND fp.priceId=?")
 	if err != nil {
 		return fixedPrice, business, err
 	}
 	defer stmt.Close()
 
 	row := stmt.QueryRow(priceID)
-	var fixedPriceID int64
+	var fixedPriceID, price int64
 	var vanityURL, interval sql.NullString
-	var name, tradespersonID, category, subCategory string
-	var subscription, archived, selectPlaces bool
-	switch err = row.Scan(&name, &tradespersonID, &vanityURL, &fixedPriceID, &category, &subCategory, &subscription, &interval, &selectPlaces); err {
+	switch err = row.Scan(&business.Name, &business.TradespersonID, &vanityURL, &fixedPriceID, &fixedPrice.Category, &fixedPrice.SubCategory, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.SelectPlaces); err {
 	case sql.ErrNoRows:
 		return fixedPrice, business, err
 	case nil:
-
-		business.Name = name
 		business.VanityURL = vanityURL.String
-		business.TradespersonID = tradespersonID
+		fixedPrice.Interval = interval.String
 
-		fixedPrice.Category = &category
-		fixedPrice.SubCategory = subCategory
-		fixedPrice.Subscription = subscription
-		if interval.Valid {
-			fixedPrice.Interval = interval.String
-		}
-		fixedPrice.Archived = archived
-		fixedPrice.SelectPlaces = &selectPlaces
-		p, err := price.Get(priceID, nil)
-		if err != nil {
-			return fixedPrice, business, err
-		}
-		pr, err := product.Get(p.Product.ID, nil)
-		if err != nil {
-			return fixedPrice, business, err
-		}
-		strPrice := fmt.Sprintf("%.2f", p.UnitAmountDecimal/float64(100.00))
+		strPrice := fmt.Sprintf("%.2f", float64(price)/float64(100.00))
 		floatPrice, err := strconv.ParseFloat(strPrice, 64)
 		if err != nil {
 			return fixedPrice, business, err
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Images = pr.Images
-		fixedPrice.Title = &pr.Name
-		fixedPrice.Description = &pr.Description
-		fixedPrice.TimeSlots, err = GetPublicTimeSlots(fixedPriceID, subscription)
+		fixedPrice.Images, err = GetImages(fixedPriceID, "fixed_price")
+		if err != nil {
+			return fixedPrice, business, err
+		}
+		fixedPrice.TimeSlots, err = GetPublicTimeSlots(fixedPriceID, fixedPrice.Subscription)
 		if err != nil {
 			return fixedPrice, business, err
 		}

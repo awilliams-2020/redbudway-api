@@ -15,16 +15,16 @@ import (
 )
 
 // PostCustomerCustomerIDVerifyHandlerFunc turns a function with the right signature into a post customer customer ID verify handler
-type PostCustomerCustomerIDVerifyHandlerFunc func(PostCustomerCustomerIDVerifyParams) middleware.Responder
+type PostCustomerCustomerIDVerifyHandlerFunc func(PostCustomerCustomerIDVerifyParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostCustomerCustomerIDVerifyHandlerFunc) Handle(params PostCustomerCustomerIDVerifyParams) middleware.Responder {
-	return fn(params)
+func (fn PostCustomerCustomerIDVerifyHandlerFunc) Handle(params PostCustomerCustomerIDVerifyParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // PostCustomerCustomerIDVerifyHandler interface for that can handle valid post customer customer ID verify params
 type PostCustomerCustomerIDVerifyHandler interface {
-	Handle(PostCustomerCustomerIDVerifyParams) middleware.Responder
+	Handle(PostCustomerCustomerIDVerifyParams, interface{}) middleware.Responder
 }
 
 // NewPostCustomerCustomerIDVerify creates a new http.Handler for the post customer customer ID verify operation
@@ -48,51 +48,27 @@ func (o *PostCustomerCustomerIDVerify) ServeHTTP(rw http.ResponseWriter, r *http
 		*r = *rCtx
 	}
 	var Params = NewPostCustomerCustomerIDVerifyParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
-}
-
-// PostCustomerCustomerIDVerifyBody post customer customer ID verify body
-//
-// swagger:model PostCustomerCustomerIDVerifyBody
-type PostCustomerCustomerIDVerifyBody struct {
-
-	// access token
-	AccessToken string `json:"accessToken,omitempty"`
-}
-
-// Validate validates this post customer customer ID verify body
-func (o *PostCustomerCustomerIDVerifyBody) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this post customer customer ID verify body based on context it is used
-func (o *PostCustomerCustomerIDVerifyBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *PostCustomerCustomerIDVerifyBody) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *PostCustomerCustomerIDVerifyBody) UnmarshalBinary(b []byte) error {
-	var res PostCustomerCustomerIDVerifyBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
 }
 
 // PostCustomerCustomerIDVerifyOKBody post customer customer ID verify o k body

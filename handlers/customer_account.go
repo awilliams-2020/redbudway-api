@@ -474,7 +474,7 @@ func emailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDet
 	}
 	images, err = email.SendTradespersonQuoteRequest(tradesperson, stripeCustomer, message, quote, images)
 	if err != nil {
-		log.Printf("Failed to send customer email, %v", err)
+		log.Printf("Failed to send tradesperson email, %v", err)
 	}
 	for _, imagePath := range images {
 		err := os.Remove(imagePath)
@@ -675,16 +675,16 @@ func GetCustomerCustomerIDQuoteQuoteIDHandler(params operations.GetCustomerCusto
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT tq.tradespersonId, tq.request, q.title, q.description FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.customerId=? AND tq.quote=?")
+	stmt, err := db.Prepare("SELECT tq.tradespersonID, tq.request, q.title, q.description FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.customerId=? AND tq.quote=?")
 	if err != nil {
 		log.Printf("Failed to create prepared statement, %v", err)
 		return response
 	}
 	defer stmt.Close()
 
-	var tradespersonId, message, title, description string
+	var tradespersonID, message, title, description string
 	row := stmt.QueryRow(customerID, quoteID)
-	switch err = row.Scan(&tradespersonId, &message, &title, &description); err {
+	switch err = row.Scan(&tradespersonID, &message, &title, &description); err {
 	case sql.ErrNoRows:
 		log.Printf("Customer %s has no quote %s", customerID, quoteID)
 	case nil:
@@ -725,9 +725,9 @@ func GetCustomerCustomerIDQuoteQuoteIDHandler(params operations.GetCustomerCusto
 			service.Products = products
 			_quote.Service = service
 
-			tradesperson, err := database.GetTradespersonAccount(tradespersonId)
+			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account %v", err)
+				log.Printf("Failed to get tradesperson profile %s", err)
 			}
 			_tradesperson := &models.Tradesperson{}
 			_tradesperson.Email = tradesperson.Email
@@ -761,7 +761,7 @@ func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCusto
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT q.quote, tq.tradespersonId, tq.request FROM tradesperson_quotes tq INNER JOIN quotes q ON q.id=tq.quoteId WHERE tq.customerId=? AND tq.quote=?")
+	stmt, err := db.Prepare("SELECT q.quote, tq.tradespersonID, tq.request FROM tradesperson_quotes tq INNER JOIN quotes q ON q.id=tq.quoteId WHERE tq.customerId=? AND tq.quote=?")
 	if err != nil {
 		log.Printf("Failed to create prepared statement, %v", err)
 		return response
@@ -783,9 +783,9 @@ func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCusto
 			payload.Accepted = true
 			response.SetPayload(&payload)
 
-			tradesperson, err := database.GetTradespersonAccount(tradespersonID)
+			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson info, %v", err)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return response
 			}
 
@@ -808,5 +808,83 @@ func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCusto
 	default:
 		log.Printf("Unknown, %v", err)
 	}
+	return response
+}
+
+func PutCustomerCustomerIDHandler(params operations.PutCustomerCustomerIDParams, principal interface{}) middleware.Responder {
+	customerID := params.CustomerID
+	account := params.Account
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	response := operations.NewPutCustomerCustomerIDOK()
+	payload := &operations.PutCustomerCustomerIDOKBody{}
+	payload.Updated = false
+	response.SetPayload(payload)
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT stripeId, email, password FROM customer_account WHERE customerId=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return response
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(customerID)
+	var stripeID, hashPassword, accountEmail string
+	switch err = row.Scan(&stripeID, &accountEmail, &hashPassword); err {
+	case sql.ErrNoRows:
+		log.Printf("Tradesperson with ID %s doesn't exist", customerID)
+	case nil:
+		if internal.CheckPasswordHash(account.CurPassword, hashPassword) {
+			stmt, err := db.Prepare("UPDATE customer_account SET password=? WHERE customerId = ?")
+			if err != nil {
+				return response
+			}
+			defer stmt.Close()
+
+			newHashPassword, err := internal.HashPassword(account.NewPassword)
+			if err != nil {
+				log.Printf("%s", err)
+				return response
+			}
+			results, err := stmt.Exec(newHashPassword, customerID)
+			if err != nil {
+				return response
+			}
+
+			rowsAffected, err := results.RowsAffected()
+			if err != nil {
+				return response
+			}
+
+			payload.Updated = rowsAffected == 1
+			if payload.Updated {
+				stripeCustomer, err := customer.Get(stripeID, nil)
+				if err != nil {
+					log.Printf("Failed to retrieve customer, %s", customerID)
+					return response
+				}
+				if err := email.PasswordUpdated(accountEmail, stripeCustomer.Name); err != nil {
+					log.Printf("Failed to send customer email, %v", err)
+					return response
+				}
+			}
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	response = operations.NewPutCustomerCustomerIDOK()
+	response.SetPayload(payload)
 	return response
 }

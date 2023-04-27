@@ -3,6 +3,7 @@ package stripe
 import (
 	"log"
 	"os"
+	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 
 	"github.com/stripe/stripe-go/v72"
@@ -16,16 +17,6 @@ func CreateTradespersonStripeAccount(tradesperson operations.PostTradespersonBod
 		Type:    stripe.String("express"),
 		Country: stripe.String("US"),
 		Email:   stripe.String(tradesperson.Email.String()),
-		BusinessProfile: &stripe.AccountBusinessProfileParams{
-			Name: stripe.String(*tradesperson.Name),
-			SupportAddress: &stripe.AddressParams{
-				City:       stripe.String(tradesperson.Address.City),
-				Line1:      stripe.String(tradesperson.Address.LineOne),
-				Line2:      stripe.String(tradesperson.Address.LineTwo),
-				PostalCode: stripe.String(tradesperson.Address.ZipCode),
-				State:      stripe.String(tradesperson.Address.State),
-			},
-		},
 		Settings: &stripe.AccountSettingsParams{
 			Payouts: &stripe.AccountSettingsPayoutsParams{
 				DebitNegativeBalances: stripe.Bool(true),
@@ -42,13 +33,79 @@ func GetConnectAccount(stripeID string) (*stripe.Account, error) {
 	return account.GetByID(stripeID, nil)
 }
 
-func GetOnBoardingLink(stripeID string) (*stripe.AccountLink, error) {
+func GetOnBoardingLink(stripeID, tradespersonID string) (*stripe.AccountLink, error) {
 	log.Print("Creating stripe connect account onboarding link")
 	params := &stripe.AccountLinkParams{
 		Account:    stripe.String(stripeID),
-		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com"),
-		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com"),
+		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/#/tradesperson/" + tradespersonID + "/profile"),
+		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/#/tradesperson/" + tradespersonID + "/profile"),
 		Type:       stripe.String("account_onboarding"),
 	}
 	return accountlink.New(params)
+}
+
+func UpdateBusinessProfileName(stripeID, name string) error {
+	params := &stripe.AccountParams{}
+	params.BusinessProfile = &stripe.AccountBusinessProfileParams{
+		Name: stripe.String(name),
+	}
+	_, err := account.Update(
+		stripeID,
+		params,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateBusinessProfileNumber(stripeID, number string) error {
+	params := &stripe.AccountParams{}
+	params.BusinessProfile = &stripe.AccountBusinessProfileParams{
+		SupportPhone: stripe.String(number),
+	}
+	_, err := account.Update(
+		stripeID,
+		params,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateBusinessProfileEmail(stripeID, email string) error {
+	params := &stripe.AccountParams{}
+	params.BusinessProfile = &stripe.AccountBusinessProfileParams{
+		SupportEmail: stripe.String(email),
+	}
+	_, err := account.Update(
+		stripeID,
+		params,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateBusinessProfileAddress(stripeID string, address *models.Address) error {
+	params := &stripe.AccountParams{}
+	params.BusinessProfile = &stripe.AccountBusinessProfileParams{
+		SupportAddress: &stripe.AddressParams{
+			City:       stripe.String(address.City),
+			State:      stripe.String(address.State),
+			PostalCode: stripe.String(address.ZipCode),
+			Line1:      stripe.String(address.LineOne),
+			Line2:      stripe.String(address.LineTwo),
+		},
+	}
+	_, err := account.Update(
+		stripeID,
+		params,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

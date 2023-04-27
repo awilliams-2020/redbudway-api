@@ -14,7 +14,7 @@ import (
 // PostResetPasswordOKCode is the HTTP code returned for type PostResetPasswordOK
 const PostResetPasswordOKCode int = 200
 
-/*PostResetPasswordOK Update password
+/*PostResetPasswordOK Reset password
 
 swagger:response postResetPasswordOK
 */

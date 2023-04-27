@@ -146,6 +146,9 @@ type PostTradespersonLoginOKBody struct {
 	// access token
 	AccessToken string `json:"accessToken,omitempty"`
 
+	// admin
+	Admin bool `json:"admin,omitempty"`
+
 	// email
 	Email string `json:"email,omitempty"`
 

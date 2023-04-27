@@ -1,6 +1,9 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+	"log"
+)
 
 func ClearCustomerTokens(customerID string) (bool, error) {
 	stmt, err := db.Prepare("UPDATE customer_token SET refresh_token='', access_token='' WHERE customerId=?")
@@ -578,9 +581,14 @@ func GetTradespersonGoogleAccessToken(tradespersonID string) (string, error) {
 	}
 	defer stmt.Close()
 
-	if err := stmt.QueryRow(tradespersonID).Scan(&accessToken); err != nil {
-		return accessToken, err
+	row := stmt.QueryRow(tradespersonID)
+	switch err = row.Scan(&accessToken); err {
+	case nil:
+		return accessToken, nil
+	case sql.ErrNoRows:
+		//
+	default:
+		log.Printf("Unknown error %s", err)
 	}
-
 	return accessToken, nil
 }

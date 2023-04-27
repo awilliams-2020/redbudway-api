@@ -190,7 +190,7 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, a.email, a.number FROM tradesperson_invoices i INNER JOIN tradesperson_account a ON i.tradespersonId=a.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
+	stmt, err := db.Prepare("SELECT tp.name, tp.email, tp.number FROM tradesperson_invoices i INNER JOIN tradesperson_profile tp ON i.tradespersonId=tp.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
 	if err != nil {
 		return response
 	}
@@ -337,7 +337,7 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, a.email, a.number FROM tradesperson_invoices i INNER JOIN tradesperson_account a ON i.tradespersonId=a.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
+	stmt, err := db.Prepare("SELECT tp.name, tp.email, tp.number FROM tradesperson_invoices i INNER JOIN tradesperson_profile tp ON i.tradespersonId=tp.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
 	if err != nil {
 		return response
 	}

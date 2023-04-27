@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72/account"
 	"github.com/stripe/stripe-go/v72/customer"
 )
 
@@ -29,7 +28,7 @@ const (
 func ValidateCustomerRefreshToken(customerID, bearerHeader string) (bool, error) {
 	accessToken := strings.Split(bearerHeader, " ")[1]
 	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	claims, valid, err := internal.GetRegisteredClaims(bearerHeader)
 	if err != nil {
 		log.Printf("Failed to get registered claims from token, %v", err)
 		return valid, err
@@ -47,7 +46,7 @@ func ValidateCustomerRefreshToken(customerID, bearerHeader string) (bool, error)
 func ValidateCustomerAccessToken(customerID, bearerHeader string) (bool, error) {
 	accessToken := strings.Split(bearerHeader, " ")[1]
 	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	claims, valid, err := internal.GetRegisteredClaims(bearerHeader)
 	if err != nil {
 		log.Printf("Failed to get registered claims from token, %v", err)
 		return valid, err
@@ -65,12 +64,12 @@ func ValidateCustomerAccessToken(customerID, bearerHeader string) (bool, error) 
 func ValidateTradespersonRefreshToken(tradespersonID, bearerHeader string) (bool, error) {
 	accessToken := strings.Split(bearerHeader, " ")[1]
 	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	claims, valid, err := internal.GetRegisteredClaims(bearerHeader)
 	if err != nil {
 		log.Printf("Failed to get registered claims from token, %v", err)
 		return valid, err
 	}
-	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "refresh" {
+	if (claims.Audience[0] == "tradesperson" || claims.Audience[0] == "admin") && claims.Subject == tradespersonID && claims.ID == "refresh" {
 		valid, err = database.CheckTradespersonRefreshToken(tradespersonID, accessToken)
 		if err != nil {
 			log.Printf("Failed to check tradesperson refresh token, %s", err)
@@ -83,19 +82,19 @@ func ValidateTradespersonRefreshToken(tradespersonID, bearerHeader string) (bool
 func ValidateTradespersonAccessToken(tradespersonID, bearerHeader string) (bool, error) {
 	accessToken := strings.Split(bearerHeader, " ")[1]
 	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	claims, valid, err := internal.GetRegisteredClaims(bearerHeader)
 	if err != nil {
 		log.Printf("Failed to get registered claims from token, %v", err)
 		return valid, err
 	}
-	if claims.Audience[0] == "admin" && claims.ID == "access" {
-		valid, err = database.CheckAdminAccessToken(claims.Subject, accessToken)
+
+	if claims.Audience[0] == "admin" {
+		valid, err = database.CheckTradespersonAccessToken(claims.Subject, accessToken)
 		if err != nil {
-			log.Printf("Failed to check admin access token, %s", err)
+			log.Printf("Failed to check tradesperson access token, %s", err)
 			return valid, err
 		}
-	}
-	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "access" {
+	} else if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID {
 		valid, err = database.CheckTradespersonAccessToken(tradespersonID, accessToken)
 		if err != nil {
 			log.Printf("Failed to check tradesperson access token, %s", err)
@@ -105,36 +104,18 @@ func ValidateTradespersonAccessToken(tradespersonID, bearerHeader string) (bool,
 	return valid, nil
 }
 
-func ValidateAdminRefreshToken(tradespersonID, bearerHeader string) (bool, error) {
-	accessToken := strings.Split(bearerHeader, " ")[1]
-	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
-	if err != nil {
-		log.Printf("Failed to get registered claims from token, %v", err)
-		return valid, err
-	}
-	if claims.Audience[0] == "tradesperson" && claims.Subject == tradespersonID && claims.ID == "refresh" {
-		valid, err = database.CheckAdminRefreshToken(tradespersonID, accessToken)
-		if err != nil {
-			log.Printf("Failed to check tradesperson refresh token, %s", err)
-			return valid, err
-		}
-	}
-	return valid, nil
-}
-
 func ValidateAdminAccessToken(adminID, bearerHeader string) (bool, error) {
 	accessToken := strings.Split(bearerHeader, " ")[1]
 	valid := false
-	claims, err := internal.GetRegisteredClaims(bearerHeader)
+	claims, valid, err := internal.GetRegisteredClaims(bearerHeader)
 	if err != nil {
 		log.Printf("Failed to get registered claims from token, %v", err)
 		return valid, err
 	}
 	if claims.Audience[0] == "admin" && claims.Subject == adminID && claims.ID == "access" {
-		valid, err = database.CheckAdminAccessToken(adminID, accessToken)
+		valid, err = database.CheckTradespersonAccessToken(adminID, accessToken)
 		if err != nil {
-			log.Printf("Failed to check admin access token, %s", err)
+			log.Printf("Failed to check tradesperson access token, %s", err)
 			return valid, err
 		}
 	}
@@ -199,13 +180,15 @@ func PostTradespersonTradespersonIDAccessTokenHandler(params operations.PostTrad
 	valid, err := ValidateTradespersonRefreshToken(tradespersonID, bearerHeader)
 	if err != nil || !valid {
 		if !valid {
+			log.Printf("Invalid tradesperson (%s) refresh token (%s)\n", tradespersonID, bearerHeader)
 			cleared, err := database.ClearTradespersonTokens(tradespersonID)
 			if !cleared || err != nil {
-				log.Printf("Failed to clear tradesperson tokens, %v", err)
+				log.Printf("Failed to clear tradesperson tokens, %v\n", err)
 				return response
 			}
+		} else if err != nil {
+			log.Printf("Error validating tradesperson refresh token, %s", err)
 		}
-		log.Printf("Failed to validate tradesperson (%s) refresh token, %v", &tradespersonID, err)
 		return response
 	}
 
@@ -404,7 +387,7 @@ func GetTradespersonTradespersonIDAccessTokenHandler(params operations.GetTrades
 	var err error
 	payload.Valid, err = ValidateTradespersonAccessToken(tradespersonID, bearerHeader)
 	if err != nil {
-		log.Printf("Failed to validate tradesperson (%s) access token, %v", &tradespersonID, err)
+		log.Printf("Failed to validate tradesperson (%s) access token, %v\n", tradespersonID, err)
 	}
 
 	response.SetPayload(&payload)
@@ -470,7 +453,7 @@ func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams)
 	response := operations.NewPostTradespersonLoginOK().WithPayload(&payload)
 
 	db := database.GetConnection()
-	stmt, err := db.Prepare("SELECT tradespersonId, password FROM tradesperson_account WHERE email=?")
+	stmt, err := db.Prepare("SELECT tradespersonId, password, admin FROM tradesperson_account WHERE email=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -479,18 +462,23 @@ func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams)
 
 	var tradespersonID string
 	var hashPassword string
+	var admin bool
 	row := stmt.QueryRow(*tradesperson.Email)
-	switch err = row.Scan(&tradespersonID, &hashPassword); err {
+	switch err = row.Scan(&tradespersonID, &hashPassword, &admin); err {
 	case sql.ErrNoRows:
 		log.Println("Tradesperson doesn't exist")
 	case nil:
 		if internal.CheckPasswordHash(*tradesperson.Password, hashPassword) {
-			accessToken, err := internal.GenerateToken(tradespersonID, "tradesperson", "access", time.Minute*ACCESS_TIME)
+			accountType := "tradesperson"
+			if admin {
+				accountType = "admin"
+			}
+			accessToken, err := internal.GenerateToken(tradespersonID, accountType, "access", time.Minute*ACCESS_TIME)
 			if err != nil {
 				log.Printf("Failed to generate access token, %s", err)
 				return response
 			}
-			refreshToken, err := internal.GenerateToken(tradespersonID, "tradesperson", "refresh", time.Minute*REFRESH_TIME)
+			refreshToken, err := internal.GenerateToken(tradespersonID, accountType, "refresh", time.Minute*REFRESH_TIME)
 			if err != nil {
 				log.Printf("Failed to generate refresh token, %s", err)
 				return response
@@ -505,6 +493,7 @@ func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams)
 			payload.TradespersonID = tradespersonID
 			payload.RefreshToken = refreshToken
 			payload.AccessToken = accessToken
+			payload.Admin = admin
 			response.SetPayload(&payload)
 
 			gAccessToken, err := database.GetTradespersonGoogleAccessToken(tradespersonID)
@@ -661,9 +650,9 @@ func PostCustomerCustomerIDLogoutHandler(params operations.PostCustomerCustomerI
 	return response
 }
 
-func PostCustomerCustomerIDVerifyHandler(params operations.PostCustomerCustomerIDVerifyParams) middleware.Responder {
+func PostCustomerCustomerIDVerifyHandler(params operations.PostCustomerCustomerIDVerifyParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
-	token := params.Body.AccessToken
+	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
 
 	db := database.GetConnection()
 
@@ -687,35 +676,33 @@ func PostCustomerCustomerIDVerifyHandler(params operations.PostCustomerCustomerI
 			payload.Verified = verified
 			response.SetPayload(&payload)
 		} else {
-			if token != "" {
-				claims, err := internal.GetRegisteredClaims("bearer " + token)
-				if err != nil {
-					log.Printf("Failed to get registred claims from token, %s", err)
-					return response
-				}
-				if claims.Audience[0] == "customer" {
-					if claims.ID == "verification" {
-						stmt, err := db.Prepare("UPDATE customer_account SET verified=True WHERE customerId = ?")
-						if err != nil {
-							return response
-						}
-						defer stmt.Close()
+			claims, valid, err := internal.GetRegisteredClaims(bearerHeader)
+			if err != nil {
+				log.Printf("Failed to get registred claims from token, %s", err)
+				return response
+			}
+			if claims.Audience[0] == "customer" && valid {
+				if claims.ID == "verification" {
+					stmt, err := db.Prepare("UPDATE customer_account SET verified=True WHERE customerId = ?")
+					if err != nil {
+						return response
+					}
+					defer stmt.Close()
 
-						results, err := stmt.Exec(customerID)
-						if err != nil {
-							return response
-						}
+					results, err := stmt.Exec(customerID)
+					if err != nil {
+						return response
+					}
 
-						rowsAffected, err := results.RowsAffected()
-						if err != nil {
-							return response
-						}
+					rowsAffected, err := results.RowsAffected()
+					if err != nil {
+						return response
+					}
 
-						if rowsAffected == 1 {
-							verified = true
-							payload.Verified = verified
-							response.SetPayload(&payload)
-						}
+					if rowsAffected == 1 {
+						verified = true
+						payload.Verified = verified
+						response.SetPayload(&payload)
 					}
 				}
 			}
@@ -727,7 +714,7 @@ func PostCustomerCustomerIDVerifyHandler(params operations.PostCustomerCustomerI
 	return response
 }
 
-func GetCustomerCustomerIDVerifyHandler(params operations.GetCustomerCustomerIDVerifyParams) middleware.Responder {
+func GetCustomerCustomerIDVerifyHandler(params operations.GetCustomerCustomerIDVerifyParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 
 	db := database.GetConnection()
@@ -771,13 +758,23 @@ func GetCustomerCustomerIDReverifyHandler(params operations.GetCustomerCustomerI
 	}
 	defer stmt.Close()
 
-	var stripeId, customerEmail string
+	var stripeID, customerEmail string
 	row := stmt.QueryRow(customerID)
-	switch err = row.Scan(&stripeId, &customerEmail); err {
+	switch err = row.Scan(&stripeID, &customerEmail); err {
 	case sql.ErrNoRows:
 		log.Printf("Customer with ID %s does not exist", customerID)
 	case nil:
-		err := email.SendCustomerVerification("", customerEmail, customerID)
+		token, err := internal.GenerateToken(customerID, "customer", "verification", time.Minute*15)
+		if err != nil {
+			log.Printf("Failed to generate JWT, %s", err)
+			return response
+		}
+		stripeCustomer, err := customer.Get(stripeID, nil)
+		if err != nil {
+			log.Printf("Failed to get stripe customer, %v", err)
+			return response
+		}
+		err = email.SendCustomerVerification(stripeCustomer.Name, customerEmail, customerID, token)
 		if err != nil {
 			log.Printf("Faield to send email verification, %s", err)
 		}
@@ -789,7 +786,7 @@ func GetCustomerCustomerIDReverifyHandler(params operations.GetCustomerCustomerI
 }
 
 func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middleware.Responder {
-	userEmail := params.Email
+	accountEmail := params.Email
 	accountType := params.AccountType
 
 	response := operations.NewGetForgotPasswordOK()
@@ -811,12 +808,12 @@ func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middlew
 	defer stmt.Close()
 
 	var stripeID, userID string
-	row := stmt.QueryRow(userEmail)
+	row := stmt.QueryRow(accountEmail)
 	switch err = row.Scan(&stripeID, &userID); err {
 	case sql.ErrNoRows:
-		log.Printf("Account with email %s does not exist", userEmail)
+		log.Printf("Account with email %s does not exist", accountEmail)
 	case nil:
-		token, err := internal.GenerateToken(userID, accountType, "password", time.Hour*24)
+		token, err := internal.GenerateToken(userID, accountType, "password", time.Minute*15)
 		if err != nil {
 			log.Printf("Failed to generate JWT, %s", err)
 			return response
@@ -827,22 +824,17 @@ func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middlew
 				log.Printf("Failed to get stripe customer, %v", err)
 				return response
 			}
-			if err := email.ForgotPassword(stripeCustomer.Email, stripeCustomer.Name, token, accountType, userID); err != nil {
+			if err := email.ForgotPassword(accountEmail, stripeCustomer.Name, token, accountType); err != nil {
 				log.Printf("Failed to send customer email, %v", err)
 				return response
 			}
 		} else {
-			tradesperson, err := database.GetTradespersonAccount(userID)
+			tradesperson, err := database.GetTradespersonProfile(userID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account , %v", err)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return response
 			}
-			stripeAccount, err := account.GetByID(stripeID, nil)
-			if err != nil {
-				log.Printf("Failed to get stripe customer, %v", err)
-				return response
-			}
-			if err := email.ForgotPassword(stripeAccount.Email, tradesperson.Name, token, accountType, userID); err != nil {
+			if err := email.ForgotPassword(accountEmail, tradesperson.Name, token, accountType); err != nil {
 				log.Printf("Failed to send tradesperson email, %v", err)
 				return response
 			}
@@ -854,162 +846,96 @@ func GetForgotPasswordHandler(params operations.GetForgotPasswordParams) middlew
 	return response
 }
 
-func PostResetPasswordHandler(params operations.PostResetPasswordParams) middleware.Responder {
-	userID := params.User.UserID
-	accountType := params.User.AccountType
-	password := params.User.Password
+func PostResetPasswordHandler(params operations.PostResetPasswordParams, principal interface{}) middleware.Responder {
+	password := *params.User.Password
+	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostResetPasswordOKBody{Updated: false}
 	response := operations.NewPostResetPasswordOK().WithPayload(&payload)
 
 	db := database.GetConnection()
 
+	claims, _, err := internal.GetRegisteredClaims(bearerHeader)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return response
+	}
+
 	var sqlStmt string
-	if *accountType == "customer" {
-		sqlStmt = "UPDATE customer_account set password=? WHERE customerId=?"
+	if claims.Subject == "customer" {
+		sqlStmt = "SELECT stripeId, email FROM customer_account WHERE customerId=?"
 	} else {
-		sqlStmt = "UPDATE tradesperson_account set password=? WHERE tradespersonId=?"
+		sqlStmt = "SELECT stripeId, email FROM tradesperson_account WHERE tradespersonId=?"
 	}
 
 	stmt, err := db.Prepare(sqlStmt)
-	if err != nil {
-		return response
-	}
-	defer stmt.Close()
-
-	passwordHash, err := internal.HashPassword(*password)
-	if err != nil {
-		return response
-	}
-
-	results, err := stmt.Exec(passwordHash, userID)
-	if err != nil {
-		return response
-	}
-
-	rowsAffected, err := results.RowsAffected()
-	if err != nil {
-		return response
-	}
-
-	payload.Updated = rowsAffected == 1
-	response.SetPayload(&payload)
-
-	return response
-}
-
-func PostAdminLoginHandler(params operations.PostAdminLoginParams) middleware.Responder {
-	admin := params.Admin
-
-	payload := operations.PostAdminLoginOKBody{Valid: false}
-	response := operations.NewPostAdminLoginOK().WithPayload(&payload)
-
-	db := database.GetConnection()
-	stmt, err := db.Prepare("SELECT adminId, password FROM admin_account WHERE user=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
 	}
 	defer stmt.Close()
-	var adminID string
-	var hashPassword string
-	row := stmt.QueryRow(*admin.User)
-	switch err = row.Scan(&adminID, &hashPassword); err {
+
+	var stripeID, accountEmail string
+	row := stmt.QueryRow(claims.Subject)
+	switch err = row.Scan(&stripeID, &accountEmail); err {
 	case sql.ErrNoRows:
-		log.Println("Admin doesn't exist")
+		log.Printf("Account with userID %s does not exist", claims.Subject)
 	case nil:
-		if internal.CheckPasswordHash(*admin.Password, hashPassword) {
-			accessToken, err := internal.GenerateToken(adminID, "admin", "access", time.Minute*ACCESS_TIME)
-			if err != nil {
-				log.Printf("Failed to generate access token, %s", err)
-				return response
-			}
-			refreshToken, err := internal.GenerateToken(adminID, "admin", "refresh", time.Minute*REFRESH_TIME)
-			if err != nil {
-				log.Printf("Failed to generate refresh token, %s", err)
-				return response
-			}
+		if claims.Audience[0] == "customer" {
+			sqlStmt = "UPDATE customer_account set password=? WHERE customerId=?"
+		} else {
+			sqlStmt = "UPDATE tradesperson_account set password=? WHERE tradespersonId=?"
+		}
 
-			isSaved, err := database.SaveAdminTokens(adminID, refreshToken, accessToken)
-			if err != nil {
-				log.Printf("Failed to save admin tokens, %v", err)
-				return response
-			}
+		stmt, err := db.Prepare(sqlStmt)
+		if err != nil {
+			return response
+		}
+		defer stmt.Close()
 
-			payload.Valid = isSaved
-			payload.AdminID = adminID
-			payload.RefreshToken = refreshToken
-			payload.AccessToken = accessToken
-			response.SetPayload(&payload)
+		passwordHash, err := internal.HashPassword(password)
+		if err != nil {
+			return response
+		}
+
+		results, err := stmt.Exec(passwordHash, claims.Subject)
+		if err != nil {
+			return response
+		}
+
+		rowsAffected, err := results.RowsAffected()
+		if err != nil {
+			return response
+		}
+
+		payload.Updated = rowsAffected == 1
+		response.SetPayload(&payload)
+		if payload.Updated {
+			if claims.Audience[0] == "customer" {
+				stripeCustomer, err := customer.Get(stripeID, nil)
+				if err != nil {
+					log.Printf("Failed to get stripe customer, %v", err)
+					return response
+				}
+				if err := email.PasswordUpdated(accountEmail, stripeCustomer.Name); err != nil {
+					log.Printf("Failed to send customer email, %v", err)
+					return response
+				}
+			} else {
+				tradesperson, err := database.GetTradespersonProfile(claims.Subject)
+				if err != nil {
+					log.Printf("Failed to get tradesperson profile %s", err)
+					return response
+				}
+				if err := email.PasswordUpdated(accountEmail, tradesperson.Name); err != nil {
+					log.Printf("Failed to send tradesperson email, %v", err)
+					return response
+				}
+			}
 		}
 	default:
-		log.Printf("%v", err)
+		log.Printf("Unknown %v", err)
 	}
 
-	return response
-}
-
-func PostAdminAdminIDAccessTokenHandler(params operations.PostAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
-	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
-	adminID := params.AdminID
-
-	payload := operations.PostAdminAdminIDAccessTokenOKBody{}
-	response := operations.NewPostAdminAdminIDAccessTokenOK().WithPayload(&payload)
-
-	valid, err := ValidateAdminRefreshToken(adminID, bearerHeader)
-	if err != nil || !valid {
-		if !valid {
-			cleared, err := database.ClearAdminTokens(adminID)
-			if !cleared || err != nil {
-				log.Printf("Failed to clear admin tokens, %v", err)
-				return response
-			}
-		}
-		log.Printf("Failed to validate admin (%s) refresh token, %v", adminID, err)
-		return response
-	}
-
-	//CHECK ACCESS TOKEN IS EXPIRED, IF NOT RESET TOKENS; BAD ACTOR
-
-	accessToken, err := internal.GenerateToken(adminID, "admin", "access", time.Minute*ACCESS_TIME)
-	if err != nil {
-		log.Printf("Failed to generate access token, %s", err)
-		return response
-	}
-	refreshToken, err := internal.GenerateToken(adminID, "admin", "refresh", time.Minute*REFRESH_TIME)
-	if err != nil {
-		log.Printf("Failed to generate refresh token, %s", err)
-		return response
-	}
-
-	updated, err := database.UpdateAdminTokens(adminID, refreshToken, accessToken)
-	if err != nil {
-		log.Printf("Failed to update admin tokens, %v", err)
-		return response
-	}
-
-	if updated {
-		payload.RefreshToken = refreshToken
-		payload.AccessToken = accessToken
-		response.SetPayload(&payload)
-	}
-
-	return response
-}
-
-func GetAdminAdminIDAccessTokenHandler(params operations.GetAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
-	customerID := params.AdminID
-	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
-
-	payload := operations.GetAdminAdminIDAccessTokenOKBody{Valid: false}
-	response := operations.NewGetAdminAdminIDAccessTokenOK().WithPayload(&payload)
-
-	var err error
-	payload.Valid, err = ValidateAdminAccessToken(customerID, bearerHeader)
-	if err != nil {
-		log.Printf("Failed to validate customer (%s) access token, %v", customerID, err)
-	}
-
-	response.SetPayload(&payload)
 	return response
 }

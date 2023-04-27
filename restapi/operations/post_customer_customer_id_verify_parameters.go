@@ -6,14 +6,11 @@ package operations
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-openapi/errors"
-	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/validate"
 )
 
 // NewPostCustomerCustomerIDVerifyParams creates a new PostCustomerCustomerIDVerifyParams object
@@ -33,10 +30,6 @@ type PostCustomerCustomerIDVerifyParams struct {
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
-	/*The customer account to create.
-	  In: body
-	*/
-	Body PostCustomerCustomerIDVerifyBody
 	/*Customer ID
 	  Required: true
 	  In: path
@@ -52,28 +45,6 @@ func (o *PostCustomerCustomerIDVerifyParams) BindRequest(r *http.Request, route 
 	var res []error
 
 	o.HTTPRequest = r
-
-	if runtime.HasBody(r) {
-		defer r.Body.Close()
-		var body PostCustomerCustomerIDVerifyBody
-		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("body", "body", "", err))
-		} else {
-			// validate body object
-			if err := body.Validate(route.Formats); err != nil {
-				res = append(res, err)
-			}
-
-			ctx := validate.WithOperationRequest(context.Background())
-			if err := body.ContextValidate(ctx, route.Formats); err != nil {
-				res = append(res, err)
-			}
-
-			if len(res) == 0 {
-				o.Body = body
-			}
-		}
-	}
 
 	rCustomerID, rhkCustomerID, _ := route.Params.GetOK("customerId")
 	if err := o.bindCustomerID(rCustomerID, rhkCustomerID, route.Formats); err != nil {

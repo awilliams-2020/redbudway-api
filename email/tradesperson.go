@@ -3,6 +3,7 @@ package email
 import (
 	_ "embed"
 	"fmt"
+	"log"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"strings"
@@ -33,7 +34,11 @@ func SendTradespersonMessage(businessName, businessEmail, service, message strin
 	m.SetHeader("Subject", service)
 	m.SetBody("text/plain", message)
 
-	images, _ = internal.ProcessEmailImages(stripeCustomer.Email, images)
+	images, err := internal.ProcessEmailImages(stripeCustomer.Email, images)
+	if err != nil {
+		log.Printf("Failed to process email images, %s", err)
+		return images, nil
+	}
 	for _, image := range images {
 		m.Attach(image)
 	}
@@ -79,8 +84,13 @@ func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustom
 	m.SetAddressHeader("To", tradesperson.Email, tradesperson.Name)
 	m.SetHeader("Subject", "Quote Request")
 
-	images, _ = internal.ProcessEmailImages(stripeCustomer.Email, images)
+	images, err := internal.ProcessEmailImages(stripeCustomer.Email, images)
+	if err != nil {
+		log.Printf("Failed to process email images, %s", err)
+		return images, err
+	}
 	for _, image := range images {
+		log.Printf("Image: %s\n", image)
 		m.Attach(image)
 	}
 

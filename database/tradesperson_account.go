@@ -2,14 +2,10 @@ package database
 
 import (
 	"database/sql"
-	"encoding/base64"
-	"fmt"
 	"log"
-	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
-	"strings"
 
 	"github.com/gofrs/uuid"
 	"github.com/stripe/stripe-go/v72"
@@ -38,14 +34,14 @@ func GetTradespersonSellingFee(tradespersonID string) (float64, error) {
 }
 
 func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, stripeAccount *stripe.Account) (uuid.UUID, error) {
-	log.Printf("Creating %s tradesperson account", tradesperson.Name)
+	log.Printf("Creating %s tradesperson account", stripeAccount.ID)
 
 	tradespersonID, err := internal.GenerateUUID()
 	if err != nil {
 		return tradespersonID, err
 	}
 
-	stmt, err := db.Prepare("INSERT INTO tradesperson_account (tradespersonId, name, description, number, email, image, password, stripeId) VALUES (?, ?, ?, ?, ?, '', ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO tradesperson_account (tradespersonId, email, password, stripeId) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return tradespersonID, err
 	}
@@ -56,7 +52,7 @@ func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, str
 		return tradespersonID, err
 	}
 
-	results, err := stmt.Exec(tradespersonID, tradesperson.Name, tradesperson.Description, tradesperson.Number, tradesperson.Email, passwordHash, stripeAccount.ID)
+	results, err := stmt.Exec(tradespersonID, tradesperson.Email, passwordHash, stripeAccount.ID)
 	if err != nil {
 		return tradespersonID, err
 	}
@@ -66,13 +62,13 @@ func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, str
 		return tradespersonID, err
 	}
 	if rowsAffected == 1 {
-		stmt, err := db.Prepare("INSERT INTO tradesperson_settings (tradespersonId, vanityURL) VALUES (?, '')")
+		stmt, err := db.Prepare("INSERT INTO tradesperson_profile (tradespersonId, name, email) VALUES (?, ?, ?)")
 		if err != nil {
 			return tradespersonID, err
 		}
 		defer stmt.Close()
 
-		results, err := stmt.Exec(tradespersonID)
+		results, err := stmt.Exec(tradespersonID, tradespersonID, tradesperson.Email)
 		if err != nil {
 			return tradespersonID, err
 		}
@@ -81,7 +77,7 @@ func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, str
 			return tradespersonID, err
 		}
 		if rowsAffected == 1 {
-			stmt, err := db.Prepare("INSERT INTO selling_fee (tradespersonId, fee, limited, expire) VALUES (?, 0.00, TRUE, NOW() + INTERVAL 3 MONTH )")
+			stmt, err := db.Prepare("INSERT INTO tradesperson_settings (tradespersonId, vanityURL) VALUES (?, '')")
 			if err != nil {
 				return tradespersonID, err
 			}
@@ -95,24 +91,51 @@ func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, str
 			if err != nil {
 				return tradespersonID, err
 			}
+			if rowsAffected == 1 {
+				stmt, err := db.Prepare("INSERT INTO selling_fee (tradespersonId, fee, limited, expire) VALUES (?, 0.00, TRUE, NOW() + INTERVAL 3 MONTH )")
+				if err != nil {
+					return tradespersonID, err
+				}
+				defer stmt.Close()
+
+				results, err := stmt.Exec(tradespersonID)
+				if err != nil {
+					return tradespersonID, err
+				}
+				rowsAffected, err = results.RowsAffected()
+				if err != nil {
+					return tradespersonID, err
+				}
+			}
 		}
 	}
 	return tradespersonID, nil
 }
 
-func GetTradespersonAccount(tradespersonID string) (models.Tradesperson, error) {
+func GetTradespersonProfile(tradespersonID string) (models.Tradesperson, error) {
 	tradesperson := models.Tradesperson{}
+	tradesperson.Address = &models.Address{}
 
-	stmt, err := db.Prepare("SELECT email, number, name FROM tradesperson_account WHERE tradespersonId=?")
+	stmt, err := db.Prepare("SELECT name, image, description, email, number, lineOne, lineTwo, city, state, zipCode FROM tradesperson_profile WHERE tradespersonId=?")
 	if err != nil {
 		return tradesperson, err
 	}
 	defer stmt.Close()
 
 	row := stmt.QueryRow(tradespersonID)
-	switch err = row.Scan(&tradesperson.Email, &tradesperson.Number, &tradesperson.Name); err {
+	switch err = row.Scan(
+		&tradesperson.Name,
+		&tradesperson.Image,
+		&tradesperson.Description,
+		&tradesperson.Email,
+		&tradesperson.Number,
+		&tradesperson.Address.LineOne,
+		&tradesperson.Address.LineTwo,
+		&tradesperson.Address.City,
+		&tradesperson.Address.State,
+		&tradesperson.Address.ZipCode); err {
 	case sql.ErrNoRows:
-		return tradesperson, err
+		//
 	case nil:
 		//
 	default:
@@ -122,55 +145,73 @@ func GetTradespersonAccount(tradespersonID string) (models.Tradesperson, error) 
 	return tradesperson, err
 }
 
-func GetTradespersonAccountByPriceID(priceID string) (models.Tradesperson, string, string, error) {
-	tradesperson := models.Tradesperson{}
-	var stripeID, tradespersonID string
-
-	stmt, err := db.Prepare("SELECT m.stripeId, m.tradespersonId, m.email, m.number, m.name FROM tradesperson_account m INNER JOIN fixed_prices s ON s.tradespersonId=m.tradespersonId WHERE s.priceId=?")
+func UpdateTradespersonProfileImage(tradespersonID, image string) error {
+	imageURL, err := internal.SaveProfileImage(tradespersonID, image)
 	if err != nil {
-		return tradesperson, stripeID, tradespersonID, err
+		log.Println("Failed to save profile image, %s", err)
+	}
+
+	stmt, err := db.Prepare("UPDATE tradesperson_profile SET image =? WHERE tradespersonId=?")
+	if err != nil {
+		return err
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRow(priceID)
-	switch err = row.Scan(&stripeID, &tradespersonID, &tradesperson.Email, &tradesperson.Number, &tradesperson.Name); err {
-	case sql.ErrNoRows:
-		return tradesperson, stripeID, tradespersonID, err
-	case nil:
-		//
-	default:
-		log.Printf("Unknown %v", err)
+	_, err = stmt.Exec(imageURL, tradespersonID)
+	if err != nil {
+		return err
 	}
 
-	return tradesperson, stripeID, tradespersonID, err
+	return nil
 }
 
-func GetTradespersonAccountByQuoteID(quoteID string) (models.Tradesperson, string, string, error) {
-	tradesperson := models.Tradesperson{}
-	var stripeID, tradespersonID string
-
-	stmt, err := db.Prepare("SELECT t.stripeId, t.tradespersonId, t.email, t.number, t.name FROM tradesperson_account t INNER JOIN quotes q ON q.tradespersonId=t.tradespersonId WHERE q.quote=?")
+func UpdateTradespersonProfileName(tradespersonID, name string) error {
+	stmt, err := db.Prepare("UPDATE tradesperson_profile SET name =? WHERE tradespersonId=?")
 	if err != nil {
-		return tradesperson, stripeID, tradespersonID, err
+		return err
 	}
 	defer stmt.Close()
 
-	row := stmt.QueryRow(quoteID)
-	switch err = row.Scan(&stripeID, &tradespersonID, &tradesperson.Email, &tradesperson.Number, &tradesperson.Name); err {
-	case sql.ErrNoRows:
-		return tradesperson, stripeID, tradespersonID, err
-	case nil:
-		//
-	default:
-		log.Printf("Unknown %v", err)
+	_, err = stmt.Exec(name, tradespersonID)
+	if err != nil {
+		return err
 	}
 
-	return tradesperson, stripeID, tradespersonID, err
+	return nil
 }
 
-func UpdateTradespersonDescription(tradespersonID, description string) error {
+func UpdateTradespersonProfileEmail(tradespersonID, email string) error {
+	stmt, err := db.Prepare("UPDATE tradesperson_profile SET email =? WHERE tradespersonId=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
 
-	stmt, err := db.Prepare("UPDATE tradesperson_account SET description =? WHERE tradespersonId=?")
+	_, err = stmt.Exec(email, tradespersonID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateTradespersonProfileNumber(tradespersonID, number string) error {
+	stmt, err := db.Prepare("UPDATE tradesperson_profile SET number =? WHERE tradespersonId=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(number, tradespersonID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateTradespersonProfileDescription(tradespersonID, description string) error {
+	stmt, err := db.Prepare("UPDATE tradesperson_profile SET description =? WHERE tradespersonId=?")
 	if err != nil {
 		return err
 	}
@@ -184,61 +225,71 @@ func UpdateTradespersonDescription(tradespersonID, description string) error {
 	return nil
 }
 
-func UpdateTradespersonImage(tradespersonID, image string) error {
-	data := strings.Split(image, ",")
-
-	dec, err := base64.StdEncoding.DecodeString(data[1])
-	if err != nil {
-		log.Println("Failed to decode")
-		return err
-	}
-	format := ""
-	switch data[0] {
-	case "data:image/jpeg;base64":
-		format = ".jpeg"
-	case "data:image/png;base64":
-		format = ".png"
-	case "data:image/webp;base64":
-		format = ".webp"
-	}
-
-	path := fmt.Sprintf("%s/%s", "images", tradespersonID)
-	//add to Util package
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err = os.MkdirAll(path, 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	fileName := fmt.Sprintf("%s/%s%s", path, tradespersonID, format)
-	f, err := os.Create(fileName)
-	if err != nil {
-		log.Println("Failed to create file with name %s", fileName)
-		return err
-	}
-	defer f.Close()
-
-	if _, err := f.Write(dec); err != nil {
-		return err
-	}
-	if err := f.Sync(); err != nil {
-		return err
-	}
-
-	stmt, err := db.Prepare("UPDATE tradesperson_account SET image =? WHERE tradespersonId=?")
+func UpdateTradespersonProfileAddress(tradespersonID string, address *models.Address) error {
+	stmt, err := db.Prepare("UPDATE tradesperson_profile SET lineOne =?, lineTwo=?, city=?, state=?, zipCode=? WHERE tradespersonId=?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	url := fmt.Sprintf("https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/%s", fileName)
-	_, err = stmt.Exec(url, tradespersonID)
+	_, err = stmt.Exec(address.LineOne, address.LineTwo, address.City, address.State, address.ZipCode, tradespersonID)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func GetTradespersonAccountByPriceID(priceID string) (models.Tradesperson, string, string, error) {
+	tradesperson := models.Tradesperson{}
+	var stripeID, tradespersonID string
+
+	stmt, err := db.Prepare("SELECT t.stripeId, t.tradespersonId FROM tradesperson_account t INNER JOIN fixed_prices s ON s.tradespersonId=t.tradespersonId WHERE s.priceId=?")
+	if err != nil {
+		return tradesperson, stripeID, tradespersonID, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(priceID)
+	switch err = row.Scan(&stripeID, &tradespersonID); err {
+	case sql.ErrNoRows:
+		return tradesperson, stripeID, tradespersonID, err
+	case nil:
+		tradesperson, err = GetTradespersonProfile(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson profile %s", err)
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return tradesperson, stripeID, tradespersonID, err
+}
+
+func GetTradespersonAccountByQuoteID(quoteID string) (models.Tradesperson, string, string, error) {
+	tradesperson := models.Tradesperson{}
+	var stripeID, tradespersonID string
+
+	stmt, err := db.Prepare("SELECT t.stripeId, t.tradespersonId FROM tradesperson_account t INNER JOIN quotes q ON q.tradespersonId=t.tradespersonId WHERE q.quote=?")
+	if err != nil {
+		return tradesperson, stripeID, tradespersonID, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(quoteID)
+	switch err = row.Scan(&stripeID, &tradespersonID); err {
+	case sql.ErrNoRows:
+		return tradesperson, stripeID, tradespersonID, err
+	case nil:
+		tradesperson, err = GetTradespersonProfile(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson profile %s", err)
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return tradesperson, stripeID, tradespersonID, err
 }
 
 func UpdateTradespersonDisplaySettings(tradespersonID string, settings operations.PutTradespersonTradespersonIDSettingsBody) (bool, error) {

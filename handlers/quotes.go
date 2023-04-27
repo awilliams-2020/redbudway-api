@@ -15,13 +15,17 @@ import (
 func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service) ([]*models.Service, error) {
 	var id int64
 	var vanityURL sql.NullString
-	var name, quoteID, title, description, tradespersonID string
+	var stripeID, quoteID, title, description, tradespersonID string
 	for rows.Next() {
-		if err := rows.Scan(&name, &id, &tradespersonID, &quoteID, &title, &description, &vanityURL); err != nil {
+		if err := rows.Scan(&stripeID, &id, &tradespersonID, &quoteID, &title, &description, &vanityURL); err != nil {
 			return quotes, err
 		}
+		tradesperson, err := database.GetTradespersonProfile(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson profile %s", err)
+		}
 		quote := &models.Service{}
-		quote.Business = name
+		quote.Business = tradesperson.Name
 		quote.Title = title
 		if len(description) > 84 {
 			description = description[:84] + "..."
@@ -32,12 +36,11 @@ func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service) ([]*
 		if vanityURL.Valid {
 			quote.VanityURL = vanityURL.String
 		}
-		var err error
 		quote.Reviews, quote.Rating, err = database.GetQuoteRating(id)
 		if err != nil {
 			log.Printf("Failed to get quote reviews and rating %s", err)
 		}
-		quote.Image, err = database.GetQuoteImage(id)
+		quote.Image, err = database.GetImage(id, "quote")
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}
@@ -59,7 +62,7 @@ func getQuotesWithFilters(state, city, category, subCategory, filters string, pa
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id LEFT JOIN quote_filters qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND qf.filter IN (" + query + ") AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id LEFT JOIN quote_filters qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND qf.filter IN (" + query + ") AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -87,7 +90,7 @@ func getSubCategoryQuotes(state, city, category, subCategory string, page int64)
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -115,7 +118,7 @@ func getCategoryQuotes(state, city, category string, page int64) ([]*models.Serv
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id WHERE q.category=? AND (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id WHERE q.category=? AND (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -143,7 +146,7 @@ func getAllQuotes(state, city string, page int64) ([]*models.Service, error) {
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id WHERE (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id WHERE (q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		return quotes, err
 	}
@@ -177,7 +180,7 @@ func getQuotesWithFiltersWOL(category, subCategory, filters string, page int64) 
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.category=? AND q.subcategory=? AND qf.filter IN (" + query + ") AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.category=? AND q.subcategory=? AND qf.filter IN (" + query + ") AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -205,7 +208,7 @@ func getSubCategoryQuotesWOL(category, subCategory string, page int64) ([]*model
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.category=? AND q.subcategory=? AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.category=? AND q.subcategory=? AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -233,7 +236,7 @@ func getCategoryQuotesWOL(category string, page int64) ([]*models.Service, error
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.category=? AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.category=? AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -261,7 +264,7 @@ func getAllQuotesWOL(page int64) ([]*models.Service, error) {
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.name, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId WHERE q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		return quotes, err
 	}

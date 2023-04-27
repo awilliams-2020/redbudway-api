@@ -76,11 +76,14 @@ func (o *PutTradespersonTradespersonID) ServeHTTP(rw http.ResponseWriter, r *htt
 // swagger:model PutTradespersonTradespersonIDBody
 type PutTradespersonTradespersonIDBody struct {
 
-	// description
-	Description string `json:"description,omitempty"`
+	// cur password
+	CurPassword string `json:"curPassword,omitempty"`
 
-	// image
-	Image string `json:"image,omitempty"`
+	// email
+	Email string `json:"email,omitempty"`
+
+	// new password
+	NewPassword string `json:"newPassword,omitempty"`
 }
 
 // Validate validates this put tradesperson tradesperson ID body

@@ -338,9 +338,9 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler(params opera
 			payload.Canceled = true
 			response.SetPayload(&payload)
 
-			tradesperson, err := database.GetTradespersonAccount(tradespersonID)
+			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account, %v", err)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return response
 			}
 			stripeCustomer, err := customer.Get(stripeQuote.Customer.ID, nil)
@@ -723,9 +723,9 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandle
 			payload.Voided = true
 			response.SetPayload(&payload)
 
-			tradesperson, err := database.GetTradespersonAccount(tradespersonID)
+			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account, %v", err)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return response
 			}
 			if err := email.SendCustomerQuoteInvoiceVoid(tradesperson, stripeInvoice, message, title); err != nil {

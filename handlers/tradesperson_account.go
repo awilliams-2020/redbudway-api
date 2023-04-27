@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
 
 	"redbudway-api/database"
+	"redbudway-api/email"
 	"redbudway-api/internal"
-	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	_stripe "redbudway-api/stripe"
 
@@ -48,7 +49,7 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 			log.Printf("Failed creating tradesperson account %s", err)
 			return response
 		}
-		onBoarding, err := _stripe.GetOnBoardingLink(stripeAccount.ID)
+		onBoarding, err := _stripe.GetOnBoardingLink(stripeAccount.ID, tradespersonID.String())
 		if err != nil {
 			log.Printf("Failed creating tradesperson onboarding link %s", err)
 			return response
@@ -143,212 +144,12 @@ func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradesperso
 	return response
 }
 
-func GetTradespersonTradespersonID(tradespersonID string) *models.Tradesperson {
-	db := database.GetConnection()
-
-	tradesperson := &models.Tradesperson{}
-
-	stmt, err := db.Prepare("SELECT name, number, description, image, email, stripeId FROM tradesperson_account WHERE tradespersonId=?")
-	if err != nil {
-		log.Printf("Failed to create select statement %s", err)
-		return tradesperson
-	}
-	defer stmt.Close()
-
-	var name, number, email, stripeID string
-	var description, image sql.NullString
-	row := stmt.QueryRow(tradespersonID)
-	switch err = row.Scan(&name, &number, &description, &image, &email, &stripeID); err {
-	case sql.ErrNoRows:
-		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
-	case nil:
-		if description.Valid {
-			tradesperson.Description = description.String
-		}
-		if image.Valid {
-			tradesperson.Image = image.String
-		}
-		tradesperson.Name = name
-		tradesperson.Number = number
-		tradesperson.Email = email
-
-		jobs, err := database.GetTradespersonJobs(tradespersonID)
-		if err != nil {
-			log.Printf("Failed to get tradesperson job count %s", err)
-			return tradesperson
-		}
-		tradesperson.Jobs = jobs
-
-		rating, reviews, err := database.GetTradespersonRatingReviews(tradespersonID)
-		if err != nil {
-			log.Printf("Failed to get tradesperson rating & reviews %s", err)
-			return tradesperson
-		}
-		tradesperson.Rating = rating
-		tradesperson.Reviews = reviews
-
-		connect, err := _stripe.GetConnectAccount(stripeID)
-		if err != nil {
-			log.Print("Failed to get stripe connect account for tradesperson with ID %s", tradespersonID)
-			return tradesperson
-		}
-
-		tradesperson.Address = &models.Address{}
-		tradesperson.Address.City = connect.BusinessProfile.SupportAddress.City
-		tradesperson.Address.State = connect.BusinessProfile.SupportAddress.State
-		tradesperson.Address.LineOne = connect.BusinessProfile.SupportAddress.Line1
-		tradesperson.Address.LineTwo = connect.BusinessProfile.SupportAddress.Line2
-		tradesperson.Address.ZipCode = connect.BusinessProfile.SupportAddress.PostalCode
-	default:
-		log.Printf("Unknown %v", err)
-	}
-
-	return tradesperson
-}
-
 func GetTradespersonTradespersonIDHandler(params operations.GetTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	token := params.HTTPRequest.Header.Get("Authorization")
 
+	payload := operations.GetTradespersonTradespersonIDOKBody{Enabled: false, Submitted: false}
 	response := operations.NewGetTradespersonTradespersonIDOK()
-
-	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
-	if err != nil {
-		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	} else if !valid {
-		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	}
-
-	tradeperson := GetTradespersonTradespersonID(tradespersonID)
-	response.SetPayload(tradeperson)
-
-	return response
-}
-
-func PutTradespersonTradespersonIDHandler(params operations.PutTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
-	tradespersonID := params.TradespersonID
-	tradesperson := params.Tradesperson
-	token := params.HTTPRequest.Header.Get("Authorization")
-
-	payload := operations.PutTradespersonTradespersonIDOKBody{}
-	updated := false
-	payload.Updated = updated
-	response := operations.NewPutTradespersonTradespersonIDOK()
-	response.SetPayload(&payload)
-
-	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
-	if err != nil {
-		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	} else if !valid {
-		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	}
-
-	if err := database.UpdateTradespersonDescription(tradespersonID, tradesperson.Description); err != nil {
-		log.Printf("Failed to update tradesperson description, %v", err)
-	}
-
-	if tradesperson.Image != "" {
-		if err := database.UpdateTradespersonImage(tradespersonID, tradesperson.Image); err != nil {
-			log.Printf("Failed to update tradesperson image, %v", err)
-		}
-	}
-
-	payload.Updated = true
-	response = operations.NewPutTradespersonTradespersonIDOK()
-	response.SetPayload(&payload)
-	return response
-}
-
-func GetTradespersonTradespersonIDSettingsHandler(params operations.GetTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
-	tradespersonID := params.TradespersonID
-	token := params.HTTPRequest.Header.Get("Authorization")
-
-	payload := operations.GetTradespersonTradespersonIDSettingsOKBody{}
-	response := operations.NewGetTradespersonTradespersonIDSettingsOK()
-	response.SetPayload(&payload)
-
-	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
-	if err != nil {
-		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	} else if !valid {
-		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	}
-
-	db := database.GetConnection()
-
-	stmt, err := db.Prepare("SELECT vanityURL, number, email, address FROM tradesperson_settings WHERE tradespersonId=?")
-	if err != nil {
-		log.Printf("Failed to create select statement %s", err)
-		return response
-	}
-	defer stmt.Close()
-
-	var vanityURL sql.NullString
-	var displayNumber, displayEmail, displayAddress bool
-	row := stmt.QueryRow(tradespersonID)
-	switch err = row.Scan(&vanityURL, &displayNumber, &displayEmail, &displayAddress); err {
-	case sql.ErrNoRows:
-		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
-	case nil:
-		if vanityURL.Valid {
-			payload.VanityURL = vanityURL.String
-		}
-		payload.DisplayNumber = displayNumber
-		payload.DisplayEmail = displayEmail
-		payload.DisplayAddress = displayAddress
-
-		response.SetPayload(&payload)
-	default:
-		log.Printf("Unknown %v", err)
-	}
-	return response
-}
-
-func PutTradespersonTradespersonIDSettingsHandler(params operations.PutTradespersonTradespersonIDSettingsParams, principal interface{}) middleware.Responder {
-	tradespersonID := params.TradespersonID
-	settings := params.Settings
-	token := params.HTTPRequest.Header.Get("Authorization")
-
-	response := operations.NewPutTradespersonTradespersonIDSettingsOK()
-
-	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
-	if err != nil {
-		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	} else if !valid {
-		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
-	}
-
-	updated, err := database.UpdateTradespersonDisplaySettings(tradespersonID, settings)
-	if err != nil {
-		log.Printf("Failed to update tradesperson display settings %s", err)
-	}
-	if updated {
-		updated, err = database.UpdateTradespersonVanitySettings(tradespersonID, settings)
-		if err != nil {
-			log.Printf("Failed to update tradesperson vanity settings %s", err)
-		}
-	}
-	payload := operations.PutTradespersonTradespersonIDSettingsOKBody{Updated: updated}
-
-	response.SetPayload(&payload)
-
-	return response
-}
-
-func GetTradespersonTradespersonIDStatusHandler(params operations.GetTradespersonTradespersonIDStatusParams, principal interface{}) middleware.Responder {
-	tradespersonID := params.TradespersonID
-	token := params.HTTPRequest.Header.Get("Authorization")
-
-	payload := operations.GetTradespersonTradespersonIDStatusOKBody{Enabled: false, Submitted: false}
-	response := operations.NewGetTradespersonTradespersonIDStatusOK()
 	response.SetPayload(&payload)
 
 	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
@@ -390,15 +191,11 @@ func GetTradespersonTradespersonIDStatusHandler(params operations.GetTradesperso
 	return response
 }
 
-func PutTradespersonTradespersonIDPasswordHandler(params operations.PutTradespersonTradespersonIDPasswordParams, principal interface{}) middleware.Responder {
-	tradesperson := params.Tradesperson
+func GetTradespersonTradespersonIDSyncHandler(params operations.GetTradespersonTradespersonIDSyncParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	token := params.HTTPRequest.Header.Get("Authorization")
 
-	response := operations.NewPutTradespersonTradespersonIDPasswordOK()
-	payload := &operations.PutTradespersonTradespersonIDPasswordOKBody{}
-	payload.Updated = false
-	response.SetPayload(payload)
+	response := operations.NewGetTradespersonTradespersonIDSyncOK()
 
 	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
 	if err != nil {
@@ -409,50 +206,25 @@ func PutTradespersonTradespersonIDPasswordHandler(params operations.PutTradesper
 		return response
 	}
 
-	db := database.GetConnection()
-
-	stmt, err := db.Prepare("SELECT name, email, password FROM tradesperson_account WHERE tradespersonId=?")
+	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
 	if err != nil {
-		log.Printf("Failed to create select statement %s", err)
+		log.Printf("Failed to get tradesperson %s, stripeID, %v", tradespersonID, err)
 		return response
 	}
-	defer stmt.Close()
+	connect, err := _stripe.GetConnectAccount(stripeID)
+	if err != nil {
+		log.Printf("Failed to get tradesperson %s, connect account, %v", tradespersonID, err)
+		return response
+	}
 
-	row := stmt.QueryRow(tradespersonID)
-	var name, email, hashPassword string
-	switch err = row.Scan(&name, &email, &hashPassword); err {
-	case sql.ErrNoRows:
-		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
-	case nil:
-		if internal.CheckPasswordHash(*tradesperson.CurPassword, hashPassword) {
-			stmt, err := db.Prepare("UPDATE tradesperson_account SET password=? WHERE tradespersonId = ?")
-			if err != nil {
-				return response
-			}
-			defer stmt.Close()
-
-			newHashPassword, err := internal.HashPassword(*tradesperson.NewPassword)
-			if err != nil {
-				log.Printf("%s", err)
-				return response
-			}
-			results, err := stmt.Exec(newHashPassword, tradespersonID)
-			if err != nil {
-				return response
-			}
-
-			rowsAffected, err := results.RowsAffected()
-			if err != nil {
-				return response
-			}
-
-			if rowsAffected == 1 {
-				payload.Updated = true
-				response.SetPayload(payload)
-			}
+	if connect.BusinessProfile.Name != "" {
+		if err := database.UpdateTradespersonProfileName(tradespersonID, connect.BusinessProfile.Name); err != nil {
+			log.Printf("Failed to update tradesperson profile name, %v", err)
 		}
-	default:
-		log.Printf("Unknown %v", err)
+	} else if connect.BusinessProfile.URL != "" {
+		if err := database.UpdateTradespersonProfileName(tradespersonID, connect.BusinessProfile.URL); err != nil {
+			log.Printf("Failed to update tradesperson profile name, %v", err)
+		}
 	}
 
 	return response
@@ -490,7 +262,7 @@ func GetTradespersonTradespersonIDOnboardHandler(params operations.GetTradespers
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %v doesn't exist", tradespersonID)
 	case nil:
-		onBoarding, err := _stripe.GetOnBoardingLink(stripeID)
+		onBoarding, err := _stripe.GetOnBoardingLink(stripeID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed creating tradesperson onboarding link %s", err)
 			return response
@@ -536,7 +308,201 @@ func GetTradespersonTradespersonIDLoginLinkHandler(params operations.GetTradespe
 	return response
 }
 
-func GetTradespersonTradespersonIDSellingFeeHandler(params operations.GetTradespersonTradespersonIDSellingFeeParams, principal interface{}) middleware.Responder {
+func PutTradespersonTradespersonIDHandler(params operations.PutTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	account := params.Account
+	token := params.HTTPRequest.Header.Get("Authorization")
 
-	return operations.NewGetTradespersonTradespersonIDSellingFeeOK()
+	response := operations.NewPutTradespersonTradespersonIDOK()
+	payload := &operations.PutTradespersonTradespersonIDOKBody{}
+	payload.Updated = false
+	response.SetPayload(payload)
+
+	var err error
+	if account.Email != "" && account.CurPassword != "" {
+		payload.Updated, err = putTradespersonEmail(tradespersonID, account.Email, account.CurPassword, token)
+		if err != nil {
+			log.Printf("Failed to update tradesperson account email, %s", err)
+		}
+	} else if account.NewPassword != "" && account.CurPassword != "" {
+		payload.Updated, err = putTradespersonPassword(tradespersonID, account.CurPassword, account.NewPassword, token)
+		if err != nil {
+			log.Printf("Failed to update tradesperson account password, %s", err)
+		}
+	} else if account.Email != "" {
+		payload.Updated, err = revertTradespersonEmail(tradespersonID, account.Email, token)
+		if err != nil {
+			log.Printf("Failed to revert tradesperson account email, %s", err)
+		}
+	}
+
+	response = operations.NewPutTradespersonTradespersonIDOK()
+	response.SetPayload(payload)
+	return response
+}
+
+func putTradespersonPassword(tradespersonID, curPassword, newPassword, token string) (bool, error) {
+	updated := false
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return updated, err
+	} else if !valid {
+		return updated, fmt.Errorf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+	}
+
+	db := database.GetConnection()
+	stmt, err := db.Prepare("SELECT email, password FROM tradesperson_account WHERE tradespersonId=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return updated, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID)
+	var hashPassword, accountEmail string
+	switch err = row.Scan(&accountEmail, &hashPassword); err {
+	case sql.ErrNoRows:
+		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
+	case nil:
+		if internal.CheckPasswordHash(curPassword, hashPassword) {
+			stmt, err := db.Prepare("UPDATE tradesperson_account SET password=? WHERE tradespersonId = ?")
+			if err != nil {
+				return updated, err
+			}
+			defer stmt.Close()
+
+			newHashPassword, err := internal.HashPassword(newPassword)
+			if err != nil {
+				log.Printf("%s", err)
+				return updated, err
+			}
+			results, err := stmt.Exec(newHashPassword, tradespersonID)
+			if err != nil {
+				return updated, err
+			}
+
+			rowsAffected, err := results.RowsAffected()
+			if err != nil {
+				return updated, err
+			}
+
+			updated = rowsAffected == 1
+			if updated {
+				tradesperson, err := database.GetTradespersonProfile(tradespersonID)
+				if err != nil {
+					log.Printf("Failed to get tradesperson profile %s", err)
+					return updated, nil
+				}
+				if err := email.PasswordUpdated(accountEmail, tradesperson.Name); err != nil {
+					log.Printf("Failed to send tradesperson email, %v", err)
+					return updated, nil
+				}
+			}
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return updated, nil
+}
+
+func putTradespersonEmail(tradespersonID, newEmail, curPassword, token string) (bool, error) {
+	updated := false
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return updated, err
+	} else if !valid {
+		return updated, fmt.Errorf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+	}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT email, password FROM tradesperson_account WHERE tradespersonId=?")
+	if err != nil {
+		log.Printf("Failed to create select statement %s", err)
+		return updated, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID)
+	var accountEmail, hashPassword string
+	switch err = row.Scan(&accountEmail, &hashPassword); err {
+	case sql.ErrNoRows:
+		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
+	case nil:
+		if internal.CheckPasswordHash(curPassword, hashPassword) {
+			stmt, err := db.Prepare("UPDATE tradesperson_account SET email=? WHERE tradespersonId = ?")
+			if err != nil {
+				return updated, err
+			}
+			defer stmt.Close()
+
+			results, err := stmt.Exec(newEmail, tradespersonID)
+			if err != nil {
+				return updated, err
+			}
+
+			rowsAffected, err := results.RowsAffected()
+			if err != nil {
+				return updated, err
+			}
+
+			updated = rowsAffected == 1
+			if updated {
+				token, err := internal.GenerateToken(tradespersonID, "tradesperson", accountEmail, time.Hour*1)
+				if err != nil {
+					log.Printf("Failed to generate JWT, %s", err)
+					return updated, err
+				}
+				tradesperson, err := database.GetTradespersonProfile(tradespersonID)
+				if err != nil {
+					log.Printf("Failed to get tradesperson profile %s", err)
+					return updated, err
+				}
+				if err := email.EmailUpdated(accountEmail, tradesperson.Name, token, tradespersonID); err != nil {
+					log.Printf("Failed to send tradesperson email, %v", err)
+					return updated, err
+				}
+			}
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return updated, nil
+}
+
+func revertTradespersonEmail(tradespersonID, oldEmail, token string) (bool, error) {
+
+	claims, _, err := internal.GetRegisteredClaims(token)
+	if err != nil {
+		log.Printf("Failed to get registered claims from token, %v", err)
+		return false, err
+	}
+	if claims.Subject != tradespersonID || claims.ID != oldEmail {
+		return false, fmt.Errorf("tradespersonID %s doesnt match %s or email %s doesnt match %s", claims.Subject, tradespersonID, claims.ID, oldEmail)
+	}
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("UPDATE tradesperson_account SET email=? WHERE tradespersonId = ?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	results, err := stmt.Exec(oldEmail, tradespersonID)
+	if err != nil {
+		return false, err
+	}
+
+	rowsAffected, err := results.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+
+	return rowsAffected == 1, nil
 }

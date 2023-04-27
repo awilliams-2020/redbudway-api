@@ -66,174 +66,6 @@ func init() {
         }
       }
     },
-    "/admin": {
-      "post": {
-        "parameters": [
-          {
-            "description": "The admin account to create.",
-            "name": "admin",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "user",
-                "password",
-                "masterPass"
-              ],
-              "properties": {
-                "masterPass": {
-                  "type": "string",
-                  "format": "password"
-                },
-                "password": {
-                  "type": "string",
-                  "format": "password"
-                },
-                "user": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created admin account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                },
-                "adminId": {
-                  "type": "string"
-                },
-                "created": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                },
-                "refreshToken": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/login": {
-      "post": {
-        "parameters": [
-          {
-            "description": "Log in to admin account.",
-            "name": "admin",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "user",
-                "password"
-              ],
-              "properties": {
-                "password": {
-                  "type": "string"
-                },
-                "user": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Valid email and password",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                },
-                "adminId": {
-                  "type": "string"
-                },
-                "refreshToken": {
-                  "type": "string"
-                },
-                "valid": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/{adminId}/access-token": {
-      "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Admin ID",
-            "name": "adminId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A valid admin accessToken",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "valid": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Admin ID",
-            "name": "adminId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "New admin access token",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                },
-                "refreshToken": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/admin/{adminId}/tradespeople": {
       "get": {
         "security": [
@@ -391,6 +223,51 @@ func init() {
       }
     },
     "/customer/{customerId}": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to update.",
+            "name": "account",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "curPassword": {
+                  "type": "string"
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "security": [
           {
@@ -1211,6 +1088,11 @@ func init() {
     },
     "/customer/{customerId}/verify": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "type": "string",
@@ -1236,6 +1118,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "type": "string",
@@ -1243,19 +1130,6 @@ func init() {
             "name": "customerId",
             "in": "path",
             "required": true
-          },
-          {
-            "description": "The customer account to create.",
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                }
-              }
-            }
           }
         ],
         "responses": {
@@ -1838,8 +1712,36 @@ func init() {
         }
       }
     },
+    "/reset-email": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reset email",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reset": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/reset-password": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user",
@@ -1847,22 +1749,10 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "accountType",
-                "password",
-                "token",
-                "userId"
+                "password"
               ],
               "properties": {
-                "accountType": {
-                  "type": "string"
-                },
                 "password": {
-                  "type": "string"
-                },
-                "token": {
-                  "type": "string"
-                },
-                "userId": {
                   "type": "string"
                 }
               }
@@ -1871,7 +1761,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Update password",
+            "description": "Reset password",
             "schema": {
               "type": "object",
               "properties": {
@@ -1895,28 +1785,12 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "name",
-                "email",
-                "password",
-                "number",
-                "address"
+                "email"
               ],
               "properties": {
-                "address": {
-                  "$ref": "#/definitions/Address"
-                },
-                "description": {
-                  "type": "string"
-                },
                 "email": {
                   "type": "string",
                   "format": "email"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "number": {
-                  "type": "string"
                 },
                 "password": {
                   "type": "string",
@@ -1988,6 +1862,9 @@ func init() {
                 "accessToken": {
                   "type": "string"
                 },
+                "admin": {
+                  "type": "boolean"
+                },
                 "email": {
                   "type": "string"
                 },
@@ -2034,9 +1911,19 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "A tradesperson",
+            "description": "Status of tradesperson stripe account",
             "schema": {
-              "$ref": "#/definitions/Tradesperson"
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "submitted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
             }
           }
         }
@@ -2055,16 +1942,19 @@ func init() {
             "required": true
           },
           {
-            "description": "The tradesperson to update.",
-            "name": "tradesperson",
+            "description": "The tradesperson account to update.",
+            "name": "account",
             "in": "body",
             "schema": {
               "type": "object",
               "properties": {
-                "description": {
+                "curPassword": {
                   "type": "string"
                 },
-                "image": {
+                "email": {
+                  "type": "string"
+                },
+                "newPassword": {
                   "type": "string"
                 }
               }
@@ -2073,7 +1963,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Updates tradesperson profile",
+            "description": "Updated tradesperson account",
             "schema": {
               "type": "object",
               "properties": {
@@ -4607,7 +4497,31 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/password": {
+    "/tradesperson/{tradespersonId}/profile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Tradesperson"
+            }
+          }
+        }
+      },
       "put": {
         "security": [
           {
@@ -4622,29 +4536,17 @@ func init() {
             "required": true
           },
           {
-            "description": "The tradesperson password to update.",
+            "description": "The tradesperson to update.",
             "name": "tradesperson",
             "in": "body",
             "schema": {
-              "type": "object",
-              "required": [
-                "curPassword",
-                "newPassword"
-              ],
-              "properties": {
-                "curPassword": {
-                  "type": "string"
-                },
-                "newPassword": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/Tradesperson"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Tradeperson password updated",
+            "description": "Updates tradesperson profile",
             "schema": {
               "type": "object",
               "properties": {
@@ -5037,38 +4939,6 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/selling-fee": {
-      "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A tradesperson selling fee",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "fee": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/tradesperson/{tradespersonId}/settings": {
       "get": {
         "security": [
@@ -5167,7 +5037,7 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/status": {
+    "/tradesperson/{tradespersonId}/sync": {
       "get": {
         "security": [
           {
@@ -5185,20 +5055,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Status of tradesperson stripe account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                },
-                "submitted": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                }
-              }
-            }
+            "description": "Sync tradesperson business info"
           }
         }
       }
@@ -5719,174 +5576,6 @@ func init() {
         }
       }
     },
-    "/admin": {
-      "post": {
-        "parameters": [
-          {
-            "description": "The admin account to create.",
-            "name": "admin",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "user",
-                "password",
-                "masterPass"
-              ],
-              "properties": {
-                "masterPass": {
-                  "type": "string",
-                  "format": "password"
-                },
-                "password": {
-                  "type": "string",
-                  "format": "password"
-                },
-                "user": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Created admin account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                },
-                "adminId": {
-                  "type": "string"
-                },
-                "created": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                },
-                "refreshToken": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/login": {
-      "post": {
-        "parameters": [
-          {
-            "description": "Log in to admin account.",
-            "name": "admin",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "required": [
-                "user",
-                "password"
-              ],
-              "properties": {
-                "password": {
-                  "type": "string"
-                },
-                "user": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Valid email and password",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                },
-                "adminId": {
-                  "type": "string"
-                },
-                "refreshToken": {
-                  "type": "string"
-                },
-                "valid": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/{adminId}/access-token": {
-      "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Admin ID",
-            "name": "adminId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A valid admin accessToken",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "valid": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Admin ID",
-            "name": "adminId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "New admin access token",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                },
-                "refreshToken": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/admin/{adminId}/tradespeople": {
       "get": {
         "security": [
@@ -6030,6 +5719,51 @@ func init() {
       }
     },
     "/customer/{customerId}": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The customer account to update.",
+            "name": "account",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "curPassword": {
+                  "type": "string"
+                },
+                "newPassword": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated customer account",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
       "delete": {
         "security": [
           {
@@ -6838,6 +6572,11 @@ func init() {
     },
     "/customer/{customerId}/verify": {
       "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "type": "string",
@@ -6863,6 +6602,11 @@ func init() {
         }
       },
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "type": "string",
@@ -6870,19 +6614,6 @@ func init() {
             "name": "customerId",
             "in": "path",
             "required": true
-          },
-          {
-            "description": "The customer account to create.",
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "accessToken": {
-                  "type": "string"
-                }
-              }
-            }
           }
         ],
         "responses": {
@@ -7409,8 +7140,36 @@ func init() {
         }
       }
     },
+    "/reset-email": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reset email",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "reset": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/reset-password": {
       "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user",
@@ -7418,22 +7177,10 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "accountType",
-                "password",
-                "token",
-                "userId"
+                "password"
               ],
               "properties": {
-                "accountType": {
-                  "type": "string"
-                },
                 "password": {
-                  "type": "string"
-                },
-                "token": {
-                  "type": "string"
-                },
-                "userId": {
                   "type": "string"
                 }
               }
@@ -7442,7 +7189,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Update password",
+            "description": "Reset password",
             "schema": {
               "type": "object",
               "properties": {
@@ -7466,28 +7213,12 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "name",
-                "email",
-                "password",
-                "number",
-                "address"
+                "email"
               ],
               "properties": {
-                "address": {
-                  "$ref": "#/definitions/Address"
-                },
-                "description": {
-                  "type": "string"
-                },
                 "email": {
                   "type": "string",
                   "format": "email"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "number": {
-                  "type": "string"
                 },
                 "password": {
                   "type": "string",
@@ -7559,6 +7290,9 @@ func init() {
                 "accessToken": {
                   "type": "string"
                 },
+                "admin": {
+                  "type": "boolean"
+                },
                 "email": {
                   "type": "string"
                 },
@@ -7605,9 +7339,19 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "A tradesperson",
+            "description": "Status of tradesperson stripe account",
             "schema": {
-              "$ref": "#/definitions/Tradesperson"
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "submitted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
             }
           }
         }
@@ -7626,16 +7370,19 @@ func init() {
             "required": true
           },
           {
-            "description": "The tradesperson to update.",
-            "name": "tradesperson",
+            "description": "The tradesperson account to update.",
+            "name": "account",
             "in": "body",
             "schema": {
               "type": "object",
               "properties": {
-                "description": {
+                "curPassword": {
                   "type": "string"
                 },
-                "image": {
+                "email": {
+                  "type": "string"
+                },
+                "newPassword": {
                   "type": "string"
                 }
               }
@@ -7644,7 +7391,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Updates tradesperson profile",
+            "description": "Updated tradesperson account",
             "schema": {
               "type": "object",
               "properties": {
@@ -10050,7 +9797,31 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/password": {
+    "/tradesperson/{tradespersonId}/profile": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Tradesperson"
+            }
+          }
+        }
+      },
       "put": {
         "security": [
           {
@@ -10065,29 +9836,17 @@ func init() {
             "required": true
           },
           {
-            "description": "The tradesperson password to update.",
+            "description": "The tradesperson to update.",
             "name": "tradesperson",
             "in": "body",
             "schema": {
-              "type": "object",
-              "required": [
-                "curPassword",
-                "newPassword"
-              ],
-              "properties": {
-                "curPassword": {
-                  "type": "string"
-                },
-                "newPassword": {
-                  "type": "string"
-                }
-              }
+              "$ref": "#/definitions/Tradesperson"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Tradeperson password updated",
+            "description": "Updates tradesperson profile",
             "schema": {
               "type": "object",
               "properties": {
@@ -10403,38 +10162,6 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/selling-fee": {
-      "get": {
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "type": "string",
-            "description": "Tradesperson ID",
-            "name": "tradespersonId",
-            "in": "path",
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A tradesperson selling fee",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "fee": {
-                  "type": "integer",
-                  "format": "int64"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/tradesperson/{tradespersonId}/settings": {
       "get": {
         "security": [
@@ -10533,7 +10260,7 @@ func init() {
         }
       }
     },
-    "/tradesperson/{tradespersonId}/status": {
+    "/tradesperson/{tradespersonId}/sync": {
       "get": {
         "security": [
           {
@@ -10551,20 +10278,7 @@ func init() {
         ],
         "responses": {
           "200": {
-            "description": "Status of tradesperson stripe account",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "enabled": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                },
-                "submitted": {
-                  "type": "boolean",
-                  "x-omitempty": false
-                }
-              }
-            }
+            "description": "Sync tradesperson business info"
           }
         }
       }

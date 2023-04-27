@@ -62,9 +62,9 @@ func GetQuoteReviews(quoteID string, page int64) ([]*operations.GetQuoteQuoteIDR
 		}
 		review.Date = date
 		if responded {
-			tradesperson, err := GetTradespersonAccount(tradespersonID)
+			tradesperson, err := GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account %s, %v", tradespersonID, err)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return reviews, err
 			}
 			review.Tradesperson = tradesperson.Name

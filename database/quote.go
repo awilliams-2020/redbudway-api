@@ -11,7 +11,7 @@ func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *operations
 	quote := &models.ServiceDetails{}
 	business := &operations.GetQuoteQuoteIDOKBodyBusiness{}
 
-	stmt, err := db.Prepare("SELECT ta.name, ta.tradespersonId, ts.vanityURL, q.id, q.title, q.description, q.category, q.subcategory, q.selectPlaces FROM quotes q INNER JOIN tradesperson_account ta ON ta.tradespersonId=q.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities qsc ON qsc.quoteId=q.id WHERE q.archived=false AND q.quote=?")
+	stmt, err := db.Prepare("SELECT tp.name, tp.tradespersonId, ts.vanityURL, q.id, q.title, q.description, q.category, q.subcategory, q.selectPlaces FROM quotes q INNER JOIN tradesperson_profile tp ON tp.tradespersonId=q.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities qsc ON qsc.quoteId=q.id WHERE q.archived=false AND q.quote=?")
 	if err != nil {
 		return quote, business, err
 	}
@@ -41,7 +41,7 @@ func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *operations
 		if err != nil {
 			log.Printf("Failed to get quote reviews and rating %s", err)
 		}
-		quote.Images, err = GetQuoteImages(ID)
+		quote.Images, err = GetImages(ID, "quote")
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}

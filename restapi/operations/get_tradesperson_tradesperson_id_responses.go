@@ -9,14 +9,12 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/runtime"
-
-	"redbudway-api/models"
 )
 
 // GetTradespersonTradespersonIDOKCode is the HTTP code returned for type GetTradespersonTradespersonIDOK
 const GetTradespersonTradespersonIDOKCode int = 200
 
-/*GetTradespersonTradespersonIDOK A tradesperson
+/*GetTradespersonTradespersonIDOK Status of tradesperson stripe account
 
 swagger:response getTradespersonTradespersonIdOK
 */
@@ -25,7 +23,7 @@ type GetTradespersonTradespersonIDOK struct {
 	/*
 	  In: Body
 	*/
-	Payload *models.Tradesperson `json:"body,omitempty"`
+	Payload *GetTradespersonTradespersonIDOKBody `json:"body,omitempty"`
 }
 
 // NewGetTradespersonTradespersonIDOK creates GetTradespersonTradespersonIDOK with default headers values
@@ -35,13 +33,13 @@ func NewGetTradespersonTradespersonIDOK() *GetTradespersonTradespersonIDOK {
 }
 
 // WithPayload adds the payload to the get tradesperson tradesperson Id o k response
-func (o *GetTradespersonTradespersonIDOK) WithPayload(payload *models.Tradesperson) *GetTradespersonTradespersonIDOK {
+func (o *GetTradespersonTradespersonIDOK) WithPayload(payload *GetTradespersonTradespersonIDOKBody) *GetTradespersonTradespersonIDOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the get tradesperson tradesperson Id o k response
-func (o *GetTradespersonTradespersonIDOK) SetPayload(payload *models.Tradesperson) {
+func (o *GetTradespersonTradespersonIDOK) SetPayload(payload *GetTradespersonTradespersonIDOKBody) {
 	o.Payload = payload
 }
 

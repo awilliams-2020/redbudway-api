@@ -40,6 +40,52 @@ func GenerateUUID() (uuid.UUID, error) {
 	return u2, err
 }
 
+func SaveProfileImage(tradespersonID, image string) (string, error) {
+	url := ""
+	data := strings.Split(image, ",")
+
+	dec, err := base64.StdEncoding.DecodeString(data[1])
+	if err != nil {
+		log.Println("Failed to decode")
+		return url, err
+	}
+	format := ""
+	switch data[0] {
+	case "data:image/jpeg;base64":
+		format = ".jpeg"
+	case "data:image/png;base64":
+		format = ".png"
+	case "data:image/webp;base64":
+		format = ".webp"
+	}
+
+	path := fmt.Sprintf("%s/%s", "images", tradespersonID)
+	//add to Util package
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return url, err
+		}
+	}
+
+	fileName := fmt.Sprintf("%s/%s%s", path, tradespersonID, format)
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Println("Failed to create file with name %s", fileName)
+		return url, err
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		return url, err
+	}
+	if err := f.Sync(); err != nil {
+		return url, err
+	}
+
+	return fmt.Sprintf("https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/%s", fileName), nil
+}
+
 func saveImage(path, image string, index int) (string, error) {
 	data := strings.Split(image, ",")
 
@@ -68,41 +114,6 @@ func saveImage(path, image string, index int) (string, error) {
 	return fileName, nil
 }
 
-func ProcessQuoteImages(customerID, quoteID string, incImages []string) ([]string, error) {
-	images := []string{}
-	customerPath := fmt.Sprintf("%s/%s", "images", customerID)
-	if _, err := os.Stat(customerPath); os.IsNotExist(err) {
-		err = os.MkdirAll(customerPath, 0755)
-		if err != nil {
-			return images, err
-		}
-	}
-	quotePath := fmt.Sprintf("%s/%s", customerPath, customerID)
-	if _, err := os.Stat(customerPath); os.IsNotExist(err) {
-		err = os.MkdirAll(customerPath, 0755)
-		if err != nil {
-			return images, err
-		}
-	}
-
-	if len(incImages) != 0 {
-		for index, binary := range incImages {
-			if !strings.Contains(binary, "http") {
-				URL, err := saveImage(quotePath, binary, index)
-				if err != nil {
-					log.Printf("Failed to save images, %s", err)
-					continue
-				}
-				images = append(images, URL)
-			} else {
-				images = append(images, binary)
-			}
-		}
-	}
-
-	return images, nil
-}
-
 func ProcessEmailImages(customerID string, incImages []string) ([]string, error) {
 	images := []string{}
 	emailPath := fmt.Sprintf("%s/%s", "images", "emails")
@@ -122,16 +133,12 @@ func ProcessEmailImages(customerID string, incImages []string) ([]string, error)
 
 	if len(incImages) != 0 {
 		for index, binary := range incImages {
-			if !strings.Contains(binary, "http") {
-				URL, err := saveImage(customerPath, binary, index)
-				if err != nil {
-					log.Printf("Failed to save images, %s", err)
-					continue
-				}
-				images = append(images, URL)
-			} else {
-				images = append(images, binary)
+			URL, err := saveImage(customerPath, binary, index)
+			if err != nil {
+				log.Printf("Failed to save images, %s", err)
+				continue
 			}
+			images = append(images, URL)
 		}
 	}
 

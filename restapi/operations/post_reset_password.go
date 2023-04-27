@@ -17,16 +17,16 @@ import (
 )
 
 // PostResetPasswordHandlerFunc turns a function with the right signature into a post reset password handler
-type PostResetPasswordHandlerFunc func(PostResetPasswordParams) middleware.Responder
+type PostResetPasswordHandlerFunc func(PostResetPasswordParams, interface{}) middleware.Responder
 
 // Handle executing the request and returning a response
-func (fn PostResetPasswordHandlerFunc) Handle(params PostResetPasswordParams) middleware.Responder {
-	return fn(params)
+func (fn PostResetPasswordHandlerFunc) Handle(params PostResetPasswordParams, principal interface{}) middleware.Responder {
+	return fn(params, principal)
 }
 
 // PostResetPasswordHandler interface for that can handle valid post reset password params
 type PostResetPasswordHandler interface {
-	Handle(PostResetPasswordParams) middleware.Responder
+	Handle(PostResetPasswordParams, interface{}) middleware.Responder
 }
 
 // NewPostResetPassword creates a new http.Handler for the post reset password operation
@@ -50,12 +50,25 @@ func (o *PostResetPassword) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		*r = *rCtx
 	}
 	var Params = NewPostResetPasswordParams()
+	uprinc, aCtx, err := o.Context.Authorize(r, route)
+	if err != nil {
+		o.Context.Respond(rw, r, route.Produces, route, err)
+		return
+	}
+	if aCtx != nil {
+		*r = *aCtx
+	}
+	var principal interface{}
+	if uprinc != nil {
+		principal = uprinc.(interface{}) // this is really a interface{}, I promise
+	}
+
 	if err := o.Context.BindValidRequest(r, route, &Params); err != nil { // bind params
 		o.Context.Respond(rw, r, route.Produces, route, err)
 		return
 	}
 
-	res := o.Handler.Handle(Params) // actually handle the request
+	res := o.Handler.Handle(Params, principal) // actually handle the request
 	o.Context.Respond(rw, r, route.Produces, route, res)
 
 }
@@ -65,40 +78,16 @@ func (o *PostResetPassword) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 // swagger:model PostResetPasswordBody
 type PostResetPasswordBody struct {
 
-	// account type
-	// Required: true
-	AccountType *string `json:"accountType"`
-
 	// password
 	// Required: true
 	Password *string `json:"password"`
-
-	// token
-	// Required: true
-	Token *string `json:"token"`
-
-	// user Id
-	// Required: true
-	UserID *string `json:"userId"`
 }
 
 // Validate validates this post reset password body
 func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateAccountType(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := o.validatePassword(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateToken(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := o.validateUserID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -108,36 +97,9 @@ func (o *PostResetPasswordBody) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (o *PostResetPasswordBody) validateAccountType(formats strfmt.Registry) error {
-
-	if err := validate.Required("user"+"."+"accountType", "body", o.AccountType); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (o *PostResetPasswordBody) validatePassword(formats strfmt.Registry) error {
 
 	if err := validate.Required("user"+"."+"password", "body", o.Password); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostResetPasswordBody) validateToken(formats strfmt.Registry) error {
-
-	if err := validate.Required("user"+"."+"token", "body", o.Token); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (o *PostResetPasswordBody) validateUserID(formats strfmt.Registry) error {
-
-	if err := validate.Required("user"+"."+"userId", "body", o.UserID); err != nil {
 		return err
 	}
 

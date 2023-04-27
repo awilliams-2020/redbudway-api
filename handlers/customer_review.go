@@ -231,9 +231,9 @@ func PostCustomerCustomerIDFixedPricePriceIDReviewHandler(params operations.Post
 				return response
 			}
 
-			tradesperson, err := database.GetTradespersonAccount(tradespersonID)
+			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account %s", tradespersonID)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return response
 			}
 
@@ -299,9 +299,9 @@ func PostCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.PostCusto
 				return response
 			}
 
-			tradesperson, err := database.GetTradespersonAccount(tradespersonID)
+			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
-				log.Printf("Failed to get tradesperson account %s", tradespersonID)
+				log.Printf("Failed to get tradesperson profile %s", err)
 				return response
 			}
 

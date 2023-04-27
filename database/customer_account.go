@@ -6,6 +6,7 @@ import (
 	"redbudway-api/email"
 	"redbudway-api/internal"
 	"redbudway-api/restapi/operations"
+	"time"
 
 	"github.com/gofrs/uuid"
 	"github.com/stripe/stripe-go/v72"
@@ -41,7 +42,12 @@ func CreateCustomerAccount(_customer operations.PostCustomerBody, stripeAccount 
 	}
 
 	if rowsAffected == 1 {
-		if err := email.SendCustomerVerification(*_customer.Name, _customer.Email.String(), customerID.String()); err != nil {
+		token, err := internal.GenerateToken(customerID.String(), "customer", "verification", time.Minute*15)
+		if err != nil {
+			log.Printf("Failed to generate JWT, %s", err)
+			return customerID, err
+		}
+		if err := email.SendCustomerVerification(*_customer.Name, _customer.Email.String(), customerID.String(), token); err != nil {
 			log.Printf("Failed to send customer verification email, %s", err)
 		}
 	}
