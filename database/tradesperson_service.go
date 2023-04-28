@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/stripe"
@@ -83,9 +82,9 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 			return false, err
 		}
 
-		if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
-			return false, err
-		}
+		// if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
+		// 	return false, err
+		// }
 
 		if err = insertStatesAndCities(fixedPriceID, fixedPrice); err != nil {
 			return false, err
@@ -309,10 +308,11 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 		}
 		fixedPrice.Price = floatPrice
 
-		fixedPrice.Images, err = GetImages(ID, "fixed_price")
+		fixedPrice.Images, err = internal.GetImages(priceID, tradespersonID)
 		if err != nil {
 			return fixedPrice, ID, err
 		}
+
 		fixedPrice.TimeSlots, err = GetTimeSlots(ID)
 		if err != nil {
 			return fixedPrice, ID, err
@@ -585,9 +585,9 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 			return updated, err
 		}
 
-		if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
-			return updated, err
-		}
+		// if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
+		// 	return updated, err
+		// }
 
 		if err := updateStatesAndCities(fixedPriceID, fixedPrice); err != nil {
 			return updated, err
@@ -647,7 +647,7 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 			return fixedPrices
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Image, err = GetImage(ID, "fixed_price")
+		fixedPrice.Image, err = internal.GetImage(fixedPrice.PriceID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get fixedPrice image %s", err)
 		}
@@ -761,14 +761,14 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 		return false, err
 	}
 	if rowsAffected == 1 {
-		images, err := internal.ProcessImages(tradespersonID, quoteID, quote)
+		_, err := internal.ProcessImages(tradespersonID, quoteID, quote)
 		if err != nil {
 			return false, err
 		}
 
-		if err = updateImages(ID, images, "quote"); err != nil {
-			return false, err
-		}
+		// if err = updateImages(ID, images, "quote"); err != nil {
+		// 	return false, err
+		// }
 
 		if err = insertQuoteStatesAndCities(ID, quote); err != nil {
 			return false, err
@@ -780,63 +780,6 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 	}
 
 	return true, nil
-}
-
-func GetImage(ID int64, table string) (string, error) {
-	url := ""
-	selectSQL := "SELECT url FROM quote_images WHERE quoteId=?"
-
-	if table == "fixed_price" {
-		selectSQL = "SELECT url FROM fixed_price_images WHERE fixedPriceId=?"
-	}
-
-	stmt, err := db.Prepare(selectSQL)
-	if err != nil {
-		return url, err
-	}
-	defer stmt.Close()
-
-	row := stmt.QueryRow(ID)
-	if err != nil {
-		return url, err
-	}
-	row.Scan(&url)
-	if url == "" {
-		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
-	}
-
-	return url, nil
-}
-
-func GetImages(ID int64, table string) ([]string, error) {
-	images := []string{}
-	selectSQL := "SELECT url FROM quote_images WHERE quoteId=?"
-	if table == "fixed_price" {
-		selectSQL = "SELECT url FROM fixed_price_images WHERE fixedPriceId=?"
-	}
-	stmt, err := db.Prepare(selectSQL)
-	if err != nil {
-		return images, err
-	}
-	defer stmt.Close()
-
-	rows, err := stmt.Query(ID)
-	if err != nil {
-		return images, err
-	}
-
-	var url string
-	for rows.Next() {
-		if err := rows.Scan(&url); err != nil {
-			return images, err
-		}
-		images = append(images, url)
-	}
-	if len(images) == 0 {
-		images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/assets/images/deal.svg")
-	}
-
-	return images, nil
 }
 
 func GetQuoteRating(ID int64) (int64, float64, error) {
@@ -884,7 +827,8 @@ func GetTradespersonQuote(tradespersonID, quoteID string) (*models.ServiceDetail
 		return quote, err
 	case nil:
 		quote.ID = ID
-		quote.Images, err = GetImages(ID, "quote")
+
+		quote.Images, err = internal.GetImages(quoteID, tradespersonID)
 		if err != nil {
 			return quote, err
 		}
@@ -1074,14 +1018,14 @@ func UpdateTradespersonQuote(tradespersonID string, quoteID string, quote *model
 			return updated, err
 		}
 
-		images, err := internal.ProcessImages(tradespersonID, quoteID, quote)
+		_, err = internal.ProcessImages(tradespersonID, quoteID, quote)
 		if err != nil {
 			return updated, err
 		}
 
-		if err := updateImages(ID, images, "quote"); err != nil {
-			return updated, err
-		}
+		// if err := updateImages(ID, images, "quote"); err != nil {
+		// 	return updated, err
+		// }
 
 		if err := updateQuoteStatesAndCities(ID, quote); err != nil {
 			return updated, err
@@ -1133,7 +1077,7 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 		if err != nil {
 			log.Printf("Failed to get quote reviews and rating %s\n", err)
 		}
-		quote.Image, err = GetImage(ID, "quote")
+		quote.Image, err = internal.GetImage(quote.QuoteID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get quote image %s\n", err)
 		}

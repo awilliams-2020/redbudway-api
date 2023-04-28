@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"redbudway-api/database"
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"strconv"
@@ -40,7 +41,7 @@ func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Ser
 			return fixedPrices, err
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Image, err = database.GetImage(id, "fixed_price")
+		fixedPrice.Image, err = internal.GetImage(fixedPrice.PriceID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get fixedPrice image %s", err)
 		}

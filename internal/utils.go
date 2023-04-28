@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
@@ -86,15 +87,38 @@ func SaveProfileImage(tradespersonID, image string) (string, error) {
 	return fmt.Sprintf("https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/%s", fileName), nil
 }
 
+func removeImages(servicePath string, index int) error {
+	if _, err := os.Stat(servicePath); !os.IsNotExist(err) {
+		files, err := ioutil.ReadDir(servicePath)
+		if err != nil {
+			log.Printf("Failed to read director %s, %v", servicePath, err)
+			return err
+		}
+
+		for i, file := range files {
+			if !file.IsDir() {
+				if i >= index {
+					filePath := fmt.Sprintf("%s/%s", servicePath, file.Name())
+					err := os.Remove(filePath)
+					if err != nil {
+						log.Printf("Failed to remove file %s, %v", filePath, err)
+					}
+				}
+			}
+		}
+	}
+	return nil
+}
+
 func saveImage(path, image string, index int) (string, error) {
+	fileName := fmt.Sprintf("%s/image_%d%s", path, index, ".webp")
+
 	data := strings.Split(image, ",")
 
 	dec, err := base64.StdEncoding.DecodeString(data[1])
 	if err != nil {
 		return "", err
 	}
-
-	fileName := fmt.Sprintf("%s/images_%d%s", path, index, ".webp")
 
 	converted, err := bimg.NewImage(dec).Convert(bimg.WEBP)
 	if err != nil {
@@ -165,6 +189,7 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 	if len(service.Images) != 0 {
 		for i := range service.Images {
 			if !strings.Contains(service.Images[i], "https://") {
+				removeImages(servicePath, i)
 				fileName, err := saveImage(servicePath, service.Images[i], i)
 				URL := fmt.Sprintf("%s/%s", "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com", fileName)
 				if err != nil {
@@ -176,6 +201,47 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 				images = append(images, &service.Images[i])
 			}
 		}
+	} else {
+		removeImages(servicePath, 0)
+	}
+
+	return images, nil
+}
+
+func GetImage(ID, tradespersonID string) (string, error) {
+	url := ""
+
+	fileName := fmt.Sprintf("%s/%s/%s/%s", "images", tradespersonID, ID, "image_1.webp")
+	if _, err := os.Stat(fileName); !os.IsNotExist(err) {
+		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/" + fileName
+	}
+	if url == "" {
+		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+	}
+
+	return url, nil
+}
+
+func GetImages(ID, tradespersonID string) ([]string, error) {
+	images := []string{}
+
+	servicePath := fmt.Sprintf("%s/%s/%s", "images", tradespersonID, ID)
+	if _, err := os.Stat(servicePath); !os.IsNotExist(err) {
+		files, err := ioutil.ReadDir(servicePath)
+		if err != nil {
+			log.Printf("Failed to read director %s, %v", servicePath, err)
+			return images, err
+		}
+
+		for _, file := range files {
+			if !file.IsDir() {
+				images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/"+servicePath+"/"+file.Name())
+			}
+		}
+	}
+
+	if len(images) == 0 {
+		images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/assets/images/deal.svg")
 	}
 
 	return images, nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"redbudway-api/database"
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"strconv"
@@ -86,7 +87,7 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 	fixedPrices := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDFixedPricesOK().WithPayload(fixedPrices)
 
-	stmt, err := db.Prepare("SELECT fp.id, fp.priceId, fp.title, fp.price, fp.description, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT fp.tradespersonId, fp.id, fp.priceId, fp.title, fp.price, fp.description, fp.subscription, fp.subInterval FROM fixed_prices fp INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND (fp.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -99,11 +100,12 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 		return response
 	}
 
+	var tradespersonID string
 	var id, price int64
 	var interval sql.NullString
 	for rows.Next() {
 		fixedPrice := &models.Service{}
-		if err := rows.Scan(&id, &fixedPrice.PriceID, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval); err != nil {
+		if err := rows.Scan(&tradespersonID, &id, &fixedPrice.PriceID, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval); err != nil {
 			log.Printf("Failed to scan for profile fixed prices, %s", err)
 			return response
 		}
@@ -117,7 +119,7 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 			return response
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Image, err = database.GetImage(id, "fixed_price")
+		fixedPrice.Image, err = internal.GetImage(fixedPrice.PriceID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get fixedPrice image %s", err)
 		}
@@ -146,7 +148,7 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 	quotes := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDQuotesOK().WithPayload(quotes)
 
-	stmt, err := db.Prepare("SELECT q.id, q.quote, q.title FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId WHERE q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT q.tradespersonId, q.id, q.quote, q.title FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId WHERE q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -160,9 +162,9 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 	}
 
 	var ID int64
-	var quoteID, title string
+	var tradespersonID, quoteID, title string
 	for rows.Next() {
-		if err := rows.Scan(&ID, &quoteID, &title); err != nil {
+		if err := rows.Scan(&tradespersonID, &ID, &quoteID, &title); err != nil {
 			log.Printf("Failed to scan for profile quotes, %s", err)
 			return response
 		}
@@ -174,7 +176,7 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 			log.Printf("Failed to get quote reviews and rating %s", err)
 		}
 
-		quote.Image, err = database.GetImage(ID, "quote")
+		quote.Image, err = internal.GetImage(quoteID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}

@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"strconv"
@@ -35,7 +36,7 @@ func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *opera
 			return fixedPrice, business, err
 		}
 		fixedPrice.Price = floatPrice
-		fixedPrice.Images, err = GetImages(fixedPriceID, "fixed_price")
+		fixedPrice.Images, err = internal.GetImages(priceID, business.TradespersonID)
 		if err != nil {
 			return fixedPrice, business, err
 		}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"redbudway-api/database"
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 	"strings"
@@ -40,7 +41,7 @@ func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service) ([]*
 		if err != nil {
 			log.Printf("Failed to get quote reviews and rating %s", err)
 		}
-		quote.Image, err = database.GetImage(id, "quote")
+		quote.Image, err = internal.GetImage(quoteID, tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}

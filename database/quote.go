@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 )
@@ -41,7 +42,7 @@ func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *operations
 		if err != nil {
 			log.Printf("Failed to get quote reviews and rating %s", err)
 		}
-		quote.Images, err = GetImages(ID, "quote")
+		quote.Images, err = internal.GetImages(quoteID, business.TradespersonID)
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}
