@@ -34,7 +34,7 @@ func GetTradespersonSellingFee(tradespersonID string) (float64, error) {
 }
 
 func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, stripeAccount *stripe.Account) (uuid.UUID, error) {
-	log.Printf("Creating %s tradesperson account", stripeAccount.ID)
+	log.Printf("Creating %s tradesperson account", tradesperson.Email)
 
 	tradespersonID, err := internal.GenerateUUID()
 	if err != nil {
@@ -77,13 +77,13 @@ func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, str
 			return tradespersonID, err
 		}
 		if rowsAffected == 1 {
-			stmt, err := db.Prepare("INSERT INTO tradesperson_settings (tradespersonId, vanityURL) VALUES (?, '')")
+			stmt, err := db.Prepare("INSERT INTO tradesperson_settings (tradespersonId, vanityURL) VALUES (?, ?)")
 			if err != nil {
 				return tradespersonID, err
 			}
 			defer stmt.Close()
 
-			results, err := stmt.Exec(tradespersonID)
+			results, err := stmt.Exec(tradespersonID, tradespersonID)
 			if err != nil {
 				return tradespersonID, err
 			}

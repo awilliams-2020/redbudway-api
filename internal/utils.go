@@ -211,12 +211,12 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 func GetImage(ID, tradespersonID string) (string, error) {
 	url := ""
 
-	fileName := fmt.Sprintf("%s/%s/%s/%s", "images", tradespersonID, ID, "image_1.webp")
+	fileName := fmt.Sprintf("%s/%s/%s/%s", "images", tradespersonID, ID, "image_0.webp")
 	if _, err := os.Stat(fileName); !os.IsNotExist(err) {
 		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/" + fileName
 	}
 	if url == "" {
-		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/deal.svg"
+		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/placeholder.svg"
 	}
 
 	return url, nil
@@ -241,7 +241,7 @@ func GetImages(ID, tradespersonID string) ([]string, error) {
 	}
 
 	if len(images) == 0 {
-		images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/assets/images/deal.svg")
+		images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/assets/images/placeholder.svg")
 	}
 
 	return images, nil

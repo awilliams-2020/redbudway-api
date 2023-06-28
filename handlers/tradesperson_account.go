@@ -14,10 +14,7 @@ import (
 	"redbudway-api/restapi/operations"
 	_stripe "redbudway-api/stripe"
 
-	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/account"
-	"github.com/stripe/stripe-go/v72/invoice"
-	"github.com/stripe/stripe-go/v72/sub"
 )
 
 func PostTradespersonHandler(params operations.PostTradespersonParams) middleware.Responder {
@@ -94,7 +91,7 @@ func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradesperso
 	tradespersonID := params.TradespersonID
 	token := params.HTTPRequest.Header.Get("Authorization")
 
-	payload := operations.DeleteTradespersonTradespersonIDOKBody{Deleted: false}
+	payload := operations.DeleteTradespersonTradespersonIDOKBody{Deleted: true}
 	response := operations.NewDeleteTradespersonTradespersonIDOK().WithPayload(&payload)
 
 	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
@@ -105,43 +102,30 @@ func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradesperso
 		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
 		return response
 	}
+	go deleteAccount(tradespersonID)
 
-	//Handle open invoices, subscriptions, quotes?
-	subParams := &stripe.SubscriptionListParams{
-		Status: "active",
-	}
-	s := sub.List(subParams)
-	for s.Next() {
-		return response
-	}
-	invParams := &stripe.InvoiceListParams{
-		Status: stripe.String("open"),
-	}
-	i := invoice.List(invParams)
-	for i.Next() {
-		return response
-	}
+	return response
+}
+
+func deleteAccount(tradespersonID string) {
 
 	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
 	if err != nil {
 		log.Printf("Failed to get tradesperson %s stripe ID, %v", tradespersonID, err)
-		return response
+		return
 	}
 	stripeAccount, err := account.Del(stripeID, nil)
 	if err != nil {
 		log.Printf("Failed to delete tradesperson %s stripe account, %v", &stripeID, err)
-		return response
+		return
 	}
 	if stripeAccount.Deleted {
-		payload.Deleted, err = database.DeleteTradespersonAccount(tradespersonID, stripeID)
+		_, err = database.DeleteTradespersonAccount(tradespersonID, stripeID)
 		if err != nil {
 			log.Printf("Failed to delete tradesperson database account, %v", tradespersonID, err)
-			return response
+			return
 		}
-		response.SetPayload(&payload)
 	}
-
-	return response
 }
 
 func GetTradespersonTradespersonIDHandler(params operations.GetTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
@@ -226,6 +210,30 @@ func GetTradespersonTradespersonIDSyncHandler(params operations.GetTradespersonT
 			log.Printf("Failed to update tradesperson profile name, %v", err)
 		}
 	}
+
+	// if connect.BusinessProfile.SupportEmail != "" {
+	// 	if err := database.UpdateTradespersonProfileEmail(tradespersonID, connect.BusinessProfile.SupportEmail); err != nil {
+	// 		log.Printf("Failed to update tradesperson profile email, %v", err)
+	// 	}
+	// }
+
+	// if connect.BusinessProfile.SupportPhone != "" {
+	// 	if err := database.UpdateTradespersonProfileEmail(tradespersonID, connect.BusinessProfile.SupportPhone); err != nil {
+	// 		log.Printf("Failed to update tradesperson profile number, %v", err)
+	// 	}
+	// }
+
+	// if connect.BusinessProfile.SupportAddress != nil {
+	// 	address := &models.Address{}
+	// 	address.LineOne = connect.BusinessProfile.SupportAddress.Line1
+	// 	address.LineTwo = connect.BusinessProfile.SupportAddress.Line2
+	// 	address.City = connect.BusinessProfile.SupportAddress.City
+	// 	address.State = connect.BusinessProfile.SupportAddress.State
+	// 	address.ZipCode = connect.BusinessProfile.SupportAddress.PostalCode
+	// 	if err := database.UpdateTradespersonProfileAddress(tradespersonID, address); err != nil {
+	// 		log.Printf("Failed to update tradesperson profile address, %v", err)
+	// 	}
+	// }
 
 	return response
 }

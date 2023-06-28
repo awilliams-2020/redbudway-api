@@ -2337,6 +2337,14 @@ paths:
           name: page
           type: integer
           format: int64
+        - in: query
+          name: max
+          type: integer
+          format: int64
+        - in: query
+          name: min
+          type: integer
+          format: int64
       responses:
         '200':
           description: Tradesperson fixed-price services
@@ -2362,6 +2370,14 @@ paths:
         - in: query
           name: filters
           type: string
+        - in: query
+          name: max
+          type: integer
+          format: int64
+        - in: query
+          name: min
+          type: integer
+          format: int64
       responses:
         '200':
           description: Number of fixed prices
@@ -3300,7 +3316,7 @@ definitions:
         type: array
         items:
           type: string
-      notIncludes:
+      excludes:
         type: array
         items:
           type: string

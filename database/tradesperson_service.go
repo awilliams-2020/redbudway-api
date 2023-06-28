@@ -128,37 +128,37 @@ func GetFilters(fixedPriceID int64) ([]string, error) {
 
 func GetIncludes(fixedPriceID int64) ([]string, []string, error) {
 	includes := []string{}
-	notIncludes := []string{}
+	excludes := []string{}
 
 	stmt, err := db.Prepare("SELECT included, items FROM fixed_price_includes WHERE fixedPriceId=?")
 	if err != nil {
-		return includes, notIncludes, err
+		return includes, excludes, err
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.Query(fixedPriceID)
 	if err != nil {
-		return includes, notIncludes, err
+		return includes, excludes, err
 	}
 
 	var included bool
 	var includesJSON string
 	for rows.Next() {
 		if err := rows.Scan(&included, &includesJSON); err != nil {
-			return includes, notIncludes, err
+			return includes, excludes, err
 		}
 		var tempIncludes []string
 		err := json.Unmarshal([]byte(includesJSON), &tempIncludes)
 		if err != nil {
-			return includes, notIncludes, err
+			return includes, excludes, err
 		}
 		if included {
 			includes = tempIncludes
 		} else {
-			notIncludes = tempIncludes
+			excludes = tempIncludes
 		}
 	}
-	return includes, notIncludes, nil
+	return includes, excludes, nil
 }
 
 func GetFixedPriceStatesAndCities(fixedPriceID int64) ([]*models.ServiceDetailsStatesAndCitiesItems0, error) {
@@ -325,7 +325,7 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 		if err != nil {
 			return fixedPrice, ID, err
 		}
-		fixedPrice.Includes, fixedPrice.NotIncludes, err = GetIncludes(ID)
+		fixedPrice.Includes, fixedPrice.Excludes, err = GetIncludes(ID)
 		if err != nil {
 			return fixedPrice, ID, err
 		}
@@ -486,7 +486,7 @@ func updateIncludes(fixedPriceID int64, fixedPrice *models.ServiceDetails) error
 	if err != nil {
 		return err
 	}
-	notIncludes, err := json.Marshal(fixedPrice.NotIncludes)
+	excludes, err := json.Marshal(fixedPrice.Excludes)
 	if err != nil {
 		return err
 	}
@@ -524,7 +524,7 @@ func updateIncludes(fixedPriceID int64, fixedPrice *models.ServiceDetails) error
 				return err
 			}
 			defer stmt.Close()
-			_, err = stmt.Exec(string(notIncludes), fixedPriceID, included)
+			_, err = stmt.Exec(string(excludes), fixedPriceID, included)
 			if err != nil {
 				return err
 			}
@@ -536,7 +536,7 @@ func updateIncludes(fixedPriceID int64, fixedPrice *models.ServiceDetails) error
 			return err
 		}
 		defer stmt.Close()
-		_, err = stmt.Exec(fixedPriceID, true, string(includes), fixedPriceID, false, string(notIncludes))
+		_, err = stmt.Exec(fixedPriceID, true, string(includes), fixedPriceID, false, string(excludes))
 		if err != nil {
 			return err
 		}

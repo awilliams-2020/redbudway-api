@@ -1175,6 +1175,18 @@ func init() {
             "type": "string",
             "name": "filters",
             "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "max",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "min",
+            "in": "query"
           }
         ],
         "responses": {
@@ -1350,6 +1362,18 @@ func init() {
             "type": "integer",
             "format": "int64",
             "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "max",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "min",
             "in": "query"
           }
         ],
@@ -5335,6 +5359,12 @@ func init() {
         "description": {
           "type": "string"
         },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "filters": {
           "type": "array",
           "items": {
@@ -5360,12 +5390,6 @@ func init() {
         "interval": {
           "type": "string",
           "x-omitempty": false
-        },
-        "notIncludes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         },
         "price": {
           "type": "number",
@@ -6659,6 +6683,18 @@ func init() {
             "type": "string",
             "name": "filters",
             "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "max",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "min",
+            "in": "query"
           }
         ],
         "responses": {
@@ -6806,6 +6842,18 @@ func init() {
             "type": "integer",
             "format": "int64",
             "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "max",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "format": "int64",
+            "name": "min",
             "in": "query"
           }
         ],
@@ -10849,6 +10897,12 @@ func init() {
         "description": {
           "type": "string"
         },
+        "excludes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "filters": {
           "type": "array",
           "items": {
@@ -10874,12 +10928,6 @@ func init() {
         "interval": {
           "type": "string",
           "x-omitempty": false
-        },
-        "notIncludes": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         },
         "price": {
           "type": "number",

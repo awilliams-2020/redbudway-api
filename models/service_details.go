@@ -31,6 +31,9 @@ type ServiceDetails struct {
 	// Required: true
 	Description *string `json:"description"`
 
+	// excludes
+	Excludes []string `json:"excludes"`
+
 	// filters
 	// Required: true
 	Filters []string `json:"filters"`
@@ -47,9 +50,6 @@ type ServiceDetails struct {
 
 	// interval
 	Interval string `json:"interval"`
-
-	// not includes
-	NotIncludes []string `json:"notIncludes"`
 
 	// price
 	Price float64 `json:"price"`

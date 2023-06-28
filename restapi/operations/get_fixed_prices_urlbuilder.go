@@ -18,6 +18,8 @@ type GetFixedPricesURL struct {
 	Category    *string
 	City        *string
 	Filters     *string
+	Max         *int64
+	Min         *int64
 	Page        *int64
 	State       *string
 	SubCategory *string
@@ -78,6 +80,22 @@ func (o *GetFixedPricesURL) Build() (*url.URL, error) {
 	}
 	if filtersQ != "" {
 		qs.Set("filters", filtersQ)
+	}
+
+	var maxQ string
+	if o.Max != nil {
+		maxQ = swag.FormatInt64(*o.Max)
+	}
+	if maxQ != "" {
+		qs.Set("max", maxQ)
+	}
+
+	var minQ string
+	if o.Min != nil {
+		minQ = swag.FormatInt64(*o.Min)
+	}
+	if minQ != "" {
+		qs.Set("min", minQ)
 	}
 
 	var pageQ string

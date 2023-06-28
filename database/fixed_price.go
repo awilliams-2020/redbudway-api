@@ -48,7 +48,7 @@ func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *opera
 		if err != nil {
 			return fixedPrice, business, err
 		}
-		fixedPrice.Includes, fixedPrice.NotIncludes, err = GetIncludes(fixedPriceID)
+		fixedPrice.Includes, fixedPrice.Excludes, err = GetIncludes(fixedPriceID)
 		if err != nil {
 			return fixedPrice, business, err
 		}

@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 )
 
 // NewGetFixedPricePagesParams creates a new GetFixedPricePagesParams object
@@ -46,6 +47,14 @@ type GetFixedPricePagesParams struct {
 	/*
 	  In: query
 	*/
+	Max *int64
+	/*
+	  In: query
+	*/
+	Min *int64
+	/*
+	  In: query
+	*/
 	State *string
 	/*
 	  In: query
@@ -76,6 +85,16 @@ func (o *GetFixedPricePagesParams) BindRequest(r *http.Request, route *middlewar
 
 	qFilters, qhkFilters, _ := qs.GetOK("filters")
 	if err := o.bindFilters(qFilters, qhkFilters, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	qMax, qhkMax, _ := qs.GetOK("max")
+	if err := o.bindMax(qMax, qhkMax, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	qMin, qhkMin, _ := qs.GetOK("min")
+	if err := o.bindMin(qMin, qhkMin, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -144,6 +163,52 @@ func (o *GetFixedPricePagesParams) bindFilters(rawData []string, hasKey bool, fo
 		return nil
 	}
 	o.Filters = &raw
+
+	return nil
+}
+
+// bindMax binds and validates parameter Max from query.
+func (o *GetFixedPricePagesParams) bindMax(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	value, err := swag.ConvertInt64(raw)
+	if err != nil {
+		return errors.InvalidType("max", "query", "int64", raw)
+	}
+	o.Max = &value
+
+	return nil
+}
+
+// bindMin binds and validates parameter Min from query.
+func (o *GetFixedPricePagesParams) bindMin(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	value, err := swag.ConvertInt64(raw)
+	if err != nil {
+		return errors.InvalidType("min", "query", "int64", raw)
+	}
+	o.Min = &value
 
 	return nil
 }
