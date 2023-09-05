@@ -66,6 +66,38 @@ func init() {
         }
       }
     },
+    "/admin/{adminId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid admin accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/{adminId}/tradespeople": {
       "get": {
         "security": [
@@ -429,8 +461,16 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "form": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/FormFields"
+                  },
+                  "x-omitempty": false
+                },
                 "timeSlots": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "$ref": "#/definitions/TimeSlot"
                   },
@@ -1173,7 +1213,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           },
           {
@@ -1186,6 +1226,16 @@ func init() {
             "type": "integer",
             "format": "int64",
             "name": "min",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "fromDate",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "toDate",
             "in": "query"
           }
         ],
@@ -1355,7 +1405,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           },
           {
@@ -1374,6 +1424,21 @@ func init() {
             "type": "integer",
             "format": "int64",
             "name": "min",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "fromDate",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "toDate",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "sort",
             "in": "query"
           }
         ],
@@ -1543,7 +1608,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           }
         ],
@@ -1713,7 +1778,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           },
           {
@@ -5166,6 +5231,39 @@ func init() {
         }
       }
     },
+    "FormFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "x-omitempty": false
+          },
+          "field": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string",
+            "x-omitempty": false
+          }
+        }
+      }
+    },
     "GoogleTimeSlots": {
       "type": "array",
       "items": {
@@ -5303,6 +5401,10 @@ func init() {
           "type": "string",
           "x-omitempty": false
         },
+        "jobs": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "price": {
           "type": "number",
           "x-omitempty": false
@@ -5316,6 +5418,10 @@ func init() {
         "rating": {
           "type": "number",
           "format": "double",
+          "x-omitempty": false
+        },
+        "repeat": {
+          "type": "integer",
           "x-omitempty": false
         },
         "reviews": {
@@ -5346,7 +5452,7 @@ func init() {
         "description",
         "images",
         "selectPlaces",
-        "filters"
+        "specialties"
       ],
       "properties": {
         "archived": {
@@ -5365,11 +5471,12 @@ func init() {
             "type": "string"
           }
         },
-        "filters": {
+        "form": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "$ref": "#/definitions/FormFields"
+          },
+          "x-omitempty": false
         },
         "id": {
           "type": "integer",
@@ -5391,6 +5498,10 @@ func init() {
           "type": "string",
           "x-omitempty": false
         },
+        "jobs": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "price": {
           "type": "number",
           "x-omitempty": false
@@ -5406,6 +5517,10 @@ func init() {
           "format": "double",
           "x-omitempty": false
         },
+        "repeat": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "reviews": {
           "type": "integer",
           "x-omitempty": false
@@ -5413,6 +5528,12 @@ func init() {
         "selectPlaces": {
           "type": "boolean",
           "x-omitempty": false
+        },
+        "specialties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "statesAndCities": {
           "type": "array",
@@ -5536,6 +5657,10 @@ func init() {
           "type": "integer",
           "x-omitempty": false
         },
+        "repeat": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "reviews": {
           "type": "integer",
           "x-omitempty": false
@@ -5592,6 +5717,38 @@ func init() {
                 },
                 "state": {
                   "type": "string",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/{adminId}/access-token": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Admin ID",
+            "name": "adminId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A valid admin accessToken",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "valid": {
+                  "type": "boolean",
                   "x-omitempty": false
                 }
               }
@@ -5949,8 +6106,16 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "form": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/FormFields"
+                  },
+                  "x-omitempty": false
+                },
                 "timeSlots": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "$ref": "#/definitions/TimeSlot"
                   },
@@ -6681,7 +6846,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           },
           {
@@ -6694,6 +6859,16 @@ func init() {
             "type": "integer",
             "format": "int64",
             "name": "min",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "fromDate",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "toDate",
             "in": "query"
           }
         ],
@@ -6835,7 +7010,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           },
           {
@@ -6854,6 +7029,21 @@ func init() {
             "type": "integer",
             "format": "int64",
             "name": "min",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "fromDate",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "toDate",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "name": "sort",
             "in": "query"
           }
         ],
@@ -7023,7 +7213,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           }
         ],
@@ -7165,7 +7355,7 @@ func init() {
           },
           {
             "type": "string",
-            "name": "filters",
+            "name": "specialties",
             "in": "query"
           },
           {
@@ -10413,6 +10603,45 @@ func init() {
         }
       }
     },
+    "FormFields": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/FormFieldsItems0"
+      }
+    },
+    "FormFieldsItems0": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "field": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FormFieldsItems0OptionsItems0"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "x-omitempty": false
+        }
+      }
+    },
+    "FormFieldsItems0OptionsItems0": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string"
+        }
+      }
+    },
     "GetAdminAdminIDTradespeopleOKBodyItems0": {
       "type": "object",
       "properties": {
@@ -10841,6 +11070,10 @@ func init() {
           "type": "string",
           "x-omitempty": false
         },
+        "jobs": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "price": {
           "type": "number",
           "x-omitempty": false
@@ -10854,6 +11087,10 @@ func init() {
         "rating": {
           "type": "number",
           "format": "double",
+          "x-omitempty": false
+        },
+        "repeat": {
+          "type": "integer",
           "x-omitempty": false
         },
         "reviews": {
@@ -10884,7 +11121,7 @@ func init() {
         "description",
         "images",
         "selectPlaces",
-        "filters"
+        "specialties"
       ],
       "properties": {
         "archived": {
@@ -10903,11 +11140,12 @@ func init() {
             "type": "string"
           }
         },
-        "filters": {
+        "form": {
           "type": "array",
           "items": {
-            "type": "string"
-          }
+            "$ref": "#/definitions/FormFields"
+          },
+          "x-omitempty": false
         },
         "id": {
           "type": "integer",
@@ -10929,6 +11167,10 @@ func init() {
           "type": "string",
           "x-omitempty": false
         },
+        "jobs": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "price": {
           "type": "number",
           "x-omitempty": false
@@ -10944,6 +11186,10 @@ func init() {
           "format": "double",
           "x-omitempty": false
         },
+        "repeat": {
+          "type": "integer",
+          "x-omitempty": false
+        },
         "reviews": {
           "type": "integer",
           "x-omitempty": false
@@ -10951,6 +11197,12 @@ func init() {
         "selectPlaces": {
           "type": "boolean",
           "x-omitempty": false
+        },
+        "specialties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "statesAndCities": {
           "type": "array",
@@ -11193,6 +11445,10 @@ func init() {
           "type": "string"
         },
         "rating": {
+          "type": "integer",
+          "x-omitempty": false
+        },
+        "repeat": {
           "type": "integer",
           "x-omitempty": false
         },

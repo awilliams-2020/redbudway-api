@@ -35,6 +35,9 @@ type Service struct {
 	// interval
 	Interval string `json:"interval"`
 
+	// jobs
+	Jobs int64 `json:"jobs"`
+
 	// price
 	Price float64 `json:"price"`
 
@@ -46,6 +49,9 @@ type Service struct {
 
 	// rating
 	Rating float64 `json:"rating"`
+
+	// repeat
+	Repeat int64 `json:"repeat"`
 
 	// reviews
 	Reviews int64 `json:"reviews"`

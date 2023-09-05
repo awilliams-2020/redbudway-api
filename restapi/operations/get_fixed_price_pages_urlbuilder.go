@@ -17,11 +17,13 @@ import (
 type GetFixedPricePagesURL struct {
 	Category    *string
 	City        *string
-	Filters     *string
+	FromDate    *string
 	Max         *int64
 	Min         *int64
+	Specialties *string
 	State       *string
 	SubCategory *string
+	ToDate      *string
 
 	_basePath string
 	// avoid unkeyed usage
@@ -73,12 +75,12 @@ func (o *GetFixedPricePagesURL) Build() (*url.URL, error) {
 		qs.Set("city", cityQ)
 	}
 
-	var filtersQ string
-	if o.Filters != nil {
-		filtersQ = *o.Filters
+	var fromDateQ string
+	if o.FromDate != nil {
+		fromDateQ = *o.FromDate
 	}
-	if filtersQ != "" {
-		qs.Set("filters", filtersQ)
+	if fromDateQ != "" {
+		qs.Set("fromDate", fromDateQ)
 	}
 
 	var maxQ string
@@ -97,6 +99,14 @@ func (o *GetFixedPricePagesURL) Build() (*url.URL, error) {
 		qs.Set("min", minQ)
 	}
 
+	var specialtiesQ string
+	if o.Specialties != nil {
+		specialtiesQ = *o.Specialties
+	}
+	if specialtiesQ != "" {
+		qs.Set("specialties", specialtiesQ)
+	}
+
 	var stateQ string
 	if o.State != nil {
 		stateQ = *o.State
@@ -111,6 +121,14 @@ func (o *GetFixedPricePagesURL) Build() (*url.URL, error) {
 	}
 	if subCategoryQ != "" {
 		qs.Set("subCategory", subCategoryQ)
+	}
+
+	var toDateQ string
+	if o.ToDate != nil {
+		toDateQ = *o.ToDate
+	}
+	if toDateQ != "" {
+		qs.Set("toDate", toDateQ)
 	}
 
 	_result.RawQuery = qs.Encode()

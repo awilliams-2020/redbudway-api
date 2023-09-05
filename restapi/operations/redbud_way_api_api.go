@@ -57,6 +57,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		GetAddressHandler: GetAddressHandlerFunc(func(params GetAddressParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetAddress has not yet been implemented")
 		}),
+		GetAdminAdminIDAccessTokenHandler: GetAdminAdminIDAccessTokenHandlerFunc(func(params GetAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetAdminAdminIDAccessToken has not yet been implemented")
+		}),
 		GetAdminAdminIDTradespeopleHandler: GetAdminAdminIDTradespeopleHandlerFunc(func(params GetAdminAdminIDTradespeopleParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetAdminAdminIDTradespeople has not yet been implemented")
 		}),
@@ -438,6 +441,8 @@ type RedbudWayAPIAPI struct {
 	DeleteTradespersonTradespersonIDGoogleTokenHandler DeleteTradespersonTradespersonIDGoogleTokenHandler
 	// GetAddressHandler sets the operation handler for the get address operation
 	GetAddressHandler GetAddressHandler
+	// GetAdminAdminIDAccessTokenHandler sets the operation handler for the get admin admin ID access token operation
+	GetAdminAdminIDAccessTokenHandler GetAdminAdminIDAccessTokenHandler
 	// GetAdminAdminIDTradespeopleHandler sets the operation handler for the get admin admin ID tradespeople operation
 	GetAdminAdminIDTradespeopleHandler GetAdminAdminIDTradespeopleHandler
 	// GetCustomerCustomerIDAccessTokenHandler sets the operation handler for the get customer customer ID access token operation
@@ -747,6 +752,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.GetAddressHandler == nil {
 		unregistered = append(unregistered, "GetAddressHandler")
+	}
+	if o.GetAdminAdminIDAccessTokenHandler == nil {
+		unregistered = append(unregistered, "GetAdminAdminIDAccessTokenHandler")
 	}
 	if o.GetAdminAdminIDTradespeopleHandler == nil {
 		unregistered = append(unregistered, "GetAdminAdminIDTradespeopleHandler")
@@ -1186,6 +1194,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/address"] = NewGetAddress(o.context, o.GetAddressHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/admin/{adminId}/access-token"] = NewGetAdminAdminIDAccessToken(o.context, o.GetAdminAdminIDAccessTokenHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

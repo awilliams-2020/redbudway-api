@@ -2331,7 +2331,7 @@ paths:
           name: subCategory
           type: string
         - in: query
-          name: filters
+          name: specialties
           type: string
         - in: query
           name: page
@@ -2345,6 +2345,15 @@ paths:
           name: min
           type: integer
           format: int64
+        - in: query
+          name: fromDate
+          type: string
+        - in: query
+          name: toDate
+          type: string
+        - in: query
+          name: sort
+          type: string          
       responses:
         '200':
           description: Tradesperson fixed-price services
@@ -2368,7 +2377,7 @@ paths:
           name: subCategory
           type: string
         - in: query
-          name: filters
+          name: specialties
           type: string
         - in: query
           name: max
@@ -2378,6 +2387,12 @@ paths:
           name: min
           type: integer
           format: int64
+        - in: query
+          name: fromDate
+          type: string
+        - in: query
+          name: toDate
+          type: string  
       responses:
         '200':
           description: Number of fixed prices
@@ -2488,7 +2503,7 @@ paths:
           name: subCategory
           type: string
         - in: query
-          name: filters
+          name: specialties
           type: string
         - in: query
           name: page
@@ -2517,7 +2532,7 @@ paths:
           name: subCategory
           type: string
         - in: query
-          name: filters
+          name: specialties
           type: string
       responses:
         '200':
@@ -2969,9 +2984,16 @@ paths:
             properties:
               timeSlots:
                 type: array
+                minItems: 1
                 x-omitempty: false
                 items:
                   $ref: '#/definitions/TimeSlot'
+
+              form:
+                type: array
+                x-omitempty: false
+                items:
+                  $ref: '#/definitions/FormFields'
       responses:
         '201':
           description: If fixed price was booked
@@ -3168,6 +3190,31 @@ paths:
               accepted:
                 type: boolean
                 x-omitempty: false
+  /customer/{customerId}/bookings:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: customerId
+        description: Customer ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: customer quotes
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                status:
+                  type: string
+                number:
+                  type: string
+                  x-omitempty: false
+                quoteId:
+                  type: string 
   /admin/{adminId}/tradespeople:
     get:
       security:
@@ -3194,6 +3241,25 @@ paths:
                   type: string
                 tradespersonId:
                   type: string
+  /admin/{adminId}/access-token:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: adminId
+          description: Admin ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A valid admin accessToken
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+                x-omitempty: false
 definitions:
   Service:
     type: object
@@ -3237,6 +3303,12 @@ definitions:
       archived:
         type: boolean
         x-omitempity: false
+      jobs:
+        type: integer
+        x-omitempty: false
+      repeat:
+        type: integer
+        x-omitempty: false
   ServiceDetails:
     type: object
     required:
@@ -3245,7 +3317,7 @@ definitions:
       - description
       - images
       - selectPlaces
-      - filters
+      - specialties
     properties:
       id:
         type: integer
@@ -3308,7 +3380,7 @@ definitions:
         x-omitempty: false
         items:
           $ref: '#/definitions/TimeSlot'
-      filters:
+      specialties:
         type: array
         items:
           type: string
@@ -3320,6 +3392,17 @@ definitions:
         type: array
         items:
           type: string
+      jobs:
+        type: integer
+        x-omitempty: false
+      repeat:
+        type: integer
+        x-omitempty: false
+      form:
+        type: array
+        x-omitempty: false
+        items:
+          $ref: '#/definitions/FormFields'
   QuoteDetails:
     type: object
     properties:
@@ -3424,6 +3507,9 @@ definitions:
       jobs:
         type: integer
         x-omitempty: false
+      repeat:
+        type: integer
+        x-omitempty: false
       rating:
         type: integer
         x-omitempty: false
@@ -3483,3 +3569,25 @@ definitions:
           type: string
         timeZone:
           type: string
+  FormFields:
+    type: array
+    items:
+      type: object
+      properties:
+        field:
+          type: string
+        value:
+          type: string
+          x-omitempty: false
+        error:
+          type: string
+          x-omitempty: false
+        type:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string

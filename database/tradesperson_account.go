@@ -348,6 +348,32 @@ func GetTradespersonJobs(tradespersonID string) (int64, error) {
 	return jobs, nil
 }
 
+func GetTradespersonRepeatCustomers(tradespersonID string) (int64, error) {
+	repeat := int64(0)
+	stmt, err := db.Prepare("SELECT COUNT(*) > 1 FROM tradesperson_invoices WHERE tradespersonId=? GROUP BY customerId")
+	if err != nil {
+		return repeat, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(tradespersonID)
+	if err != nil {
+		return repeat, err
+	}
+
+	for rows.Next() {
+		isRepeat := false
+		if err := rows.Scan(&isRepeat); err != nil {
+			continue
+		}
+		if isRepeat {
+			repeat += 1
+		}
+	}
+
+	return repeat, nil
+}
+
 func GetTradespersonRatingReviews(tradespersonID string) (int64, int64, error) {
 
 	stmt, err := db.Prepare("SELECT sr.rating FROM fixed_price_reviews sr INNER JOIN fixed_prices s ON s.id=sr.fixedPriceId WHERE s.tradespersonId=?")

@@ -465,7 +465,6 @@ func GetPublicTimeSlots(fixedPriceID int64, subscription bool) ([]*models.TimeSl
 
 func GetAvailableTimeSlots(fixedPriceId int64, subscription bool) (int64, error) {
 	availableTimeSlots := int64(0)
-
 	var sqlStmt string
 	if subscription {
 		sqlStmt = "SELECT COUNT(id) FROM fixed_price_time_slots WHERE fixedPriceId=? AND NOT booked <=> bookings"

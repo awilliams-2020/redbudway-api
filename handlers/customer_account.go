@@ -132,7 +132,7 @@ func GetCustomerCustomerIDBillingLinkHandler(params operations.GetCustomerCustom
 	return response
 }
 
-func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, stripeProduct *stripe.Product, cuStripeID, customerID, body string) {
+func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, stripeProduct *stripe.Product, cuStripeID, customerID, timeAndPrice, formRowsCols string) {
 
 	stripeCustomer, err := customer.Get(cuStripeID, nil)
 	if err != nil {
@@ -140,11 +140,11 @@ func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, st
 		return
 	}
 
-	if err := email.SendCustomerConfirmation(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+	if err := email.SendCustomerConfirmation(tradesperson, stripeCustomer, stripeProduct, timeAndPrice, formRowsCols); err != nil {
 		log.Printf("Failed to send customer receipt email, %v", err)
 	}
 
-	if err := email.SendTradespersonBooking(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+	if err := email.SendTradespersonBooking(tradesperson, stripeCustomer, stripeProduct, timeAndPrice, formRowsCols); err != nil {
 		log.Printf("Failed to send tradesperson receipt email, %v", err)
 	}
 }
@@ -153,6 +153,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 	customerID := params.CustomerID
 	priceID := params.PriceID
 	timeSlots := params.Booking.TimeSlots
+	form := params.Booking.Form
 	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostCustomerCustomerIDFixedPricePriceIDBookCreatedBody{Booked: false}
@@ -202,7 +203,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 		return response
 	}
 
-	var body bytes.Buffer
+	var timeAndPrice bytes.Buffer
 	for _, timeSlot := range timeSlots {
 		decimalPrice := (stripePrice.UnitAmountDecimal / float64(100.00)) * float64(timeSlot.Quantity)
 		appFee := decimalPrice * sellingFee
@@ -256,15 +257,24 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			return response
 		}
 
-		timeAndPrice, err := internal.CreateTimeAndPrice(timeSlot.StartTime, timeSlot.EndTime, decimalPrice)
+		results, err := internal.CreateTimeAndPrice(timeSlot.StartTime, timeSlot.EndTime, decimalPrice)
 		if err != nil {
 			log.Printf("Failed to create time and price, %v", err)
 			return response
 		}
-		body.WriteString(timeAndPrice)
+		timeAndPrice.WriteString(results)
 	}
 
-	go emailHelper(tradesperson, stripePrice, stripeProduct, cuStripeID, customerID, body.String())
+	var formRowsCols string
+	if len(form) != 0 {
+		formRowsCols = internal.CreateForm(form)
+		if err != nil {
+			log.Printf("Failed to create form, %v", err)
+			return response
+		}
+	}
+
+	go emailHelper(tradesperson, stripePrice, stripeProduct, cuStripeID, customerID, timeAndPrice.String(), formRowsCols)
 
 	payload.Booked = true
 	response.SetPayload(&payload)

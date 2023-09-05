@@ -69,7 +69,8 @@ func GetRegisteredClaims(bearerHeader string) (jwt.RegisteredClaims, bool, error
 func DecodeJWT(idToken string) (map[string]interface{}, error) {
 	var userInfo map[string]interface{}
 	data := strings.Split(idToken, ".")
-	sDec, err := base64.StdEncoding.DecodeString(data[1])
+	// stdEndcoding doesn't work
+	sDec, err := base64.RawStdEncoding.DecodeString(data[1])
 	if err != nil {
 		fmt.Printf("%v", err)
 		return userInfo, err

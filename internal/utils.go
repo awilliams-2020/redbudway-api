@@ -87,7 +87,17 @@ func SaveProfileImage(tradespersonID, image string) (string, error) {
 	return fmt.Sprintf("https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/%s", fileName), nil
 }
 
-func removeImages(servicePath string, index int) error {
+func contains(images []string, fileName string) bool {
+	exist := false
+	for _, image := range images {
+		if strings.Contains(image, fileName) {
+			exist = true
+		}
+	}
+	return exist
+}
+
+func removeImages(servicePath string, images []string) error {
 	if _, err := os.Stat(servicePath); !os.IsNotExist(err) {
 		files, err := ioutil.ReadDir(servicePath)
 		if err != nil {
@@ -95,9 +105,9 @@ func removeImages(servicePath string, index int) error {
 			return err
 		}
 
-		for i, file := range files {
+		for _, file := range files {
 			if !file.IsDir() {
-				if i >= index {
+				if !contains(images, file.Name()) {
 					filePath := fmt.Sprintf("%s/%s", servicePath, file.Name())
 					err := os.Remove(filePath)
 					if err != nil {
@@ -110,10 +120,10 @@ func removeImages(servicePath string, index int) error {
 	return nil
 }
 
-func saveImage(path, image string, index int) (string, error) {
+func saveImage(path, imageBytes string, index int) (string, error) {
 	fileName := fmt.Sprintf("%s/image_%d%s", path, index, ".webp")
 
-	data := strings.Split(image, ",")
+	data := strings.Split(imageBytes, ",")
 
 	dec, err := base64.StdEncoding.DecodeString(data[1])
 	if err != nil {
@@ -186,10 +196,11 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 		}
 	}
 
+	removeImages(servicePath, service.Images)
+
 	if len(service.Images) != 0 {
 		for i := range service.Images {
 			if !strings.Contains(service.Images[i], "https://") {
-				removeImages(servicePath, i)
 				fileName, err := saveImage(servicePath, service.Images[i], i)
 				URL := fmt.Sprintf("%s/%s", "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com", fileName)
 				if err != nil {
@@ -201,8 +212,6 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 				images = append(images, &service.Images[i])
 			}
 		}
-	} else {
-		removeImages(servicePath, 0)
 	}
 
 	return images, nil
@@ -240,10 +249,6 @@ func GetImages(ID, tradespersonID string) ([]string, error) {
 		}
 	}
 
-	if len(images) == 0 {
-		images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/assets/images/placeholder.svg")
-	}
-
 	return images, nil
 }
 
@@ -276,6 +281,19 @@ func SelectedCities(citiesJson, city string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func CreateForm(form []models.FormFields) string {
+	var tableRows string
+	for _, row := range form {
+		tableRows += "<tr>"
+		for _, col := range row {
+			tableRows += fmt.Sprintf("<td class=\"cell-size\"><b>%s: </b><br>%s</td>", col.Field, col.Value)
+		}
+		tableRows += "</tr>"
+	}
+	tableRows += "<br>"
+	return tableRows
 }
 
 func CreateTimeAndPrice(startTime, endTime string, decimalPrice float64) (string, error) {

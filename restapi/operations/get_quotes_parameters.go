@@ -43,11 +43,11 @@ type GetQuotesParams struct {
 	/*
 	  In: query
 	*/
-	Filters *string
+	Page *int64
 	/*
 	  In: query
 	*/
-	Page *int64
+	Specialties *string
 	/*
 	  In: query
 	*/
@@ -79,13 +79,13 @@ func (o *GetQuotesParams) BindRequest(r *http.Request, route *middleware.Matched
 		res = append(res, err)
 	}
 
-	qFilters, qhkFilters, _ := qs.GetOK("filters")
-	if err := o.bindFilters(qFilters, qhkFilters, route.Formats); err != nil {
+	qPage, qhkPage, _ := qs.GetOK("page")
+	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
-	qPage, qhkPage, _ := qs.GetOK("page")
-	if err := o.bindPage(qPage, qhkPage, route.Formats); err != nil {
+	qSpecialties, qhkSpecialties, _ := qs.GetOK("specialties")
+	if err := o.bindSpecialties(qSpecialties, qhkSpecialties, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -140,24 +140,6 @@ func (o *GetQuotesParams) bindCity(rawData []string, hasKey bool, formats strfmt
 	return nil
 }
 
-// bindFilters binds and validates parameter Filters from query.
-func (o *GetQuotesParams) bindFilters(rawData []string, hasKey bool, formats strfmt.Registry) error {
-	var raw string
-	if len(rawData) > 0 {
-		raw = rawData[len(rawData)-1]
-	}
-
-	// Required: false
-	// AllowEmptyValue: false
-
-	if raw == "" { // empty values pass all other validations
-		return nil
-	}
-	o.Filters = &raw
-
-	return nil
-}
-
 // bindPage binds and validates parameter Page from query.
 func (o *GetQuotesParams) bindPage(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
@@ -177,6 +159,24 @@ func (o *GetQuotesParams) bindPage(rawData []string, hasKey bool, formats strfmt
 		return errors.InvalidType("page", "query", "int64", raw)
 	}
 	o.Page = &value
+
+	return nil
+}
+
+// bindSpecialties binds and validates parameter Specialties from query.
+func (o *GetQuotesParams) bindSpecialties(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.Specialties = &raw
 
 	return nil
 }

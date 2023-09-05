@@ -43,7 +43,7 @@ type GetFixedPricePagesParams struct {
 	/*
 	  In: query
 	*/
-	Filters *string
+	FromDate *string
 	/*
 	  In: query
 	*/
@@ -55,11 +55,19 @@ type GetFixedPricePagesParams struct {
 	/*
 	  In: query
 	*/
+	Specialties *string
+	/*
+	  In: query
+	*/
 	State *string
 	/*
 	  In: query
 	*/
 	SubCategory *string
+	/*
+	  In: query
+	*/
+	ToDate *string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -83,8 +91,8 @@ func (o *GetFixedPricePagesParams) BindRequest(r *http.Request, route *middlewar
 		res = append(res, err)
 	}
 
-	qFilters, qhkFilters, _ := qs.GetOK("filters")
-	if err := o.bindFilters(qFilters, qhkFilters, route.Formats); err != nil {
+	qFromDate, qhkFromDate, _ := qs.GetOK("fromDate")
+	if err := o.bindFromDate(qFromDate, qhkFromDate, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -98,6 +106,11 @@ func (o *GetFixedPricePagesParams) BindRequest(r *http.Request, route *middlewar
 		res = append(res, err)
 	}
 
+	qSpecialties, qhkSpecialties, _ := qs.GetOK("specialties")
+	if err := o.bindSpecialties(qSpecialties, qhkSpecialties, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
 	qState, qhkState, _ := qs.GetOK("state")
 	if err := o.bindState(qState, qhkState, route.Formats); err != nil {
 		res = append(res, err)
@@ -105,6 +118,11 @@ func (o *GetFixedPricePagesParams) BindRequest(r *http.Request, route *middlewar
 
 	qSubCategory, qhkSubCategory, _ := qs.GetOK("subCategory")
 	if err := o.bindSubCategory(qSubCategory, qhkSubCategory, route.Formats); err != nil {
+		res = append(res, err)
+	}
+
+	qToDate, qhkToDate, _ := qs.GetOK("toDate")
+	if err := o.bindToDate(qToDate, qhkToDate, route.Formats); err != nil {
 		res = append(res, err)
 	}
 	if len(res) > 0 {
@@ -149,8 +167,8 @@ func (o *GetFixedPricePagesParams) bindCity(rawData []string, hasKey bool, forma
 	return nil
 }
 
-// bindFilters binds and validates parameter Filters from query.
-func (o *GetFixedPricePagesParams) bindFilters(rawData []string, hasKey bool, formats strfmt.Registry) error {
+// bindFromDate binds and validates parameter FromDate from query.
+func (o *GetFixedPricePagesParams) bindFromDate(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -162,7 +180,7 @@ func (o *GetFixedPricePagesParams) bindFilters(rawData []string, hasKey bool, fo
 	if raw == "" { // empty values pass all other validations
 		return nil
 	}
-	o.Filters = &raw
+	o.FromDate = &raw
 
 	return nil
 }
@@ -213,6 +231,24 @@ func (o *GetFixedPricePagesParams) bindMin(rawData []string, hasKey bool, format
 	return nil
 }
 
+// bindSpecialties binds and validates parameter Specialties from query.
+func (o *GetFixedPricePagesParams) bindSpecialties(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.Specialties = &raw
+
+	return nil
+}
+
 // bindState binds and validates parameter State from query.
 func (o *GetFixedPricePagesParams) bindState(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
@@ -245,6 +281,24 @@ func (o *GetFixedPricePagesParams) bindSubCategory(rawData []string, hasKey bool
 		return nil
 	}
 	o.SubCategory = &raw
+
+	return nil
+}
+
+// bindToDate binds and validates parameter ToDate from query.
+func (o *GetFixedPricePagesParams) bindToDate(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+	o.ToDate = &raw
 
 	return nil
 }

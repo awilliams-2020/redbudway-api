@@ -34,9 +34,8 @@ type ServiceDetails struct {
 	// excludes
 	Excludes []string `json:"excludes"`
 
-	// filters
-	// Required: true
-	Filters []string `json:"filters"`
+	// form
+	Form []FormFields `json:"form"`
 
 	// id
 	ID int64 `json:"id,omitempty"`
@@ -51,6 +50,9 @@ type ServiceDetails struct {
 	// interval
 	Interval string `json:"interval"`
 
+	// jobs
+	Jobs int64 `json:"jobs"`
+
 	// price
 	Price float64 `json:"price"`
 
@@ -63,12 +65,19 @@ type ServiceDetails struct {
 	// rating
 	Rating float64 `json:"rating"`
 
+	// repeat
+	Repeat int64 `json:"repeat"`
+
 	// reviews
 	Reviews int64 `json:"reviews"`
 
 	// select places
 	// Required: true
 	SelectPlaces *bool `json:"selectPlaces"`
+
+	// specialties
+	// Required: true
+	Specialties []string `json:"specialties"`
 
 	// states and cities
 	StatesAndCities []*ServiceDetailsStatesAndCitiesItems0 `json:"statesAndCities"`
@@ -99,7 +108,7 @@ func (m *ServiceDetails) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateFilters(formats); err != nil {
+	if err := m.validateForm(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -108,6 +117,10 @@ func (m *ServiceDetails) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSelectPlaces(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSpecialties(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -147,10 +160,22 @@ func (m *ServiceDetails) validateDescription(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *ServiceDetails) validateFilters(formats strfmt.Registry) error {
+func (m *ServiceDetails) validateForm(formats strfmt.Registry) error {
+	if swag.IsZero(m.Form) { // not required
+		return nil
+	}
 
-	if err := validate.Required("filters", "body", m.Filters); err != nil {
-		return err
+	for i := 0; i < len(m.Form); i++ {
+
+		if err := m.Form[i].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("form" + "." + strconv.Itoa(i))
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("form" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
 	}
 
 	return nil
@@ -168,6 +193,15 @@ func (m *ServiceDetails) validateImages(formats strfmt.Registry) error {
 func (m *ServiceDetails) validateSelectPlaces(formats strfmt.Registry) error {
 
 	if err := validate.Required("selectPlaces", "body", m.SelectPlaces); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *ServiceDetails) validateSpecialties(formats strfmt.Registry) error {
+
+	if err := validate.Required("specialties", "body", m.Specialties); err != nil {
 		return err
 	}
 
@@ -239,6 +273,10 @@ func (m *ServiceDetails) validateTitle(formats strfmt.Registry) error {
 func (m *ServiceDetails) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.contextValidateForm(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.contextValidateStatesAndCities(ctx, formats); err != nil {
 		res = append(res, err)
 	}
@@ -250,6 +288,24 @@ func (m *ServiceDetails) ContextValidate(ctx context.Context, formats strfmt.Reg
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *ServiceDetails) contextValidateForm(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Form); i++ {
+
+		if err := m.Form[i].ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("form" + "." + strconv.Itoa(i))
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("form" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
 	return nil
 }
 

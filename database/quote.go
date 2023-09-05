@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
+	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
@@ -46,7 +47,11 @@ func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *operations
 		if err != nil {
 			log.Printf("Failed to get quote image %s", err)
 		}
-		quote.Filters, err = GetFilters(ID)
+		if len(quote.Images) == 0 {
+			url := "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/placeholder.svg"
+			quote.Images = append(quote.Images, url)
+		}
+		quote.Specialties, err = GetSpecialties(ID)
 		if err != nil {
 			return quote, business, err
 		}

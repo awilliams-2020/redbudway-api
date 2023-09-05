@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
@@ -40,11 +41,15 @@ func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *opera
 		if err != nil {
 			return fixedPrice, business, err
 		}
+		if len(fixedPrice.Images) == 0 {
+			url := "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/placeholder.svg"
+			fixedPrice.Images = append(fixedPrice.Images, url)
+		}
 		fixedPrice.TimeSlots, err = GetPublicTimeSlots(fixedPriceID, fixedPrice.Subscription)
 		if err != nil {
 			return fixedPrice, business, err
 		}
-		fixedPrice.Filters, err = GetFilters(fixedPriceID)
+		fixedPrice.Specialties, err = GetSpecialties(fixedPriceID)
 		if err != nil {
 			return fixedPrice, business, err
 		}
@@ -60,6 +65,21 @@ func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *opera
 		if err != nil {
 			return fixedPrice, business, err
 		}
+		fixedPrice.Repeat, err = GetFixedPriceRepeatCustomers(fixedPriceID, business.TradespersonID)
+		if err != nil {
+			log.Printf("Failed to get fixed price repeat customers %s", err)
+		}
+
+		fixedPrice.Jobs, err = GetFixedPriceJobs(fixedPriceID, business.TradespersonID)
+		if err != nil {
+			log.Printf("Failed to get fixed price jobs %s", err)
+		}
+
+		fixedPrice.Form, err = GetFixedPriceForm(fixedPriceID)
+		if err != nil {
+			log.Printf("Failed to get fixed price form %s", err)
+		}
+
 	default:
 		return fixedPrice, business, err
 	}

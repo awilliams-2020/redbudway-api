@@ -87,6 +87,10 @@
       border: 0;
       outline: none;
     }
+    .cell-size {
+      vertical-align: top;
+      width: 200px;
+    }
   </style>
 
 </head>
@@ -172,6 +176,9 @@
               <br>
               <p style="margin: 0; color:black;"><b>{SERVICE_NAME}</b></p>
               <p style="margin: 0; color:black;">{TIME_AND_PRICE}</p>
+              <table border="0">
+                {FORM_ROWS_COLS}
+              </table>
               <p style="margin: 0; color:black;">{CUSTOMER_INFO}</p>
             </td>
           </tr>

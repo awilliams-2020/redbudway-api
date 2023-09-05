@@ -42,6 +42,9 @@ type Tradesperson struct {
 	// rating
 	Rating int64 `json:"rating"`
 
+	// repeat
+	Repeat int64 `json:"repeat"`
+
 	// reviews
 	Reviews int64 `json:"reviews"`
 }

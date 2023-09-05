@@ -51,19 +51,18 @@ func processQuoteRows(db *sql.DB, rows *sql.Rows, quotes []*models.Service) ([]*
 	return quotes, nil
 }
 
-func getQuotesWithFilters(state, city, category, subCategory, filters string, page int64) ([]*models.Service, error) {
-	filterArry := strings.Split(filters, ",")
+func getQuotesWithSpecialties(state, city, category, subCategory, specialties string, page int64) ([]*models.Service, error) {
+	specialtyArry := strings.Split(specialties, ",")
 	query := ""
-	for _, filter := range filterArry {
-		query += "'" + filter + "',"
+	for _, specialty := range specialtyArry {
+		query += "'" + specialty + "',"
 	}
 	query = query[:len(query)-1]
-	log.Println(query)
 	quotes := []*models.Service{}
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id LEFT JOIN quote_filters qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND ((? = '' AND ? = '') OR q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND qf.filter IN (" + query + ") AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, q.id, q.tradespersonId, q.quote, q.title, q.description, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN quotes q ON a.tradespersonId=q.tradespersonId LEFT JOIN quote_state_cities c ON c.quoteId=q.id LEFT JOIN quote_specialties qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND ((? = '' AND ? = '') OR q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND qf.specialty IN (" + query + ") AND q.archived=false GROUP BY q.id ORDER BY q.id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes, err
@@ -197,14 +196,14 @@ func GetQuotesHandler(params operations.GetQuotesParams) middleware.Responder {
 			return response
 		}
 	} else if params.Category != nil && params.SubCategory != nil {
-		if params.Filters == nil {
+		if params.Specialties == nil {
 			quotes, err = getSubCategoryQuotes(state, city, *params.Category, *params.SubCategory, page)
 			if err != nil {
 				log.Printf("%s", err)
 				return response
 			}
 		} else {
-			quotes, err = getQuotesWithFilters(state, city, *params.Category, *params.SubCategory, *params.Filters, page)
+			quotes, err = getQuotesWithSpecialties(state, city, *params.Category, *params.SubCategory, *params.Specialties, page)
 			if err != nil {
 				log.Printf("%s", err)
 				return response
@@ -218,17 +217,17 @@ func GetQuotesHandler(params operations.GetQuotesParams) middleware.Responder {
 }
 
 //PAGES
-func getQuotesWithFiltersPages(pages float64, state, city, category, subCategory, filters string) (float64, error) {
-	filterArry := strings.Split(filters, ",")
+func getQuotesWithSpecialtiesPages(pages float64, state, city, category, subCategory, specialties string) (float64, error) {
+	specialtyArry := strings.Split(specialties, ",")
 	query := ""
-	for _, filter := range filterArry {
-		query += "'" + filter + "',"
+	for _, specialty := range specialtyArry {
+		query += "'" + specialty + "',"
 	}
 	query = query[:len(query)-1]
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM quotes q LEFT JOIN quote_state_cities c ON c.quoteId=q.id LEFT JOIN quote_filters qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND ((? = '' AND ? = '') OR q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND  qf.filter IN (" + query + ") AND q.archived=false")
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM quotes q LEFT JOIN quote_state_cities c ON c.quoteId=q.id LEFT JOIN quote_specialties qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND ((? = '' AND ? = '') OR q.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND  qf.specialty IN (" + query + ") AND q.archived=false")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return pages, err
@@ -297,17 +296,17 @@ func getAllQuotePages(pages float64, state, city string) (float64, error) {
 	return pages, nil
 }
 
-func getQuotesWithFiltersPagesWOL(pages float64, category, subCategory, filters string) (float64, error) {
-	filterArry := strings.Split(filters, ",")
+func getQuotesWithSpecialtiesPagesWOL(pages float64, category, subCategory, specialties string) (float64, error) {
+	specialtyArry := strings.Split(specialties, ",")
 	query := ""
-	for _, filter := range filterArry {
-		query += "'" + filter + "',"
+	for _, specialty := range specialtyArry {
+		query += "'" + specialty + "',"
 	}
 	query = query[:len(query)-1]
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM quotes q LEFT JOIN quote_filters qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND qf.filter IN (" + query + ") AND q.archived=false")
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM quotes q LEFT JOIN quote_specialties qf ON qf.quoteId=q.id WHERE q.category=? AND q.subcategory=? AND qf.specialty IN (" + query + ") AND q.archived=false")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return pages, err
@@ -420,28 +419,28 @@ func GetQuotePagesHandler(params operations.GetQuotePagesParams) middleware.Resp
 		}
 	} else if params.Category != nil && params.SubCategory != nil {
 		if city == "" && state == "" {
-			if params.Filters == nil {
+			if params.Specialties == nil {
 				pages, err = getSubCategoryQuotePagesWOL(pages, *params.Category, *params.SubCategory)
 				if err != nil {
 					log.Printf("%s", err)
 					return response
 				}
 			} else {
-				pages, err = getQuotesWithFiltersPagesWOL(pages, *params.Category, *params.SubCategory, *params.Filters)
+				pages, err = getQuotesWithSpecialtiesPagesWOL(pages, *params.Category, *params.SubCategory, *params.Specialties)
 				if err != nil {
 					log.Printf("%s", err)
 					return response
 				}
 			}
 		} else {
-			if params.Filters == nil {
+			if params.Specialties == nil {
 				pages, err = getSubCategoryQuotePages(pages, state, city, *params.Category, *params.SubCategory)
 				if err != nil {
 					log.Printf("%s", err)
 					return response
 				}
 			} else {
-				pages, err = getQuotesWithFiltersPages(pages, state, city, *params.Category, *params.SubCategory, *params.Filters)
+				pages, err = getQuotesWithSpecialtiesPages(pages, state, city, *params.Category, *params.SubCategory, *params.Specialties)
 				if err != nil {
 					log.Printf("%s", err)
 					return response

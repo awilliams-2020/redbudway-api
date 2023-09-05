@@ -42,7 +42,7 @@ type GetQuotePagesParams struct {
 	/*
 	  In: query
 	*/
-	Filters *string
+	Specialties *string
 	/*
 	  In: query
 	*/
@@ -74,8 +74,8 @@ func (o *GetQuotePagesParams) BindRequest(r *http.Request, route *middleware.Mat
 		res = append(res, err)
 	}
 
-	qFilters, qhkFilters, _ := qs.GetOK("filters")
-	if err := o.bindFilters(qFilters, qhkFilters, route.Formats); err != nil {
+	qSpecialties, qhkSpecialties, _ := qs.GetOK("specialties")
+	if err := o.bindSpecialties(qSpecialties, qhkSpecialties, route.Formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -130,8 +130,8 @@ func (o *GetQuotePagesParams) bindCity(rawData []string, hasKey bool, formats st
 	return nil
 }
 
-// bindFilters binds and validates parameter Filters from query.
-func (o *GetQuotePagesParams) bindFilters(rawData []string, hasKey bool, formats strfmt.Registry) error {
+// bindSpecialties binds and validates parameter Specialties from query.
+func (o *GetQuotePagesParams) bindSpecialties(rawData []string, hasKey bool, formats strfmt.Registry) error {
 	var raw string
 	if len(rawData) > 0 {
 		raw = rawData[len(rawData)-1]
@@ -143,7 +143,7 @@ func (o *GetQuotePagesParams) bindFilters(rawData []string, hasKey bool, formats
 	if raw == "" { // empty values pass all other validations
 		return nil
 	}
-	o.Filters = &raw
+	o.Specialties = &raw
 
 	return nil
 }

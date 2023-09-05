@@ -43,18 +43,19 @@ func SendTradespersonMessage(businessName, businessEmail, service, message strin
 		m.Attach(image)
 	}
 
-	d := gomail.NewDialer("mail.redbudway.com", 25, "service@redbudway.com", "MerCedEsAmgGt22$")
+	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
 
 	return images, d.DialAndSend(m)
 }
 
-func SendTradespersonBooking(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice string) error {
+func SendTradespersonBooking(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice, formRowsCols string) error {
 	body := tradespersonBooking
 
 	customerInfo := fmt.Sprintf("%s<br>%s<br>%s", stripeCustomer.Name, stripeCustomer.Email, stripeCustomer.Phone)
 	body = strings.Replace(body, "{CUSTOMER_INFO}", customerInfo, -1)
 	body = strings.Replace(body, "{SERVICE_NAME}", stripeProduct.Name, -1)
 	body = strings.Replace(body, "{TIME_AND_PRICE}", timeAndPrice, -1)
+	body = strings.Replace(body, "{FORM_ROWS_COLS}", formRowsCols, -1)
 
 	return email(tradesperson.Email, tradesperson.Name, "Booking", body)
 }
@@ -103,7 +104,7 @@ func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustom
 
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("mail.redbudway.com", 25, "service@redbudway.com", "MerCedEsAmgGt22$")
+	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
 
 	return images, d.DialAndSend(m)
 }

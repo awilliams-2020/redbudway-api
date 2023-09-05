@@ -15,14 +15,31 @@ import (
 
 const PAGE_SIZE = float64(9)
 
-func insertFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
-	for _, filter := range fixedPrice.Filters {
-		stmt, err := db.Prepare("INSERT INTO fixed_price_filters (fixedPriceId, filter) VALUES (?, ?)")
+func insertForm(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	stmt, err := db.Prepare("INSERT INTO fixed_price_form (fixedPriceId, form) VALUES (?, ?)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	formJson, err := json.Marshal(fixedPrice.Form)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(fixedPriceID, string(formJson))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func insertSpecialties(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	for _, specialty := range fixedPrice.Specialties {
+		stmt, err := db.Prepare("INSERT INTO fixed_price_specialties (fixedPriceId, specialty) VALUES (?, ?)")
 		if err != nil {
 			return err
 		}
 		defer stmt.Close()
-		_, err = stmt.Exec(fixedPriceID, filter)
+		_, err = stmt.Exec(fixedPriceID, specialty)
 		if err != nil {
 			return err
 		}
@@ -82,10 +99,6 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 			return false, err
 		}
 
-		// if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
-		// 	return false, err
-		// }
-
 		if err = insertStatesAndCities(fixedPriceID, fixedPrice); err != nil {
 			return false, err
 		}
@@ -94,7 +107,11 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 			return false, err
 		}
 
-		if err = insertFilters(fixedPriceID, fixedPrice); err != nil {
+		if err = insertSpecialties(fixedPriceID, fixedPrice); err != nil {
+			return false, err
+		}
+
+		if err = insertForm(fixedPriceID, fixedPrice); err != nil {
 			return false, err
 		}
 	}
@@ -102,28 +119,99 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 	return true, nil
 }
 
-func GetFilters(fixedPriceID int64) ([]string, error) {
-	filters := []string{}
-
-	stmt, err := db.Prepare("SELECT filter FROM fixed_price_filters WHERE fixedPriceId=?")
+func GetFixedPriceForm(fixedPriceID int64) ([]models.FormFields, error) {
+	formFields := []models.FormFields{}
+	stmt, err := db.Prepare("SELECT form FROM fixed_price_form WHERE fixedPriceId=?")
 	if err != nil {
-		return filters, err
+		return formFields, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(fixedPriceID)
+	var formJson []uint8
+	switch err = row.Scan(&formJson); err {
+	case sql.ErrNoRows:
+		//
+	case nil:
+		if err := json.Unmarshal([]byte(formJson), &formFields); err != nil {
+			return formFields, err
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return formFields, nil
+}
+
+func GetFixedPriceJobs(fixedPriceID int64, tradespersonId string) (int64, error) {
+	count := int64(0)
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM tradesperson_invoices WHERE tradespersonId=? AND fixedPriceId=?")
+	if err != nil {
+		return count, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonId, fixedPriceID)
+	switch err = row.Scan(&count); err {
+	case sql.ErrNoRows:
+		log.Printf("Invoice with fixedPriceID %s has no invoices %s", fixedPriceID)
+	case nil:
+		//
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return count, nil
+}
+
+func GetFixedPriceRepeatCustomers(fixedPriceID int64, tradespersonID string) (int64, error) {
+	repeat := int64(0)
+	stmt, err := db.Prepare("SELECT COUNT(*) > 1 FROM tradesperson_invoices WHERE tradespersonId=? AND fixedPriceId=? GROUP BY customerId")
+	if err != nil {
+		return repeat, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(tradespersonID, fixedPriceID)
+	if err != nil {
+		return repeat, err
+	}
+
+	for rows.Next() {
+		isRepeat := false
+		if err := rows.Scan(&isRepeat); err != nil {
+			continue
+		}
+		if isRepeat {
+			repeat += 1
+		}
+	}
+
+	return repeat, nil
+}
+
+func GetSpecialties(fixedPriceID int64) ([]string, error) {
+	specialties := []string{}
+
+	stmt, err := db.Prepare("SELECT specialty FROM fixed_price_specialties WHERE fixedPriceId=?")
+	if err != nil {
+		return specialties, err
 	}
 	defer stmt.Close()
 
 	rows, err := stmt.Query(fixedPriceID)
 	if err != nil {
-		return filters, err
+		return specialties, err
 	}
 
-	var filter string
+	var specialty string
 	for rows.Next() {
-		if err := rows.Scan(&filter); err != nil {
-			return filters, err
+		if err := rows.Scan(&specialty); err != nil {
+			return specialties, err
 		}
-		filters = append(filters, filter)
+		specialties = append(specialties, specialty)
 	}
-	return filters, nil
+	return specialties, nil
 }
 
 func GetIncludes(fixedPriceID int64) ([]string, []string, error) {
@@ -321,11 +409,16 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 		if err != nil {
 			return fixedPrice, ID, err
 		}
-		fixedPrice.Filters, err = GetFilters(ID)
+		fixedPrice.Specialties, err = GetSpecialties(ID)
 		if err != nil {
 			return fixedPrice, ID, err
 		}
 		fixedPrice.Includes, fixedPrice.Excludes, err = GetIncludes(ID)
+		if err != nil {
+			return fixedPrice, ID, err
+		}
+
+		fixedPrice.Form, err = GetFixedPriceForm(ID)
 		if err != nil {
 			return fixedPrice, ID, err
 		}
@@ -336,8 +429,27 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 	return fixedPrice, ID, nil
 }
 
-func updateFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
-	stmt, err := db.Prepare("SELECT filter FROM fixed_price_filters WHERE fixedPriceId=?")
+func updateForm(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	stmt, err := db.Prepare("UPDATE fixed_price_form SET form=? WHERE fixedPriceId=?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	formJson, err := json.Marshal(fixedPrice.Form)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(string(formJson), fixedPriceID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateSpecialties(fixedPriceID int64, fixedPrice *models.ServiceDetails) error {
+	stmt, err := db.Prepare("SELECT specialty FROM fixed_price_specialties WHERE fixedPriceId=?")
 	if err != nil {
 		return err
 	}
@@ -348,24 +460,24 @@ func updateFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error 
 		return err
 	}
 
-	existingFilters := []string{}
-	var filter string
+	existingSpecialties := []string{}
+	var specialty string
 	for rows.Next() {
-		if err := rows.Scan(&filter); err != nil {
+		if err := rows.Scan(&specialty); err != nil {
 			return err
 		}
-		existingFilters = append(existingFilters, filter)
+		existingSpecialties = append(existingSpecialties, specialty)
 	}
 
-	for _, existingFilter := range existingFilters {
+	for _, existingFilter := range existingSpecialties {
 		found := false
-		for _, filter := range fixedPrice.Filters {
-			if existingFilter == filter {
+		for _, specialty := range fixedPrice.Specialties {
+			if existingFilter == specialty {
 				found = true
 			}
 		}
 		if !found {
-			stmt, err := db.Prepare("DELETE FROM fixed_price_filters WHERE fixedPriceId=? AND filter=?")
+			stmt, err := db.Prepare("DELETE FROM fixed_price_specialties WHERE fixedPriceId=? AND specialty=?")
 			if err != nil {
 				return err
 			}
@@ -377,20 +489,20 @@ func updateFilters(fixedPriceID int64, fixedPrice *models.ServiceDetails) error 
 		}
 	}
 
-	for _, filter := range fixedPrice.Filters {
+	for _, specialty := range fixedPrice.Specialties {
 		found := false
-		for _, existingFilter := range existingFilters {
-			if filter == existingFilter {
+		for _, existingFilter := range existingSpecialties {
+			if specialty == existingFilter {
 				found = true
 			}
 		}
 		if !found {
-			stmt, err := db.Prepare("INSERT INTO fixed_price_filters (fixedPriceId, filter) VALUES (?, ?)")
+			stmt, err := db.Prepare("INSERT INTO fixed_price_specialties (fixedPriceId, specialty) VALUES (?, ?)")
 			if err != nil {
 				return err
 			}
 			defer stmt.Close()
-			_, err = stmt.Exec(fixedPriceID, filter)
+			_, err = stmt.Exec(fixedPriceID, specialty)
 			if err != nil {
 				return err
 			}
@@ -585,15 +697,11 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 			return updated, err
 		}
 
-		// if err := updateImages(fixedPriceID, images, "fixed_price"); err != nil {
-		// 	return updated, err
-		// }
-
 		if err := updateStatesAndCities(fixedPriceID, fixedPrice); err != nil {
 			return updated, err
 		}
 
-		if err := updateFilters(fixedPriceID, fixedPrice); err != nil {
+		if err := updateSpecialties(fixedPriceID, fixedPrice); err != nil {
 			return updated, err
 		}
 
@@ -604,6 +712,27 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 		if err := updateIncludes(fixedPriceID, fixedPrice); err != nil {
 			return updated, err
 		}
+
+		stmt, err = db.Prepare("SELECT f.id FROM fixed_prices f INNER JOIN fixed_price_form fm ON f.id=fm.fixedPriceId WHERE f.priceId=?")
+		if err != nil {
+			return updated, err
+		}
+		defer stmt.Close()
+
+		row := stmt.QueryRow(fixedPriceID)
+		switch err = row.Scan(&fixedPriceID); err {
+		case sql.ErrNoRows:
+			if err := insertForm(fixedPriceID, fixedPrice); err != nil {
+				return updated, err
+			}
+		case nil:
+			if err := updateForm(fixedPriceID, fixedPrice); err != nil {
+				return updated, err
+			}
+		default:
+			log.Println("Unknown error")
+		}
+
 		updated = true
 	default:
 		log.Println(err)
@@ -664,6 +793,19 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 			return fixedPrices
 
 		}
+
+		repeat, err := GetFixedPriceRepeatCustomers(ID, tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get fixed price repeat customers %s", err)
+		}
+		fixedPrice.Repeat = repeat
+
+		jobs, err := GetFixedPriceJobs(ID, tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get fixed price jobs %s", err)
+		}
+		fixedPrice.Jobs = jobs
+
 		fixedPrices = append(fixedPrices, fixedPrice)
 	}
 
@@ -704,14 +846,14 @@ func updateImages(ID int64, images []*string, table string) error {
 	return nil
 }
 
-func insertQuoteFilters(ID int64, quote *models.ServiceDetails) error {
-	for _, filter := range quote.Filters {
-		stmt, err := db.Prepare("INSERT INTO quote_filters (quoteId, filter) VALUES (?, ?)")
+func insertQuoteSpecialties(ID int64, quote *models.ServiceDetails) error {
+	for _, specialty := range quote.Specialties {
+		stmt, err := db.Prepare("INSERT INTO quote_specialties (quoteId, specialty) VALUES (?, ?)")
 		if err != nil {
 			return err
 		}
 		defer stmt.Close()
-		_, err = stmt.Exec(ID, filter)
+		_, err = stmt.Exec(ID, specialty)
 		if err != nil {
 			return err
 		}
@@ -766,15 +908,11 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 			return false, err
 		}
 
-		// if err = updateImages(ID, images, "quote"); err != nil {
-		// 	return false, err
-		// }
-
 		if err = insertQuoteStatesAndCities(ID, quote); err != nil {
 			return false, err
 		}
 
-		if err = insertQuoteFilters(ID, quote); err != nil {
+		if err = insertQuoteSpecialties(ID, quote); err != nil {
 			return false, err
 		}
 	}
@@ -836,7 +974,7 @@ func GetTradespersonQuote(tradespersonID, quoteID string) (*models.ServiceDetail
 		if err != nil {
 			return quote, err
 		}
-		quote.Filters, err = GetFilters(ID)
+		quote.Specialties, err = GetSpecialties(ID)
 		if err != nil {
 			return quote, err
 		}
@@ -847,8 +985,8 @@ func GetTradespersonQuote(tradespersonID, quoteID string) (*models.ServiceDetail
 	return quote, err
 }
 
-func updateQuoteFilters(ID int64, quote *models.ServiceDetails) error {
-	stmt, err := db.Prepare("SELECT filter FROM quote_filters WHERE quoteId=?")
+func updateQuoteSpecialties(ID int64, quote *models.ServiceDetails) error {
+	stmt, err := db.Prepare("SELECT specialty FROM quote_specialties WHERE quoteId=?")
 	if err != nil {
 		return err
 	}
@@ -859,24 +997,24 @@ func updateQuoteFilters(ID int64, quote *models.ServiceDetails) error {
 		return err
 	}
 
-	existingFilters := []string{}
-	var filter string
+	existingSpecialties := []string{}
+	var specialty string
 	for rows.Next() {
-		if err := rows.Scan(&filter); err != nil {
+		if err := rows.Scan(&specialty); err != nil {
 			return err
 		}
-		existingFilters = append(existingFilters, filter)
+		existingSpecialties = append(existingSpecialties, specialty)
 	}
 
-	for _, existingFilter := range existingFilters {
+	for _, existingFilter := range existingSpecialties {
 		found := false
-		for _, filter := range quote.Filters {
-			if existingFilter == filter {
+		for _, specialty := range quote.Specialties {
+			if existingFilter == specialty {
 				found = true
 			}
 		}
 		if !found {
-			stmt, err := db.Prepare("DELETE FROM quote_filters WHERE quoteId=? AND filter=?")
+			stmt, err := db.Prepare("DELETE FROM quote_specialties WHERE quoteId=? AND specialty=?")
 			if err != nil {
 				return err
 			}
@@ -888,20 +1026,20 @@ func updateQuoteFilters(ID int64, quote *models.ServiceDetails) error {
 		}
 	}
 
-	for _, filter := range quote.Filters {
+	for _, specialty := range quote.Specialties {
 		found := false
-		for _, existingFilter := range existingFilters {
-			if filter == existingFilter {
+		for _, existingFilter := range existingSpecialties {
+			if specialty == existingFilter {
 				found = true
 			}
 		}
 		if !found {
-			stmt, err := db.Prepare("INSERT INTO quote_filters (quoteId, filter) VALUES (?, ?)")
+			stmt, err := db.Prepare("INSERT INTO quote_specialties (quoteId, specialty) VALUES (?, ?)")
 			if err != nil {
 				return err
 			}
 			defer stmt.Close()
-			_, err = stmt.Exec(ID, filter)
+			_, err = stmt.Exec(ID, specialty)
 			if err != nil {
 				return err
 			}
@@ -1023,15 +1161,11 @@ func UpdateTradespersonQuote(tradespersonID string, quoteID string, quote *model
 			return updated, err
 		}
 
-		// if err := updateImages(ID, images, "quote"); err != nil {
-		// 	return updated, err
-		// }
-
 		if err := updateQuoteStatesAndCities(ID, quote); err != nil {
 			return updated, err
 		}
 
-		if err := updateQuoteFilters(ID, quote); err != nil {
+		if err := updateQuoteSpecialties(ID, quote); err != nil {
 			return updated, err
 		}
 

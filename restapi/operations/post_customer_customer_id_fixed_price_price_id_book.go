@@ -14,6 +14,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 
 	"redbudway-api/models"
 )
@@ -80,13 +81,21 @@ func (o *PostCustomerCustomerIDFixedPricePriceIDBook) ServeHTTP(rw http.Response
 // swagger:model PostCustomerCustomerIDFixedPricePriceIDBookBody
 type PostCustomerCustomerIDFixedPricePriceIDBookBody struct {
 
+	// form
+	Form []models.FormFields `json:"form"`
+
 	// time slots
+	// Min Items: 1
 	TimeSlots []*models.TimeSlot `json:"timeSlots"`
 }
 
 // Validate validates this post customer customer ID fixed price price ID book body
 func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := o.validateForm(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := o.validateTimeSlots(formats); err != nil {
 		res = append(res, err)
@@ -98,9 +107,36 @@ func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) Validate(formats strfm
 	return nil
 }
 
+func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) validateForm(formats strfmt.Registry) error {
+	if swag.IsZero(o.Form) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(o.Form); i++ {
+
+		if err := o.Form[i].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("booking" + "." + "form" + "." + strconv.Itoa(i))
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("booking" + "." + "form" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
+	return nil
+}
+
 func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) validateTimeSlots(formats strfmt.Registry) error {
 	if swag.IsZero(o.TimeSlots) { // not required
 		return nil
+	}
+
+	iTimeSlotsSize := int64(len(o.TimeSlots))
+
+	if err := validate.MinItems("booking"+"."+"timeSlots", "body", iTimeSlotsSize, 1); err != nil {
+		return err
 	}
 
 	for i := 0; i < len(o.TimeSlots); i++ {
@@ -128,6 +164,10 @@ func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) validateTimeSlots(form
 func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
+	if err := o.contextValidateForm(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := o.contextValidateTimeSlots(ctx, formats); err != nil {
 		res = append(res, err)
 	}
@@ -135,6 +175,24 @@ func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) ContextValidate(ctx co
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) contextValidateForm(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(o.Form); i++ {
+
+		if err := o.Form[i].ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("booking" + "." + "form" + "." + strconv.Itoa(i))
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("booking" + "." + "form" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
 	return nil
 }
 

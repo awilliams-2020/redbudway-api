@@ -79,16 +79,16 @@ func GetTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Get
 		return response
 	}
 
-	fixedPrice, fixedPriceID, err := database.GetTradespersonFixedPrice(tradespersonID, priceID)
+	fixedPrice, _, err := database.GetTradespersonFixedPrice(tradespersonID, priceID)
 	if err != nil {
 		log.Printf("Failed to get fixed price, %s", err)
 		return response
 	}
-	otherServices, err := database.GetOtherServices(tradespersonID, fixedPriceID)
-	if err != nil {
-		log.Printf("Failed to get other fixed prices, %s", err)
-		return response
-	}
+	// otherServices, err := database.GetOtherServices(tradespersonID, fixedPriceID)
+	// if err != nil {
+	// 	log.Printf("Failed to get other fixed prices, %s", err)
+	// 	return response
+	// }
 	googleTimeSlots := models.GoogleTimeSlots{}
 	if accessToken != nil {
 		googleTimeSlots = internal.GetGoogleTimeSlots(*accessToken)
@@ -98,7 +98,7 @@ func GetTradespersonTradespersonIDFixedPricePriceIDHandler(params operations.Get
 		}
 	}
 	payload.FixedPrice = fixedPrice
-	payload.OtherServices = otherServices
+	// payload.OtherServices = otherServices
 	payload.GoogleTimeSlots = googleTimeSlots
 	response.SetPayload(&payload)
 

@@ -64,6 +64,13 @@ func GetProfileVanityOrIDHandler(params operations.GetProfileVanityOrIDParams) m
 		}
 		tradesperson.Jobs = jobs
 
+		repeat, err := database.GetTradespersonRepeatCustomers(tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get tradesperson repeat jobs %s", err)
+			return response
+		}
+		tradesperson.Repeat = repeat
+
 		rating, reviews, err := database.GetTradespersonRatingReviews(tradespersonID)
 		if err != nil {
 			log.Printf("Failed to get tradesperson rating & reviews %s", err)
@@ -133,6 +140,18 @@ func GetProfileVanityOrIDFixedPricesHandler(params operations.GetProfileVanityOr
 			log.Printf("Failed to get reviews and rating %s", err)
 		}
 
+		repeat, err := database.GetFixedPriceRepeatCustomers(id, tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get fixed price repeat customers %s", err)
+		}
+		fixedPrice.Repeat = repeat
+
+		jobs, err := database.GetFixedPriceJobs(id, tradespersonID)
+		if err != nil {
+			log.Printf("Failed to get fixed price jobs %s", err)
+		}
+		fixedPrice.Jobs = jobs
+
 		fixedPrices = append(fixedPrices, fixedPrice)
 	}
 	response.SetPayload(fixedPrices)
@@ -148,7 +167,7 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 	quotes := []*models.Service{}
 	response := operations.NewGetProfileVanityOrIDQuotesOK().WithPayload(quotes)
 
-	stmt, err := db.Prepare("SELECT q.tradespersonId, q.id, q.quote, q.title FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId WHERE q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
+	stmt, err := db.Prepare("SELECT q.tradespersonId, q.id, q.quote, q.title, q.description FROM quotes q INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId WHERE q.archived=false AND (q.tradespersonId=? OR ts.vanityURL=?)")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -162,14 +181,18 @@ func GetProfileVanityOrIDQuotesHandler(params operations.GetProfileVanityOrIDQuo
 	}
 
 	var ID int64
-	var tradespersonID, quoteID, title string
+	var tradespersonID, quoteID, title, description string
 	for rows.Next() {
-		if err := rows.Scan(&tradespersonID, &ID, &quoteID, &title); err != nil {
+		if err := rows.Scan(&tradespersonID, &ID, &quoteID, &title, &description); err != nil {
 			log.Printf("Failed to scan for profile quotes, %s", err)
 			return response
 		}
 		quote := &models.Service{}
 		quote.Title = title
+		if len(description) > 84 {
+			description = description[:84] + "..."
+		}
+		quote.Description = description
 		quote.QuoteID = quoteID
 		quote.Reviews, quote.Rating, err = database.GetQuoteRating(ID)
 		if err != nil {

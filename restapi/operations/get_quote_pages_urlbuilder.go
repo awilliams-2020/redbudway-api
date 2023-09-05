@@ -15,7 +15,7 @@ import (
 type GetQuotePagesURL struct {
 	Category    *string
 	City        *string
-	Filters     *string
+	Specialties *string
 	State       *string
 	SubCategory *string
 
@@ -69,12 +69,12 @@ func (o *GetQuotePagesURL) Build() (*url.URL, error) {
 		qs.Set("city", cityQ)
 	}
 
-	var filtersQ string
-	if o.Filters != nil {
-		filtersQ = *o.Filters
+	var specialtiesQ string
+	if o.Specialties != nil {
+		specialtiesQ = *o.Specialties
 	}
-	if filtersQ != "" {
-		qs.Set("filters", filtersQ)
+	if specialtiesQ != "" {
+		qs.Set("specialties", specialtiesQ)
 	}
 
 	var stateQ string

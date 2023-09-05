@@ -255,7 +255,6 @@ func PostTradespersonTradespersonIDGoogleTokenHandler(params operations.PostTrad
 	expiresIn := res["expires_in"].(float64)
 	refreshToken := res["refresh_token"].(string)
 	idToken := res["id_token"].(string)
-
 	userInfo, err := internal.DecodeJWT(idToken)
 	if err != nil {
 		log.Printf("Failed to get user google info, %v", err)
@@ -373,6 +372,24 @@ func DeleteTradespersonTradespersonIDGoogleTokenHandler(params operations.Delete
 			response.SetPayload(&payload)
 		}
 	}
+
+	return response
+}
+
+func GetAdminAdminIDAccessTokenHandler(params operations.GetAdminAdminIDAccessTokenParams, principal interface{}) middleware.Responder {
+	adminID := params.AdminID
+	bearerHeader := params.HTTPRequest.Header.Get("Authorization")
+
+	payload := operations.GetAdminAdminIDAccessTokenOKBody{Valid: false}
+	response := operations.NewGetAdminAdminIDAccessTokenOK().WithPayload(&payload)
+
+	var err error
+	payload.Valid, err = ValidateAdminAccessToken(adminID, bearerHeader)
+	if err != nil {
+		log.Printf("Failed to validate admin (%s) access token, %v\n", adminID, err)
+	}
+
+	response.SetPayload(&payload)
 
 	return response
 }

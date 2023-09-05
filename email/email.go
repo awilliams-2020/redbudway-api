@@ -25,7 +25,7 @@ func email(email, name, subject, body string) error {
 
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("mail.redbudway.com", 25, "service@redbudway.com", "MerCedEsAmgGt22$")
+	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
 
 	return d.DialAndSend(m)
 }

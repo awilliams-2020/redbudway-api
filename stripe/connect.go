@@ -37,8 +37,8 @@ func GetOnBoardingLink(stripeID, tradespersonID string) (*stripe.AccountLink, er
 	log.Print("Creating stripe connect account onboarding link")
 	params := &stripe.AccountLinkParams{
 		Account:    stripe.String(stripeID),
-		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/#/tradesperson/" + tradespersonID + "/profile"),
-		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/#/tradesperson/" + tradespersonID + "/profile"),
+		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/tradesperson/" + tradespersonID),
+		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/tradesperson/" + tradespersonID),
 		Type:       stripe.String("account_onboarding"),
 	}
 	return accountlink.New(params)

@@ -17,8 +17,8 @@ import (
 type GetQuotesURL struct {
 	Category    *string
 	City        *string
-	Filters     *string
 	Page        *int64
+	Specialties *string
 	State       *string
 	SubCategory *string
 
@@ -72,20 +72,20 @@ func (o *GetQuotesURL) Build() (*url.URL, error) {
 		qs.Set("city", cityQ)
 	}
 
-	var filtersQ string
-	if o.Filters != nil {
-		filtersQ = *o.Filters
-	}
-	if filtersQ != "" {
-		qs.Set("filters", filtersQ)
-	}
-
 	var pageQ string
 	if o.Page != nil {
 		pageQ = swag.FormatInt64(*o.Page)
 	}
 	if pageQ != "" {
 		qs.Set("page", pageQ)
+	}
+
+	var specialtiesQ string
+	if o.Specialties != nil {
+		specialtiesQ = *o.Specialties
+	}
+	if specialtiesQ != "" {
+		qs.Set("specialties", specialtiesQ)
 	}
 
 	var stateQ string

@@ -57,13 +57,14 @@ func SendCustomerVerification(customerName, customerEmail, customerID, token str
 	return email(customerEmail, customerName, "Email Verification", body)
 }
 
-func SendCustomerConfirmation(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice string) error {
+func SendCustomerConfirmation(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice, formRowsCols string) error {
 	body := customerConfirmation
 
 	tradespersonInfo := fmt.Sprintf("%s<br>%s<br>%s", tradesperson.Name, tradesperson.Email, tradesperson.Number)
 	body = strings.Replace(body, "{TRADESPERSON_INFO}", tradespersonInfo, -1)
 	body = strings.Replace(body, "{SERVICE_NAME}", stripeProduct.Name, -1)
 	body = strings.Replace(body, "{TIME_AND_PRICE}", timeAndPrice, -1)
+	body = strings.Replace(body, "{FORM_ROWS_COLS}", formRowsCols, -1)
 
 	return email(stripeCustomer.Email, stripeCustomer.Name, "Confirmation", body)
 }

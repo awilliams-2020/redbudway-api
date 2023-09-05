@@ -64,6 +64,8 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.GetAdminAdminIDTradespeopleHandler = operations.GetAdminAdminIDTradespeopleHandlerFunc(handlers.GetAdminAdminIDTradespeopleHandler)
 
+	api.GetAdminAdminIDAccessTokenHandler = operations.GetAdminAdminIDAccessTokenHandlerFunc(handlers.GetAdminAdminIDAccessTokenHandler)
+
 	api.GetCustomerCustomerIDAccessTokenHandler = operations.GetCustomerCustomerIDAccessTokenHandlerFunc(handlers.GetCustomerCustomerIDAccessTokenHandler)
 
 	api.GetCustomerCustomerIDBillingLinkHandler = operations.GetCustomerCustomerIDBillingLinkHandlerFunc(handlers.GetCustomerCustomerIDBillingLinkHandler)
