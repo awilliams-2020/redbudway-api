@@ -212,9 +212,6 @@ func PostTradespersonTradespersonIDBillingManualInvoiceHandler(params operations
 		}
 		timeStamp := dueDate.Unix()
 		invoiceParams := &stripe.InvoiceParams{
-			AutomaticTax: &stripe.InvoiceAutomaticTaxParams{
-				Enabled: stripe.Bool(true),
-			},
 			Customer:             stripe.String(cuStripeID),
 			CollectionMethod:     stripe.String("send_invoice"),
 			ApplicationFeeAmount: &fee,

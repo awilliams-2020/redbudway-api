@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	ACCESS_TIME  = 15
-	REFRESH_TIME = 15
+	ACCESS_TIME  = 2
+	REFRESH_TIME = 2
 )
 
 func ValidateCustomerRefreshToken(customerID, bearerHeader string) (bool, error) {

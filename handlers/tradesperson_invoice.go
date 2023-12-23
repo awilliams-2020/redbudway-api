@@ -36,15 +36,16 @@ func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT id FROM tradesperson_invoices WHERE tradespersonId=? AND invoiceId=?")
+	stmt, err := db.Prepare("SELECT id, timeZone FROM tradesperson_invoices WHERE tradespersonId=? AND invoiceId=?")
 	if err != nil {
 		return response
 	}
 	defer stmt.Close()
 
 	var id int64
+	var timeZone string
 	row := stmt.QueryRow(tradespersonID, invoiceID)
-	switch err = row.Scan(&id); err {
+	switch err = row.Scan(&id, &timeZone); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s has no invoice %s", tradespersonID, invoiceID)
 		return response
@@ -65,6 +66,7 @@ func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 		_invoice.Number = stripeInvoice.Number
 		_invoice.Pdf = stripeInvoice.InvoicePDF
 		_invoice.URL = stripeInvoice.HostedInvoiceURL
+		_invoice.TimeZone = timeZone
 
 		status, refunded, err := database.GetInvoiceRefund(invoiceID)
 		if err != nil {
@@ -190,15 +192,15 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT tp.name, tp.email, tp.number FROM tradesperson_invoices i INNER JOIN tradesperson_profile tp ON i.tradespersonId=tp.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
+	stmt, err := db.Prepare("SELECT i.timeZone, tp.name, tp.email, tp.number FROM tradesperson_invoices i INNER JOIN tradesperson_profile tp ON i.tradespersonId=tp.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
 	if err != nil {
 		return response
 	}
 	defer stmt.Close()
 
-	var tradespersonName, tradespersonEmail, tradespersonNumber string
+	var tradespersonName, tradespersonEmail, tradespersonNumber, timeZone string
 	row := stmt.QueryRow(tradespersonID, invoiceID)
-	switch err = row.Scan(&tradespersonName, &tradespersonEmail, &tradespersonNumber); err {
+	switch err = row.Scan(&timeZone, &tradespersonName, &tradespersonEmail, &tradespersonNumber); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s has no invoice %s", tradespersonID, invoiceID)
 		return response
@@ -224,7 +226,7 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			return response
 		}
 
-		timeAndPrice, err := internal.CreateTimeAndPriceFrmDB(startTime, endTime, decimalPrice)
+		timeAndPrice, err := internal.CreateTimeAndPriceFrmDB(startTime, endTime, timeZone, decimalPrice)
 		if err != nil {
 			log.Printf("Failed to create time and price, %v", err)
 			return response
@@ -337,15 +339,15 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT tp.name, tp.email, tp.number FROM tradesperson_invoices i INNER JOIN tradesperson_profile tp ON i.tradespersonId=tp.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
+	stmt, err := db.Prepare("SELECT i.timeZone, tp.name, tp.email, tp.number FROM tradesperson_invoices i INNER JOIN tradesperson_profile tp ON i.tradespersonId=tp.tradespersonId WHERE i.tradespersonId=? AND i.invoiceId=?")
 	if err != nil {
 		return response
 	}
 	defer stmt.Close()
 
-	var tradespersonName, tradespersonEmail, tradespersonNumber string
+	var tradespersonName, tradespersonEmail, tradespersonNumber, timeZone string
 	row := stmt.QueryRow(tradespersonID, invoiceID)
-	switch err = row.Scan(&tradespersonName, &tradespersonEmail, &tradespersonNumber); err {
+	switch err = row.Scan(&timeZone, &tradespersonName, &tradespersonEmail, &tradespersonNumber); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s has no invoice %s", tradespersonID, invoiceID)
 		return response
@@ -371,7 +373,7 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 			return response
 		}
 
-		timeAndPrice, err := internal.CreateTimeAndPriceFrmDB(startTime, endTime, decimalPrice)
+		timeAndPrice, err := internal.CreateTimeAndPriceFrmDB(startTime, endTime, timeZone, decimalPrice)
 		if err != nil {
 			log.Printf("Failed to create time and price, %v", err)
 			return response

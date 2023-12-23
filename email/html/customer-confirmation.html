@@ -87,10 +87,6 @@
       border: 0;
       outline: none;
     }
-    .cell-size {
-      vertical-align: top;
-      width: 200px;
-    }
   </style>
 
 </head>
@@ -118,7 +114,7 @@
           <tr>
             <td align="center" valign="top" style="padding: 36px 24px;">
               <a href="https://redbudway.com" target="_blank" style="display: inline-block;">
-                <img src="https://redbudway.com/assets/images/icon.png" alt="Logo" border="0" width="160"
+                <img src="https://redbudway.com/assets/images/icon.png" border="0" width="160"
                   style="display: block; width: 120px; max-width: 120px; min-width: 48px;">
               </a>
             </td>
@@ -176,10 +172,8 @@
               <br>
               <p style="margin: 0; color:black;"><b>{SERVICE_NAME}</b></p>
               <p style="margin: 0; color:black;">{TIME_AND_PRICE}</p>
-              <table border="0">
-                {FORM_ROWS_COLS}
-              </table>
-              <p style="margin: 0;">If you have any questions prior to service dates feel free to reach out to the tradesperson.</p>
+              {FORM_ROWS_COLS}
+              <p style="margin: 0;">If you have any questions prior to service dates feel free to reach out to the service provider.</p>
               <br>
               <p style="margin: 0; color:black;">{TRADESPERSON_INFO}</p>
             </td>

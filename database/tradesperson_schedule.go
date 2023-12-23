@@ -91,7 +91,7 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*
 
 func GetTradespersonSchedule(tradespersonID string, accessToken *string) (*operations.GetTradespersonTradespersonIDScheduleOK, error) {
 	response := operations.NewGetTradespersonTradespersonIDScheduleOK()
-	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.endTime, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE fp.tradespersonId=? AND cts.active=true GROUP BY fpts.id")
+	stmt, err := db.Prepare("SELECT fpts.startTime, fpts.endTime, cts.subscriptionId, cts.invoiceId, fp.priceId, fp.subscription, fp.subInterval FROM fixed_price_time_slots fpts INNER JOIN customer_time_slots cts ON fpts.id=cts.timeSlotId INNER JOIN fixed_prices fp ON fp.id=fpts.fixedPriceId INNER JOIN tradesperson_account ta ON ta.tradespersonId=fp.tradespersonId WHERE fp.tradespersonId=? AND (fpts.startTime > CURDATE() AND fp.subscription=False || fp.subscription=True ) AND cts.active=true GROUP BY fpts.id")
 	if err != nil {
 		return response, err
 	}

@@ -67,7 +67,7 @@ func (o *GetFixedPricePriceID) ServeHTTP(rw http.ResponseWriter, r *http.Request
 type GetFixedPricePriceIDOKBody struct {
 
 	// business
-	Business *GetFixedPricePriceIDOKBodyBusiness `json:"business,omitempty"`
+	Business *models.Business `json:"business,omitempty"`
 
 	// service
 	Service *models.ServiceDetails `json:"service,omitempty"`
@@ -190,49 +190,6 @@ func (o *GetFixedPricePriceIDOKBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *GetFixedPricePriceIDOKBody) UnmarshalBinary(b []byte) error {
 	var res GetFixedPricePriceIDOKBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetFixedPricePriceIDOKBodyBusiness get fixed price price ID o k body business
-//
-// swagger:model GetFixedPricePriceIDOKBodyBusiness
-type GetFixedPricePriceIDOKBodyBusiness struct {
-
-	// name
-	Name string `json:"name,omitempty"`
-
-	// tradesperson Id
-	TradespersonID string `json:"tradespersonId,omitempty"`
-
-	// vanity URL
-	VanityURL string `json:"vanityURL"`
-}
-
-// Validate validates this get fixed price price ID o k body business
-func (o *GetFixedPricePriceIDOKBodyBusiness) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get fixed price price ID o k body business based on context it is used
-func (o *GetFixedPricePriceIDOKBodyBusiness) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetFixedPricePriceIDOKBodyBusiness) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetFixedPricePriceIDOKBodyBusiness) UnmarshalBinary(b []byte) error {
-	var res GetFixedPricePriceIDOKBodyBusiness
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

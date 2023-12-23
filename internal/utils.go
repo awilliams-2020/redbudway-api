@@ -87,6 +87,52 @@ func SaveProfileImage(tradespersonID, image string) (string, error) {
 	return fmt.Sprintf("https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/%s", fileName), nil
 }
 
+func SaveImage(tradespersonID, image, imageType string) (string, error) {
+	url := ""
+	data := strings.Split(image, ",")
+
+	dec, err := base64.StdEncoding.DecodeString(data[1])
+	if err != nil {
+		log.Println("Failed to decode")
+		return url, err
+	}
+	format := ""
+	switch data[0] {
+	case "data:image/jpeg;base64":
+		format = ".jpeg"
+	case "data:image/png;base64":
+		format = ".png"
+	case "data:image/webp;base64":
+		format = ".webp"
+	}
+
+	path := fmt.Sprintf("%s/%s", "images", tradespersonID)
+	//add to Util package
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.MkdirAll(path, 0755)
+		if err != nil {
+			return url, err
+		}
+	}
+
+	fileName := fmt.Sprintf("%s/%s%s", path, imageType, format)
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Println("Failed to create file with name %s", fileName)
+		return url, err
+	}
+	defer f.Close()
+
+	if _, err := f.Write(dec); err != nil {
+		return url, err
+	}
+	if err := f.Sync(); err != nil {
+		return url, err
+	}
+
+	return fmt.Sprintf("https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/%s", fileName), nil
+}
+
 func contains(images []string, fileName string) bool {
 	exist := false
 	for _, image := range images {
@@ -148,7 +194,7 @@ func saveImage(path, imageBytes string, index int) (string, error) {
 	return fileName, nil
 }
 
-func ProcessEmailImages(customerID string, incImages []string) ([]string, error) {
+func ProcessEmailImages(customerID, quoteID string, incImages []string) ([]string, error) {
 	images := []string{}
 	emailPath := fmt.Sprintf("%s/%s", "images", "emails")
 	if _, err := os.Stat(emailPath); os.IsNotExist(err) {
@@ -157,9 +203,12 @@ func ProcessEmailImages(customerID string, incImages []string) ([]string, error)
 			return images, err
 		}
 	}
-	customerPath := fmt.Sprintf("%s/%s", emailPath, customerID)
-	if _, err := os.Stat(customerPath); os.IsNotExist(err) {
-		err = os.MkdirAll(customerPath, 0755)
+	quotePath := fmt.Sprintf("%s/%s", emailPath, customerID)
+	if quoteID != "" {
+		quotePath = fmt.Sprintf("%s/%s", quotePath, quoteID)
+	}
+	if _, err := os.Stat(quotePath); os.IsNotExist(err) {
+		err = os.MkdirAll(quotePath, 0755)
 		if err != nil {
 			return images, err
 		}
@@ -167,7 +216,7 @@ func ProcessEmailImages(customerID string, incImages []string) ([]string, error)
 
 	if len(incImages) != 0 {
 		for index, binary := range incImages {
-			URL, err := saveImage(customerPath, binary, index)
+			URL, err := saveImage(quotePath, binary, index)
 			if err != nil {
 				log.Printf("Failed to save images, %s", err)
 				continue
@@ -252,6 +301,27 @@ func GetImages(ID, tradespersonID string) ([]string, error) {
 	return images, nil
 }
 
+func GetQuoteImages(customerEmail, quoteID string) ([]string, error) {
+	images := []string{}
+
+	servicePath := fmt.Sprintf("images/emails/%s/%s", customerEmail, quoteID)
+	if _, err := os.Stat(servicePath); !os.IsNotExist(err) {
+		files, err := ioutil.ReadDir(servicePath)
+		if err != nil {
+			log.Printf("Failed to read director %s, %v", servicePath, err)
+			return images, err
+		}
+
+		for _, file := range files {
+			if !file.IsDir() {
+				images = append(images, "https://"+os.Getenv("SUBDOMAIN")+"redbudway.com/"+servicePath+"/"+file.Name())
+			}
+		}
+	}
+
+	return images, nil
+}
+
 func GenerateQuoteSuffix() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -285,18 +355,19 @@ func SelectedCities(citiesJson, city string) (bool, error) {
 
 func CreateForm(form []models.FormFields) string {
 	var tableRows string
+	tableRows += "<table border=\"0\">"
 	for _, row := range form {
 		tableRows += "<tr>"
 		for _, col := range row {
-			tableRows += fmt.Sprintf("<td class=\"cell-size\"><b>%s: </b><br>%s</td>", col.Field, col.Value)
+			tableRows += fmt.Sprintf("<td style=\"max-width: 200px; word-wrap: break-word; vertical-align: top;\"><b>%s: </b>%s</td>", col.Field, col.Value)
 		}
 		tableRows += "</tr>"
 	}
-	tableRows += "<br>"
+	tableRows += "</table><br><br>"
 	return tableRows
 }
 
-func CreateTimeAndPrice(startTime, endTime string, decimalPrice float64) (string, error) {
+func CreateTimeAndPrice(startTime, endTime, timeZone string, decimalPrice float64) (string, error) {
 	startDate, err := GetStartDate(startTime)
 	if err != nil {
 		log.Printf("Failed to get start date, %v", err)
@@ -310,7 +381,7 @@ func CreateTimeAndPrice(startTime, endTime string, decimalPrice float64) (string
 	date := startDate.Format("Monday, January 2, 2006")
 	startTime = startDate.Format("3:04")
 	endTime = endDate.Format("3:04PM")
-	return fmt.Sprintf("%s<br>%s - %s<br>$%.2f<br><br>", date, startTime, endTime, decimalPrice), nil
+	return fmt.Sprintf("%s<br>%s - %s&nbsp;%s<br>$%.2f<br><br>", date, startTime, endTime, timeZone, decimalPrice), nil
 }
 
 func GetEndDate(endTime string) (time.Time, error) {
@@ -333,7 +404,7 @@ func GetStartDate(startTime string) (time.Time, error) {
 	return startDate, nil
 }
 
-func CreateTimeAndPriceFrmDB(startTime, endTime string, decimalPrice float64) (string, error) {
+func CreateTimeAndPriceFrmDB(startTime, endTime, timeZone string, decimalPrice float64) (string, error) {
 	startDate, err := GetStartDateFrmDB(startTime)
 	if err != nil {
 		log.Printf("Failed to get start date, %v", err)
@@ -347,7 +418,7 @@ func CreateTimeAndPriceFrmDB(startTime, endTime string, decimalPrice float64) (s
 	date := startDate.Format("Monday, January 2, 2006")
 	startTime = startDate.Format("3:04")
 	endTime = endDate.Format("3:04PM")
-	return fmt.Sprintf("%s<br>%s - %s<br>$%.2f<br><br>", date, startTime, endTime, decimalPrice), nil
+	return fmt.Sprintf("%s<br>%s - %s&nbsp;%s<br>$%.2f<br><br>", date, startTime, endTime, timeZone, decimalPrice), nil
 }
 
 func GetEndDateFrmDB(endTime string) (time.Time, error) {
@@ -370,7 +441,7 @@ func GetStartDateFrmDB(startTime string) (time.Time, error) {
 	return startDate, nil
 }
 
-func CreateSubscriptionTimeAndPrice(interval, startTime, endTime string, decimalPrice float64) (string, error) {
+func CreateSubscriptionTimeAndPrice(interval, startTime, endTime, timeZone string, decimalPrice float64) (string, error) {
 	startDate, err := GetStartDate(startTime)
 	if err != nil {
 		log.Printf("Failed to get start date, %v", err)
@@ -393,33 +464,7 @@ func CreateSubscriptionTimeAndPrice(interval, startTime, endTime string, decimal
 	}
 	startTime = startDate.Format("3:04")
 	endTime = endDate.Format("3:04PM")
-	return fmt.Sprintf("%s<br>%s - %s<br>$%.2f<br><br>", day, startTime, endTime, decimalPrice), nil
-}
-
-func CreateSubscriptionTimeAndPriceFrmDB(interval, startTime, endTime string, decimalPrice float64) (string, error) {
-	startDate, err := GetStartDateFrmDB(startTime)
-	if err != nil {
-		log.Printf("Failed to get start date, %v", err)
-		return "", err
-	}
-
-	var day string
-	if interval == "week" {
-		day = "Every " + startDate.Format("Monday")
-	} else if interval == "month" {
-		day = "Every " + startDate.Format("2") + " of the month"
-	} else if interval == "year" {
-		day = "Every " + startDate.Format("January 2")
-	}
-
-	endDate, err := GetEndDateFrmDB(endTime)
-	if err != nil {
-		log.Printf("Failed to get end date, %v", err)
-		return "", err
-	}
-	startTime = startDate.Format("3:04")
-	endTime = endDate.Format("3:04PM")
-	return fmt.Sprintf("%s<br>%s - %s<br>$%.2f<br><br>", day, startTime, endTime, decimalPrice), nil
+	return fmt.Sprintf("%s<br>%s - %s&nbsp;%s<br>$%.2f<br><br>", day, startTime, endTime, timeZone, decimalPrice), nil
 }
 
 func GetDueDate(date string) (time.Time, error) {

@@ -71,8 +71,13 @@ type PostTradespersonBody struct {
 	Email *strfmt.Email `json:"email"`
 
 	// password
+	// Required: true
 	// Format: password
-	Password strfmt.Password `json:"password,omitempty"`
+	Password *strfmt.Password `json:"password"`
+
+	// token
+	// Required: true
+	Token *string `json:"token"`
 }
 
 // Validate validates this post tradesperson body
@@ -84,6 +89,10 @@ func (o *PostTradespersonBody) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := o.validatePassword(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := o.validateToken(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -107,11 +116,21 @@ func (o *PostTradespersonBody) validateEmail(formats strfmt.Registry) error {
 }
 
 func (o *PostTradespersonBody) validatePassword(formats strfmt.Registry) error {
-	if swag.IsZero(o.Password) { // not required
-		return nil
+
+	if err := validate.Required("tradesperson"+"."+"password", "body", o.Password); err != nil {
+		return err
 	}
 
 	if err := validate.FormatOf("tradesperson"+"."+"password", "body", "password", o.Password.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o *PostTradespersonBody) validateToken(formats strfmt.Registry) error {
+
+	if err := validate.Required("tradesperson"+"."+"token", "body", o.Token); err != nil {
 		return err
 	}
 

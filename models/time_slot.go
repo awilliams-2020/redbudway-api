@@ -19,6 +19,9 @@ import (
 // swagger:model TimeSlot
 type TimeSlot struct {
 
+	// anchor date
+	AnchorDate int64 `json:"anchorDate,omitempty"`
+
 	// booked
 	Booked int64 `json:"booked"`
 
@@ -30,9 +33,6 @@ type TimeSlot struct {
 
 	// end time
 	EndTime string `json:"endTime,omitempty"`
-
-	// future time
-	FutureTime string `json:"futureTime,omitempty"`
 
 	// id
 	ID int64 `json:"id,omitempty"`

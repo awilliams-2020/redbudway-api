@@ -7,15 +7,14 @@ import (
 	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
-	"redbudway-api/restapi/operations"
 	"strconv"
 )
 
-func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *operations.GetFixedPricePriceIDOKBodyBusiness, error) {
+func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *models.Business, error) {
 	fixedPrice := &models.ServiceDetails{}
-	business := &operations.GetFixedPricePriceIDOKBodyBusiness{}
+	business := &models.Business{}
 
-	stmt, err := db.Prepare("SELECT tp.name, tp.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory,fp.title, fp.price, fp.description, fp.subscription, fp.subInterval, fp.selectPlaces FROM fixed_prices fp INNER JOIN tradesperson_profile tp ON tp.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND fp.priceId=?")
+	stmt, err := db.Prepare("SELECT tp.name, tp.tradespersonId, ts.vanityURL, fp.id, fp.category, fp.subCategory, fp.title, fp.price, fp.description, fp.subscription, fp.subInterval, fp.selectPlaces, fp.timeZone, b.icon, ts.timeZone FROM fixed_prices fp INNER JOIN tradesperson_profile tp ON tp.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=fp.tradespersonId INNER JOIN tradesperson_branding b ON b.tradespersonId=fp.tradespersonId WHERE fp.archived=false AND fp.priceId=?")
 	if err != nil {
 		return fixedPrice, business, err
 	}
@@ -23,11 +22,12 @@ func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *opera
 
 	row := stmt.QueryRow(priceID)
 	var fixedPriceID, price int64
-	var vanityURL, interval sql.NullString
-	switch err = row.Scan(&business.Name, &business.TradespersonID, &vanityURL, &fixedPriceID, &fixedPrice.Category, &fixedPrice.SubCategory, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.SelectPlaces); err {
+	var vanityURL, interval, icon sql.NullString
+	switch err = row.Scan(&business.Name, &business.TradespersonID, &vanityURL, &fixedPriceID, &fixedPrice.Category, &fixedPrice.SubCategory, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.SelectPlaces, &fixedPrice.TimeZone, &icon, &business.TimeZone); err {
 	case sql.ErrNoRows:
 		return fixedPrice, business, err
 	case nil:
+		business.Icon = icon.String
 		business.VanityURL = vanityURL.String
 		fixedPrice.Interval = interval.String
 
@@ -69,7 +69,6 @@ func GetFixedPriceServiceDetails(priceID string) (*models.ServiceDetails, *opera
 		if err != nil {
 			log.Printf("Failed to get fixed price repeat customers %s", err)
 		}
-
 		fixedPrice.Jobs, err = GetFixedPriceJobs(fixedPriceID, business.TradespersonID)
 		if err != nil {
 			log.Printf("Failed to get fixed price jobs %s", err)

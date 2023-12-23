@@ -195,7 +195,7 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT ts.fixedPriceId, ts.subscriptionId, fp.subInterval FROM tradesperson_subscriptions ts INNER JOIN fixed_prices fp ON ts.fixedPriceId=fp.id WHERE ts.tradespersonId=? AND ts.cuStripeId=? GROUP BY ts.subscriptionId ORDER BY ts.created DESC")
+	stmt, err := db.Prepare("SELECT ts.fixedPriceId, ts.subscriptionId, fp.subInterval, ts.timeZone FROM tradesperson_subscriptions ts INNER JOIN fixed_prices fp ON ts.fixedPriceId=fp.id WHERE ts.tradespersonId=? AND ts.cuStripeId=? GROUP BY ts.subscriptionId ORDER BY ts.created DESC")
 	if err != nil {
 		return response
 	}
@@ -210,9 +210,9 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 	subscriptions := _customer.Subscriptions
 
 	var fixedPriceID int64
-	var subscriptionID, interval string
+	var subscriptionID, interval, timeZone string
 	for rows.Next() {
-		if err := rows.Scan(&fixedPriceID, &subscriptionID, &interval); err != nil {
+		if err := rows.Scan(&fixedPriceID, &subscriptionID, &interval, &timeZone); err != nil {
 			return response
 		}
 
@@ -233,6 +233,9 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 				detail := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubscriptionsItems0DetailsItems0{}
 				detail.SubscriptionID = subscriptionID
 				detail.Status = string(stripeSubscription.Status)
+				if stripeSubscription.LatestInvoice != nil {
+					detail.InvoiceID = stripeSubscription.LatestInvoice.ID
+				}
 				timeSlot, err := database.GetSubscriptionTimeSlot(subscriptionID, fixedPriceID)
 				if err != nil {
 					log.Printf("Failed to get subscription %s time slot, %v", subscriptionID, err)
@@ -250,6 +253,7 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsHandler(pa
 			subscription.Description = stripeProduct.Description
 			subscription.Total = subscription.Total + stripeSubscription.Items.Data[0].Price.UnitAmount*stripeSubscription.Items.Data[0].Quantity
 			subscription.Interval = interval
+			subscription.TimeZone = timeZone
 			detail := operations.GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubscriptionsItems0DetailsItems0{}
 			detail.SubscriptionID = subscriptionID
 			detail.Status = string(stripeSubscription.Status)
@@ -323,7 +327,7 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptio
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT fp.id, fp.subInterval FROM tradesperson_subscriptions ts LEFT JOIN fixed_prices fp ON ts.fixedPriceId=fp.id WHERE ts.tradespersonId=? AND ts.subscriptionId=?")
+	stmt, err := db.Prepare("SELECT fp.id, fp.subInterval, ts.timeZone FROM tradesperson_subscriptions ts LEFT JOIN fixed_prices fp ON ts.fixedPriceId=fp.id WHERE ts.tradespersonId=? AND ts.subscriptionId=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -337,9 +341,9 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptio
 	}
 
 	var fixedPriceID int64
-	var interval string
+	var interval, timeZone string
 	for rows.Next() {
-		if err := rows.Scan(&fixedPriceID, &interval); err != nil {
+		if err := rows.Scan(&fixedPriceID, &interval, &timeZone); err != nil {
 			return response
 		}
 
@@ -347,7 +351,7 @@ func GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptio
 		if err != nil {
 			log.Printf("Failed to get stripe invoice, %v", err)
 		}
-
+		subscriptionInvoice.TimeZone = timeZone
 		subscriptionInvoice.Interval = interval
 		subscriptionInvoice.Created = stripeInvoice.Created
 		subscriptionInvoice.Description = stripeInvoice.Description

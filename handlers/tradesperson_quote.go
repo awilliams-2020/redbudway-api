@@ -8,6 +8,7 @@ import (
 	"os"
 	"redbudway-api/database"
 	"redbudway-api/email"
+	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 
@@ -120,16 +121,16 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.G
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT tq.request, q.title, q.description FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?")
+	stmt, err := db.Prepare("SELECT tq.request, q.title, q.description, tq.customerId FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?")
 	if err != nil {
 		log.Printf("Failed to create prepared statement, %v", err)
 		return response
 	}
 	defer stmt.Close()
 
-	var message, title, description string
+	var message, title, description, customerID string
 	row := stmt.QueryRow(tradespersonID, quoteID)
-	switch err = row.Scan(&message, &title, &description); err {
+	switch err = row.Scan(&message, &title, &description, &customerID); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s has no quote %s", tradespersonID, quoteID)
 	case nil:
@@ -208,11 +209,60 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.G
 			}
 		}
 
+		_quote.Images, err = internal.GetQuoteImages(_customer.Email, stripeQuote.ID)
+		if err != nil {
+			log.Printf("Failed to get quote email images, %v", err)
+		}
+
 		_quote.Customer = _customer
 	default:
 		log.Printf("Unknown, %v", err)
 	}
 	response.SetPayload(&_quote)
+	return response
+}
+
+func GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler(params operations.GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	quoteID := params.QuoteID
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	response := operations.NewGetTradespersonTradespersonIDBillingQuoteQuoteIDPdfOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	db := database.GetConnection()
+
+	stmt, err := db.Prepare("SELECT tq.quote FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?")
+	if err != nil {
+		log.Printf("Failed to create prepared statement, %v", err)
+		return response
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID, quoteID)
+	switch err = row.Scan(&quoteID); err {
+	case sql.ErrNoRows:
+		log.Printf("Tradesperson with ID %s has no quote %s", tradespersonID, quoteID)
+	case nil:
+
+		params := &stripe.QuotePDFParams{}
+		resp, err := quote.PDF(quoteID, params)
+		if err != nil {
+			log.Printf("Failed to get stripe quote, %v", err)
+			return response
+		}
+		response.SetPayload(resp.LastResponse.Body)
+	default:
+		log.Printf("Unknown, %v", err)
+	}
 	return response
 }
 
@@ -328,13 +378,13 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDCancelHandler(params opera
 		}
 		if stripeQuote.Status == "canceled" {
 
-			if stripeQuote.Invoice == nil {
-				_, err := database.DeleteQuote(tradespersonID, quoteID)
-				if err != nil {
-					log.Printf("Failed to delete tradesperson quote, %v", err)
-					return response
-				}
-			}
+			// if stripeQuote.Invoice == nil {
+			// 	_, err := database.DeleteQuote(tradespersonID, quoteID)
+			// 	if err != nil {
+			// 		log.Printf("Failed to delete tradesperson quote, %v", err)
+			// 		return response
+			// 	}
+			// }
 			payload.Canceled = true
 			response.SetPayload(&payload)
 

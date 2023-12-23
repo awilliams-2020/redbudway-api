@@ -10,11 +10,11 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/coupon"
+	"github.com/stripe/stripe-go/v72/promotioncode"
 )
 
 func CreateCustomerAccount(_customer operations.PostCustomerBody, stripeAccount *stripe.Customer) (uuid.UUID, error) {
-	log.Printf("Creating %s customer account", _customer.Name)
-
 	customerID, err := internal.GenerateUUID()
 	if err != nil {
 		return customerID, err
@@ -118,4 +118,44 @@ func DeleteCustomerAccount(customerID string) (bool, error) {
 		return false, err
 	}
 	return rowsAffected == 1, nil
+}
+
+func GetDiscount(priceID, code string) (*operations.GetCustomerCustomerIDPromoOKBody, error) {
+	discount := &operations.GetCustomerCustomerIDPromoOKBody{}
+	var promoID string
+	stmt, err := db.Prepare("SELECT tp.couponId, tp.promoId, tp.code, tc.discountType, tc.duration, tc.months FROM tradesperson_promos tp INNER JOIN tradesperson_coupons tc ON tp.couponId=tc.couponId WHERE JSON_CONTAINS(tc.services, ?) AND tp.code=? AND tp.active=true")
+	if err != nil {
+		log.Printf("Failed to create prepare statement, %v", err)
+		return discount, err
+	}
+	defer stmt.Close()
+	row := stmt.QueryRow("\""+priceID+"\"", code)
+	switch err = row.Scan(&discount.CouponID, &promoID, &discount.Code, &discount.Type, &discount.Duration, &discount.Months); err {
+	case sql.ErrNoRows:
+	case nil:
+		couponParams := &stripe.CouponParams{}
+		stripeCoupon, err := coupon.Get(discount.CouponID, couponParams)
+		if err != nil {
+			log.Printf("Failed to retrieve coupon %s, %v", discount.CouponID, err)
+			return discount, err
+		}
+		codeParams := &stripe.PromotionCodeParams{}
+		stripePromo, err := promotioncode.Get(promoID, codeParams)
+		if err != nil {
+			log.Printf("Failed to retrieve promo %s, %v", promoID, err)
+			return discount, err
+		}
+		discount.Valid = stripePromo.Active
+		if stripePromo.Active {
+			if discount.Type == "percent_off" {
+				discount.Percent = stripeCoupon.PercentOff
+			} else {
+				discount.Amount = float64(stripeCoupon.AmountOff) / float64(100)
+			}
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return discount, nil
 }

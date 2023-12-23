@@ -24,6 +24,15 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 
 	payload := operations.PostTradespersonCreatedBody{Created: false}
 	response := operations.NewPostTradespersonCreated().WithPayload(&payload)
+	valid, err := internal.VerifyReCaptcha(*tradesperson.Token)
+	if err != nil {
+		log.Printf("Verifying recaptcha failed, %v", err)
+		return response
+	}
+	if !valid {
+		log.Printf("Signup failed recaptcha")
+		return response
+	}
 
 	stmt, err := db.Prepare("SELECT email FROM tradesperson_account WHERE email=?")
 	if err != nil {
@@ -33,8 +42,8 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 	defer stmt.Close()
 
 	row := stmt.QueryRow(tradesperson.Email)
-	var email string
-	switch err = row.Scan(&email); err {
+	var _email string
+	switch err = row.Scan(&_email); err {
 	case sql.ErrNoRows:
 		stripeAccount, err := _stripe.CreateTradespersonStripeAccount(tradesperson)
 		if err != nil {
@@ -77,9 +86,12 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 		if !saved {
 			log.Printf("No issues, but failed to save tradesperson")
 		}
+		if err := email.SendProviderWelcome(tradesperson.Email.String()); err != nil {
+			log.Printf("Failed to send tradesperson welcome email, %v", err)
+		}
 		response.SetPayload(&payload)
 	case nil:
-		log.Printf("Tradesperson with email %s already exist", email)
+		log.Printf("Tradesperson with email %s already exist", _email)
 	default:
 		log.Printf("Unknown %v", err)
 	}
@@ -102,7 +114,7 @@ func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradesperso
 		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
 		return response
 	}
-	go deleteAccount(tradespersonID)
+	deleteAccount(tradespersonID)
 
 	return response
 }

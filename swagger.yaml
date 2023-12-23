@@ -43,6 +43,9 @@ paths:
               state:
                 type: string
                 x-omitempty: false
+              timeZone:
+                type: string
+                x-omitempty: false
   /address:
     get:
       parameters:
@@ -60,6 +63,9 @@ paths:
                 type: string
                 x-omitempty: false
               state:
+                type: string
+                x-omitempty: false
+              timeZone:
                 type: string
                 x-omitempty: false
   /forgot-password:
@@ -183,6 +189,8 @@ paths:
             type: object
             required:
               - email
+              - password
+              - token
             properties:
               email:
                 type: string
@@ -190,6 +198,8 @@ paths:
               password:
                 type: string
                 format: password
+              token:
+                type: string
       responses:
         '201':
           description: Created tradesperson account
@@ -307,6 +317,43 @@ paths:
       responses:
         '200':
           description: Updates tradesperson profile
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+                x-omitempty: false
+  /tradesperson/{tradespersonId}/branding:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          description: Tradesperson ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: A tradesperson
+          schema:
+            $ref: '#/definitions/Branding'
+    put:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: string
+      - in: body
+        name: branding
+        description: The tradesperson branding to update.
+        schema:
+          $ref: '#/definitions/Branding'
+      responses:
+        '200':
+          description: Updates tradesperson branding
           schema:
             type: object
             properties:
@@ -518,6 +565,8 @@ paths:
               displayAddress:
                 type: boolean
                 x-omitempty: false
+              timeZone:
+                type: string
     put:
       security:
         - Bearer: []
@@ -546,6 +595,32 @@ paths:
       responses:
         '200':
           description: Updates tradesperson profile
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+                x-omitempty: false
+  /tradesperson/{tradespersonId}/time-zone:
+    put:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        required: true
+        type: string
+      - in: body
+        name: settings
+        description: The tradesperson timezone settings to update.
+        schema:
+          type: object
+          properties:
+            timeZone:
+              type: string
+      responses:
+        '200':
+          description: Updates tradesperson settings
           schema:
             type: object
             properties:
@@ -681,6 +756,33 @@ paths:
                 $ref: '#/definitions/OtherServices'
               googleTimeSlots:
                 $ref: '#/definitions/GoogleTimeSlots'
+  /tradesperson/{tradespersonId}/services:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Tradesperson services
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                title:
+                  type: string
+                type:
+                  type: string
+                subscription:
+                  type: boolean
+                  x-omitempty: false
   /tradesperson/{tradespersonId}/fixed-prices:
     get:
       security:
@@ -1069,6 +1171,8 @@ paths:
                     total:
                       type: integer
                       format: int64
+                    timeZone:
+                      type: string
                     details:
                       type: array
                       items:
@@ -1147,6 +1251,8 @@ paths:
           schema:
             type: object
             properties:
+              timeZone:
+                type: string
               interval:
                 type: string
               created:
@@ -1321,6 +1427,8 @@ paths:
               url:
                 type: string
               pdf:
+                type: string
+              timeZone:
                 type: string
               service:
                 type: object
@@ -1680,6 +1788,26 @@ paths:
                 x-omitempty: false
               quoteId:
                 type: string
+  /tradesperson/{tradespersonId}/billing/quote/{quoteId}/pdf:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: string
+        - in: path
+          name: quoteId
+          required: true
+          type: string
+      produces:
+        - application/pdf
+      responses:
+        '200':
+          description: Quote pdf
+          schema:
+            type: file
   /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}:
     get:
       security:
@@ -2184,6 +2312,232 @@ paths:
             type: array
             items:
               $ref: '#/definitions/Customer'
+  /tradesperson/{tradespersonId}/coupon:
+    post:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: body
+        name: coupon
+        description: Coupon to create
+        required: True
+        schema:
+          $ref: '#/definitions/Coupon'
+      responses:
+        '200':
+          description: If coupon was created
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+                x-omitempty: false
+  /tradesperson/{tradespersonId}/coupon/{couponId}:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: couponId
+        description: Coupon ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Coupon returned
+          schema:
+            $ref: '#/definitions/Coupon'
+    put:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: couponId
+        description: Coupon ID
+        required: true
+        type: string
+      - in: body
+        name: coupon
+        description: Coupon to update
+        required: True
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+              maxLength: 40
+            services:
+              type: array
+              items:
+                type: string
+      responses:
+        '200':
+          description: If coupon was updated
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+                x-omitempty: false
+    delete:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: couponId
+        description: Coupon ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: If coupon was deleted
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: boolean
+                x-omitempty: false
+  /tradesperson/{tradespersonId}/coupon/{couponId}/promo:
+    post:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: couponId
+        description: Coupon ID
+        required: true
+        type: string
+      - in: body
+        name: promo
+        description: Promo to create
+        required: True
+        schema:
+          $ref: '#/definitions/Promo'
+      responses:
+        '200':
+          description: If promo was created
+          schema:
+            type: object
+            properties:
+              created:
+                type: boolean
+                x-omitempty: false
+              promo:
+                $ref: '#/definitions/Promo'
+  /tradesperson/{tradespersonId}/promo/{promoId}:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: promoId
+        description: Promo ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: Promo
+          schema:
+            $ref: '#/definitions/Promo'
+    put:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: promoId
+        description: Promo ID
+        required: true
+        type: string
+      - in: body
+        name: promo
+        description: Promo to update
+        required: True
+        schema:
+          $ref: '#/definitions/Promo'
+      responses:
+        '200':
+          description: If promo was updated
+          schema:
+            type: object
+            properties:
+              updated:
+                type: boolean
+                x-omitempty: false
+    delete:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      - in: path
+        name: promoId
+        description: Promo ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: If promo was deleted
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: boolean
+                x-omitempty: false
+  /tradesperson/{tradespersonId}/discounts:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+      - in: path
+        name: tradespersonId
+        description: Tradesperson ID
+        required: true
+        type: string
+      responses:
+        '200':
+          description: List of discounts
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Coupon'
   /profile/{vanityOrId}:
     get:
       parameters:
@@ -2244,15 +2598,7 @@ paths:
               service:
                 $ref: '#/definitions/ServiceDetails'
               business:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  vanityURL:
-                    type: string
-                    x-omitempty: false
-                  tradespersonId:
-                    type: string
+                $ref: '#/definitions/Business'
   /fixed-price/{priceId}/reviews:
     get:
       parameters:
@@ -2416,15 +2762,7 @@ paths:
               service:
                 $ref: '#/definitions/ServiceDetails'
               business:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  vanityURL:
-                    type: string
-                    x-omitempty: false
-                  tradespersonId:
-                    type: string
+                $ref: '#/definitions/Business'
   /quote/{quoteId}/reviews:
     get:
       parameters:
@@ -2982,18 +3320,21 @@ paths:
           schema:
             type: object
             properties:
+              timeZone:
+                type: string
               timeSlots:
                 type: array
                 minItems: 1
                 x-omitempty: false
                 items:
                   $ref: '#/definitions/TimeSlot'
-
               form:
                 type: array
                 x-omitempty: false
                 items:
                   $ref: '#/definitions/FormFields'
+              code:
+                type: string
       responses:
         '201':
           description: If fixed price was booked
@@ -3024,11 +3365,21 @@ paths:
           schema:
             type: object
             properties:
+              timeZone:
+                type: string
               timeSlots:
                 type: array
+                minItems: 1
                 x-omitempty: false
                 items:
                   $ref: '#/definitions/TimeSlot'
+              form:
+                type: array
+                x-omitempty: false
+                items:
+                  $ref: '#/definitions/FormFields'
+              code:
+                type: string
       responses:
         '201':
           description: If fixed price was booked
@@ -3215,6 +3566,49 @@ paths:
                   x-omitempty: false
                 quoteId:
                   type: string 
+  /customer/{customerId}/promo:
+    get:
+      security:
+      - Bearer: []
+      parameters:
+      - in: path
+        name: customerId
+        description: Customer ID
+        required: true
+        type: string
+      - in: query
+        name: code
+        type: string
+        required: true
+      - in: query
+        name: priceId
+        type: string
+        required: true
+      responses:
+        '200':
+          description: A discount amount
+          schema:
+            type: object
+            properties:
+              valid:
+                type: boolean
+                x-omitempty: false
+              code:
+                type: string
+              type:
+                type: string
+              amount:
+                type: number
+              percent:
+                type: number
+                format: double
+              duration:
+                type: string
+              months:
+                type: integer
+                format: int64
+              couponId:
+                type: string
   /admin/{adminId}/tradespeople:
     get:
       security:
@@ -3270,8 +3664,6 @@ definitions:
         type: string
       tradespersonId:
         type: string
-      business:
-        type: string
       subscription:
         type: boolean
         x-omitempty: false
@@ -3297,9 +3689,6 @@ definitions:
       availableTimeSlots:
         type: integer
         x-omitempty: false
-      vanityURL:
-        type: string
-        x-omitempty: false
       archived:
         type: boolean
         x-omitempity: false
@@ -3309,6 +3698,8 @@ definitions:
       repeat:
         type: integer
         x-omitempty: false
+      business:
+        $ref: '#/definitions/Business'
   ServiceDetails:
     type: object
     required:
@@ -3358,6 +3749,9 @@ definitions:
         type: boolean
         x-omitempty: false
       archived:
+        type: boolean
+        x-omitempty: false
+      timeZone:
         type: boolean
         x-omitempty: false
       statesAndCities:
@@ -3411,6 +3805,8 @@ definitions:
         format: int64
       status:
         type: string
+      pdf:
+        type: string
       number:
         type: string
         x-omitempty: false
@@ -3427,6 +3823,10 @@ definitions:
         $ref: '#/definitions/Customer'
       request:
         type: string
+      images:
+        type: array
+        items:
+          type: string
       service:
         type: object
         properties:
@@ -3463,8 +3863,9 @@ definitions:
         type: string
       endTime:
         type: string
-      futureTime:
-        type: string
+      anchorDate:
+        type: integer
+        format: int64
       bookings:
         type: integer
         format: int64
@@ -3591,3 +3992,83 @@ definitions:
             properties:
               value:
                 type: string
+  Branding:
+    type: object
+    properties:
+      logo:
+        type: string
+      icon:
+        type: string
+      primary:
+        type: string
+      secondary:
+        type: string
+  Business:
+    type: object
+    properties:
+      name:
+        type: string
+      icon:
+        type: string
+      vanityURL:
+        type: string
+      tradespersonId:
+        type: string
+      timeZone:
+        type: string
+  Coupon:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+        maxLength: 40
+      type:
+        type: string
+      amount:
+        type: number
+      percent:
+        type: number
+        format: double
+      duration:
+        type: string
+      months:
+        type: integer
+        format: int64
+      maxRedemption:
+        type: boolean
+        x-omitempty: false
+      maxRedemptions:
+        type: number
+        format: int64
+      services:
+        type: array
+        items:
+          type: string
+      limitedTime:
+        type: boolean
+        x-omitempty: false
+      redeemBy:
+        type: string
+      timesRedeemed:
+        type: number
+        format: int64
+        x-omitempty: false
+      subscriptions:
+        type: boolean
+        x-omitempty: false
+      promos:
+        type: array
+        items:
+          $ref: '#/definitions/Promo'
+  Promo:
+    type: object
+    properties:
+      id:
+        type: string
+      active:
+        type: boolean
+        x-omitempty: false
+      code:
+        type: string

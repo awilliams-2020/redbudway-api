@@ -245,6 +245,9 @@ type GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBodySubs
 	// interval
 	Interval string `json:"interval,omitempty"`
 
+	// time zone
+	TimeZone string `json:"timeZone,omitempty"`
+
 	// title
 	Title string `json:"title,omitempty"`
 

@@ -67,7 +67,7 @@ func (o *GetQuoteQuoteID) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 type GetQuoteQuoteIDOKBody struct {
 
 	// business
-	Business *GetQuoteQuoteIDOKBodyBusiness `json:"business,omitempty"`
+	Business *models.Business `json:"business,omitempty"`
 
 	// service
 	Service *models.ServiceDetails `json:"service,omitempty"`
@@ -190,49 +190,6 @@ func (o *GetQuoteQuoteIDOKBody) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (o *GetQuoteQuoteIDOKBody) UnmarshalBinary(b []byte) error {
 	var res GetQuoteQuoteIDOKBody
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
-	return nil
-}
-
-// GetQuoteQuoteIDOKBodyBusiness get quote quote ID o k body business
-//
-// swagger:model GetQuoteQuoteIDOKBodyBusiness
-type GetQuoteQuoteIDOKBodyBusiness struct {
-
-	// name
-	Name string `json:"name,omitempty"`
-
-	// tradesperson Id
-	TradespersonID string `json:"tradespersonId,omitempty"`
-
-	// vanity URL
-	VanityURL string `json:"vanityURL"`
-}
-
-// Validate validates this get quote quote ID o k body business
-func (o *GetQuoteQuoteIDOKBodyBusiness) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// ContextValidate validates this get quote quote ID o k body business based on context it is used
-func (o *GetQuoteQuoteIDOKBodyBusiness) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetQuoteQuoteIDOKBodyBusiness) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetQuoteQuoteIDOKBodyBusiness) UnmarshalBinary(b []byte) error {
-	var res GetQuoteQuoteIDOKBodyBusiness
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

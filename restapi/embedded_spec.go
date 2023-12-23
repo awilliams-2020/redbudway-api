@@ -59,6 +59,10 @@ func init() {
                 "state": {
                   "type": "string",
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string",
+                  "x-omitempty": false
                 }
               }
             }
@@ -432,6 +436,47 @@ func init() {
         }
       }
     },
+    "/customer/{customerId}/bookings": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "customer quotes",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "number": {
+                    "type": "string",
+                    "x-omitempty": false
+                  },
+                  "quoteId": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/customer/{customerId}/fixed-price/{priceId}/book": {
       "post": {
         "security": [
@@ -461,6 +506,9 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "code": {
+                  "type": "string"
+                },
                 "form": {
                   "type": "array",
                   "items": {
@@ -475,6 +523,9 @@ func init() {
                     "$ref": "#/definitions/TimeSlot"
                   },
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string"
                 }
               }
             }
@@ -644,6 +695,73 @@ func init() {
               "type": "object",
               "properties": {
                 "defaultPayment": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/promo": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "code",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "priceId",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A discount amount",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "couponId": {
+                  "type": "string"
+                },
+                "duration": {
+                  "type": "string"
+                },
+                "months": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "percent": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "valid": {
                   "type": "boolean",
                   "x-omitempty": false
                 }
@@ -1006,12 +1124,26 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "form": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/FormFields"
+                  },
+                  "x-omitempty": false
+                },
                 "timeSlots": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "$ref": "#/definitions/TimeSlot"
                   },
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string"
                 }
               }
             }
@@ -1268,19 +1400,7 @@ func init() {
               "type": "object",
               "properties": {
                 "business": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "tradespersonId": {
-                      "type": "string"
-                    },
-                    "vanityURL": {
-                      "type": "string",
-                      "x-omitempty": false
-                    }
-                  }
+                  "$ref": "#/definitions/Business"
                 },
                 "service": {
                   "$ref": "#/definitions/ServiceDetails"
@@ -1507,6 +1627,10 @@ func init() {
                 "state": {
                   "type": "string",
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string",
+                  "x-omitempty": false
                 }
               }
             }
@@ -1641,19 +1765,7 @@ func init() {
               "type": "object",
               "properties": {
                 "business": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "tradespersonId": {
-                      "type": "string"
-                    },
-                    "vanityURL": {
-                      "type": "string",
-                      "x-omitempty": false
-                    }
-                  }
+                  "$ref": "#/definitions/Business"
                 },
                 "service": {
                   "$ref": "#/definitions/ServiceDetails"
@@ -1874,7 +1986,9 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "email"
+                "email",
+                "password",
+                "token"
               ],
               "properties": {
                 "email": {
@@ -1884,6 +1998,9 @@ func init() {
                 "password": {
                   "type": "string",
                   "format": "password"
+                },
+                "token": {
+                  "type": "string"
                 }
               }
             }
@@ -2243,6 +2360,9 @@ func init() {
                 "timeSlot": {
                   "$ref": "#/definitions/TimeSlot"
                 },
+                "timeZone": {
+                  "type": "string"
+                },
                 "total": {
                   "type": "integer",
                   "format": "int64"
@@ -2383,6 +2503,9 @@ func init() {
                         }
                       },
                       "interval": {
+                        "type": "string"
+                      },
+                      "timeZone": {
                         "type": "string"
                       },
                       "title": {
@@ -2595,6 +2718,9 @@ func init() {
                       "type": "string"
                     }
                   }
+                },
+                "timeZone": {
+                  "type": "string"
                 },
                 "total": {
                   "type": "integer",
@@ -3800,6 +3926,40 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/pdf": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote pdf",
+            "schema": {
+              "type": "file"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/revise": {
       "post": {
         "security": [
@@ -3988,6 +4148,318 @@ func init() {
                     "type": "string"
                   }
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/branding": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Branding"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson branding to update.",
+            "name": "branding",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Branding"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson branding",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/coupon": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Coupon to create",
+            "name": "coupon",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Coupon"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If coupon was created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/coupon/{couponId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coupon returned",
+            "schema": {
+              "$ref": "#/definitions/Coupon"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Coupon to update",
+            "name": "coupon",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "services": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If coupon was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If coupon was deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/coupon/{couponId}/promo": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Promo to create",
+            "name": "promo",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Promo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If promo was created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "promo": {
+                  "$ref": "#/definitions/Promo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/discounts": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of discounts",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coupon"
               }
             }
           }
@@ -4649,6 +5121,122 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/promo/{promoId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo ID",
+            "name": "promoId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Promo",
+            "schema": {
+              "$ref": "#/definitions/Promo"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo ID",
+            "name": "promoId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Promo to update",
+            "name": "promo",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Promo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If promo was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo ID",
+            "name": "promoId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If promo was deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/quote": {
       "post": {
         "security": [
@@ -5028,6 +5616,50 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/services": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "subscription": {
+                    "type": "boolean",
+                    "x-omitempty": false
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/settings": {
       "get": {
         "security": [
@@ -5061,6 +5693,9 @@ func init() {
                 "displayNumber": {
                   "type": "boolean",
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string"
                 },
                 "vanityURL": {
                   "type": "string",
@@ -5188,6 +5823,50 @@ func init() {
           }
         }
       }
+    },
+    "/tradesperson/{tradespersonId}/time-zone": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson timezone settings to update.",
+            "name": "settings",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timeZone": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson settings",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -5207,6 +5886,108 @@ func init() {
           "type": "string"
         },
         "zipCode": {
+          "type": "string"
+        }
+      }
+    },
+    "Branding": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string"
+        },
+        "logo": {
+          "type": "string"
+        },
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "string"
+        }
+      }
+    },
+    "Business": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "timeZone": {
+          "type": "string"
+        },
+        "tradespersonId": {
+          "type": "string"
+        },
+        "vanityURL": {
+          "type": "string"
+        }
+      }
+    },
+    "Coupon": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "limitedTime": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "maxRedemption": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "maxRedemptions": {
+          "type": "number",
+          "format": "int64"
+        },
+        "months": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "percent": {
+          "type": "number",
+          "format": "double"
+        },
+        "promos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Promo"
+          }
+        },
+        "redeemBy": {
+          "type": "string"
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "subscriptions": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "timesRedeemed": {
+          "type": "number",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "type": {
           "type": "string"
         }
       }
@@ -5326,6 +6107,21 @@ func init() {
         }
       }
     },
+    "Promo": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "code": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
     "QuoteDetails": {
       "type": "object",
       "properties": {
@@ -5344,6 +6140,12 @@ func init() {
           "type": "integer",
           "format": "int64"
         },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "invoiceId": {
           "type": "string",
           "x-omitempty": false
@@ -5351,6 +6153,9 @@ func init() {
         "number": {
           "type": "string",
           "x-omitempty": false
+        },
+        "pdf": {
+          "type": "string"
         },
         "request": {
           "type": "string"
@@ -5389,7 +6194,7 @@ func init() {
           "x-omitempty": false
         },
         "business": {
-          "type": "string"
+          "$ref": "#/definitions/Business"
         },
         "description": {
           "type": "string"
@@ -5437,10 +6242,6 @@ func init() {
         },
         "tradespersonId": {
           "type": "string"
-        },
-        "vanityURL": {
-          "type": "string",
-          "x-omitempty": false
         }
       }
     },
@@ -5572,6 +6373,10 @@ func init() {
           },
           "x-omitempty": false
         },
+        "timeZone": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
         "title": {
           "type": "string"
         }
@@ -5580,6 +6385,10 @@ func init() {
     "TimeSlot": {
       "type": "object",
       "properties": {
+        "anchorDate": {
+          "type": "integer",
+          "format": "int64"
+        },
         "booked": {
           "type": "integer",
           "format": "int64",
@@ -5608,9 +6417,6 @@ func init() {
           }
         },
         "endTime": {
-          "type": "string"
-        },
-        "futureTime": {
           "type": "string"
         },
         "id": {
@@ -5716,6 +6522,10 @@ func init() {
                   "x-omitempty": false
                 },
                 "state": {
+                  "type": "string",
+                  "x-omitempty": false
+                },
+                "timeZone": {
                   "type": "string",
                   "x-omitempty": false
                 }
@@ -6077,6 +6887,35 @@ func init() {
         }
       }
     },
+    "/customer/{customerId}/bookings": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "customer quotes",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetCustomerCustomerIDBookingsOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
     "/customer/{customerId}/fixed-price/{priceId}/book": {
       "post": {
         "security": [
@@ -6106,6 +6945,9 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "code": {
+                  "type": "string"
+                },
                 "form": {
                   "type": "array",
                   "items": {
@@ -6120,6 +6962,9 @@ func init() {
                     "$ref": "#/definitions/TimeSlot"
                   },
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string"
                 }
               }
             }
@@ -6289,6 +7134,73 @@ func init() {
               "type": "object",
               "properties": {
                 "defaultPayment": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customer/{customerId}/promo": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Customer ID",
+            "name": "customerId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "code",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "priceId",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A discount amount",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "amount": {
+                  "type": "number"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "couponId": {
+                  "type": "string"
+                },
+                "duration": {
+                  "type": "string"
+                },
+                "months": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "percent": {
+                  "type": "number",
+                  "format": "double"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "valid": {
                   "type": "boolean",
                   "x-omitempty": false
                 }
@@ -6639,12 +7551,26 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "form": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/FormFields"
+                  },
+                  "x-omitempty": false
+                },
                 "timeSlots": {
                   "type": "array",
+                  "minItems": 1,
                   "items": {
                     "$ref": "#/definitions/TimeSlot"
                   },
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string"
                 }
               }
             }
@@ -6901,19 +7827,7 @@ func init() {
               "type": "object",
               "properties": {
                 "business": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "tradespersonId": {
-                      "type": "string"
-                    },
-                    "vanityURL": {
-                      "type": "string",
-                      "x-omitempty": false
-                    }
-                  }
+                  "$ref": "#/definitions/Business"
                 },
                 "service": {
                   "$ref": "#/definitions/ServiceDetails"
@@ -7112,6 +8026,10 @@ func init() {
                 "state": {
                   "type": "string",
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string",
+                  "x-omitempty": false
                 }
               }
             }
@@ -7246,19 +8164,7 @@ func init() {
               "type": "object",
               "properties": {
                 "business": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
-                    },
-                    "tradespersonId": {
-                      "type": "string"
-                    },
-                    "vanityURL": {
-                      "type": "string",
-                      "x-omitempty": false
-                    }
-                  }
+                  "$ref": "#/definitions/Business"
                 },
                 "service": {
                   "$ref": "#/definitions/ServiceDetails"
@@ -7451,7 +8357,9 @@ func init() {
             "schema": {
               "type": "object",
               "required": [
-                "email"
+                "email",
+                "password",
+                "token"
               ],
               "properties": {
                 "email": {
@@ -7461,6 +8369,9 @@ func init() {
                 "password": {
                   "type": "string",
                   "format": "password"
+                },
+                "token": {
+                  "type": "string"
                 }
               }
             }
@@ -7820,6 +8731,9 @@ func init() {
                 "timeSlot": {
                   "$ref": "#/definitions/TimeSlot"
                 },
+                "timeZone": {
+                  "type": "string"
+                },
                 "total": {
                   "type": "integer",
                   "format": "int64"
@@ -8133,6 +9047,9 @@ func init() {
                       "type": "string"
                     }
                   }
+                },
+                "timeZone": {
+                  "type": "string"
                 },
                 "total": {
                   "type": "integer",
@@ -9308,6 +10225,40 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/pdf": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "produces": [
+          "application/pdf"
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Quote pdf",
+            "schema": {
+              "type": "file"
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/revise": {
       "post": {
         "security": [
@@ -9455,6 +10406,318 @@ func init() {
               "type": "array",
               "items": {
                 "$ref": "#/definitions/GetTradespersonTradespersonIDBillingSubscriptionsOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/branding": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A tradesperson",
+            "schema": {
+              "$ref": "#/definitions/Branding"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson branding to update.",
+            "name": "branding",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Branding"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson branding",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/coupon": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Coupon to create",
+            "name": "coupon",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Coupon"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If coupon was created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/coupon/{couponId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coupon returned",
+            "schema": {
+              "$ref": "#/definitions/Coupon"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Coupon to update",
+            "name": "coupon",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 40
+                },
+                "services": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If coupon was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If coupon was deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/coupon/{couponId}/promo": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Coupon ID",
+            "name": "couponId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Promo to create",
+            "name": "promo",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Promo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If promo was created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "created": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                },
+                "promo": {
+                  "$ref": "#/definitions/Promo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/discounts": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of discounts",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Coupon"
               }
             }
           }
@@ -10098,6 +11361,122 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/promo/{promoId}": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo ID",
+            "name": "promoId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Promo",
+            "schema": {
+              "$ref": "#/definitions/Promo"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo ID",
+            "name": "promoId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Promo to update",
+            "name": "promo",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Promo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If promo was updated",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Promo ID",
+            "name": "promoId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "If promo was deleted",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/quote": {
       "post": {
         "security": [
@@ -10400,6 +11779,35 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/services": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tradesperson ID",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tradesperson services",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/GetTradespersonTradespersonIDServicesOKBodyItems0"
+              }
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/settings": {
       "get": {
         "security": [
@@ -10433,6 +11841,9 @@ func init() {
                 "displayNumber": {
                   "type": "boolean",
                   "x-omitempty": false
+                },
+                "timeZone": {
+                  "type": "string"
                 },
                 "vanityURL": {
                   "type": "string",
@@ -10560,6 +11971,50 @@ func init() {
           }
         }
       }
+    },
+    "/tradesperson/{tradespersonId}/time-zone": {
+      "put": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "The tradesperson timezone settings to update.",
+            "name": "settings",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "timeZone": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updates tradesperson settings",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "updated": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -10579,6 +12034,108 @@ func init() {
           "type": "string"
         },
         "zipCode": {
+          "type": "string"
+        }
+      }
+    },
+    "Branding": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string"
+        },
+        "logo": {
+          "type": "string"
+        },
+        "primary": {
+          "type": "string"
+        },
+        "secondary": {
+          "type": "string"
+        }
+      }
+    },
+    "Business": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "timeZone": {
+          "type": "string"
+        },
+        "tradespersonId": {
+          "type": "string"
+        },
+        "vanityURL": {
+          "type": "string"
+        }
+      }
+    },
+    "Coupon": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "duration": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "limitedTime": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "maxRedemption": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "maxRedemptions": {
+          "type": "number",
+          "format": "int64"
+        },
+        "months": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "percent": {
+          "type": "number",
+          "format": "double"
+        },
+        "promos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Promo"
+          }
+        },
+        "redeemBy": {
+          "type": "string"
+        },
+        "services": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "subscriptions": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "timesRedeemed": {
+          "type": "number",
+          "format": "int64",
+          "x-omitempty": false
+        },
+        "type": {
           "type": "string"
         }
       }
@@ -10659,6 +12216,21 @@ func init() {
         }
       }
     },
+    "GetCustomerCustomerIDBookingsOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "number": {
+          "type": "string",
+          "x-omitempty": false
+        },
+        "quoteId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
     "GetCustomerCustomerIDQuoteQuoteIDOKBodyService": {
       "type": "object",
       "properties": {
@@ -10688,36 +12260,6 @@ func init() {
         },
         "status": {
           "type": "string"
-        }
-      }
-    },
-    "GetFixedPricePriceIDOKBodyBusiness": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "tradespersonId": {
-          "type": "string"
-        },
-        "vanityURL": {
-          "type": "string",
-          "x-omitempty": false
-        }
-      }
-    },
-    "GetQuoteQuoteIDOKBodyBusiness": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "tradespersonId": {
-          "type": "string"
-        },
-        "vanityURL": {
-          "type": "string",
-          "x-omitempty": false
         }
       }
     },
@@ -10879,6 +12421,24 @@ func init() {
         }
       }
     },
+    "GetTradespersonTradespersonIDServicesOKBodyItems0": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "subscription": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
     "GoogleTimeSlots": {
       "type": "array",
       "items": {
@@ -10947,6 +12507,21 @@ func init() {
         }
       }
     },
+    "Promo": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
+        "code": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        }
+      }
+    },
     "QuoteDetails": {
       "type": "object",
       "properties": {
@@ -10965,6 +12540,12 @@ func init() {
           "type": "integer",
           "format": "int64"
         },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "invoiceId": {
           "type": "string",
           "x-omitempty": false
@@ -10972,6 +12553,9 @@ func init() {
         "number": {
           "type": "string",
           "x-omitempty": false
+        },
+        "pdf": {
+          "type": "string"
         },
         "request": {
           "type": "string"
@@ -11058,7 +12642,7 @@ func init() {
           "x-omitempty": false
         },
         "business": {
-          "type": "string"
+          "$ref": "#/definitions/Business"
         },
         "description": {
           "type": "string"
@@ -11106,10 +12690,6 @@ func init() {
         },
         "tradespersonId": {
           "type": "string"
-        },
-        "vanityURL": {
-          "type": "string",
-          "x-omitempty": false
         }
       }
     },
@@ -11225,6 +12805,10 @@ func init() {
           },
           "x-omitempty": false
         },
+        "timeZone": {
+          "type": "boolean",
+          "x-omitempty": false
+        },
         "title": {
           "type": "string"
         }
@@ -11335,6 +12919,9 @@ func init() {
         "interval": {
           "type": "string"
         },
+        "timeZone": {
+          "type": "string"
+        },
         "title": {
           "type": "string"
         },
@@ -11368,6 +12955,10 @@ func init() {
     "TimeSlot": {
       "type": "object",
       "properties": {
+        "anchorDate": {
+          "type": "integer",
+          "format": "int64"
+        },
         "booked": {
           "type": "integer",
           "format": "int64",
@@ -11385,9 +12976,6 @@ func init() {
           }
         },
         "endTime": {
-          "type": "string"
-        },
-        "futureTime": {
           "type": "string"
         },
         "id": {

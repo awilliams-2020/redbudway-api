@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"redbudway-api/models"
@@ -9,6 +10,7 @@ import (
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/account"
 	"github.com/stripe/stripe-go/v72/accountlink"
+	"github.com/stripe/stripe-go/v72/file"
 )
 
 func CreateTradespersonStripeAccount(tradesperson operations.PostTradespersonBody) (*stripe.Account, error) {
@@ -37,8 +39,8 @@ func GetOnBoardingLink(stripeID, tradespersonID string) (*stripe.AccountLink, er
 	log.Print("Creating stripe connect account onboarding link")
 	params := &stripe.AccountLinkParams{
 		Account:    stripe.String(stripeID),
-		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/tradesperson/" + tradespersonID),
-		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/tradesperson/" + tradespersonID),
+		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/provider/" + tradespersonID),
+		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/provider/" + tradespersonID),
 		Type:       stripe.String("account_onboarding"),
 	}
 	return accountlink.New(params)
@@ -108,4 +110,71 @@ func UpdateBusinessProfileAddress(stripeID string, address *models.Address) erro
 		return err
 	}
 	return nil
+}
+
+func UpdateBusinessBranding(stripeID, logoURL, iconURL, primary, secondary, tradespersonID string) error {
+	params := &stripe.AccountParams{}
+	params.Settings = &stripe.AccountSettingsParams{}
+
+	branding := &stripe.AccountSettingsBrandingParams{}
+	if logoURL != "" {
+		path := fmt.Sprintf("images/%s/logo.png", tradespersonID)
+		ID, err := createLogoFile(path)
+		if err != nil {
+			return err
+		}
+		branding.Logo = &ID
+	}
+	if iconURL != "" {
+		path := fmt.Sprintf("images/%s/icon.png", tradespersonID)
+		ID, err := createIconFile(path)
+		if err != nil {
+			return err
+		}
+		branding.Icon = &ID
+	}
+	if primary != "" {
+		branding.PrimaryColor = &primary
+	}
+	if secondary != "" {
+		branding.SecondaryColor = &secondary
+	}
+	params.Settings.Branding = branding
+
+	_, err := account.Update(
+		stripeID,
+		params,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createLogoFile(filePath string) (string, error) {
+	fp, _ := os.Open(filePath)
+	params := &stripe.FileParams{
+		FileReader: fp,
+		Filename:   stripe.String("logo.png"),
+		Purpose:    stripe.String(string(stripe.FilePurposeBusinessLogo)),
+	}
+	f, err := file.New(params)
+	if err != nil {
+		return f.ID, err
+	}
+	return f.ID, nil
+}
+
+func createIconFile(filePath string) (string, error) {
+	fp, _ := os.Open(filePath)
+	params := &stripe.FileParams{
+		FileReader: fp,
+		Filename:   stripe.String("icon.png"),
+		Purpose:    stripe.String(string(stripe.FilePurposeBusinessIcon)),
+	}
+	f, err := file.New(params)
+	if err != nil {
+		return f.ID, err
+	}
+	return f.ID, nil
 }

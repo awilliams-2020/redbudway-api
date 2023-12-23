@@ -27,6 +27,22 @@ var tradespersonSubscriptionBooking string
 //go:embed html/fixed-price-review.html
 var fixedPriceReview string
 
+//go:embed html/welcome.html
+var welcomeMessage string
+
+func SendProviderWelcome(accountEmail string) error {
+	welcome := welcomeMessage
+	m := gomail.NewMessage()
+	m.SetAddressHeader("From", "service@redbudway.com", "Redbud Way")
+	m.SetAddressHeader("To", accountEmail, accountEmail)
+	m.SetHeader("Subject", "Welcome provider")
+	m.SetBody("text/html", welcome)
+
+	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
+
+	return d.DialAndSend(m)
+}
+
 func SendTradespersonMessage(businessName, businessEmail, service, message string, stripeCustomer *stripe.Customer, images []string) ([]string, error) {
 	m := gomail.NewMessage()
 	m.SetAddressHeader("To", businessEmail, businessName)
@@ -34,7 +50,7 @@ func SendTradespersonMessage(businessName, businessEmail, service, message strin
 	m.SetHeader("Subject", service)
 	m.SetBody("text/plain", message)
 
-	images, err := internal.ProcessEmailImages(stripeCustomer.Email, images)
+	images, err := internal.ProcessEmailImages(stripeCustomer.Email, "", images)
 	if err != nil {
 		log.Printf("Failed to process email images, %s", err)
 		return images, nil
@@ -79,19 +95,18 @@ func SendTradespersonSubscriptionBooking(tradesperson models.Tradesperson, strip
 	return email(tradesperson.Email, tradesperson.Name, "Booking", body)
 }
 
-func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message string, quote *models.ServiceDetails, images []string) ([]string, error) {
+func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message, quoteID string, quote *models.ServiceDetails, images []string) ([]string, error) {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "service@redbudway.com")
 	m.SetAddressHeader("To", tradesperson.Email, tradesperson.Name)
 	m.SetHeader("Subject", "Quote Request")
 
-	images, err := internal.ProcessEmailImages(stripeCustomer.Email, images)
+	images, err := internal.ProcessEmailImages(stripeCustomer.Email, quoteID, images)
 	if err != nil {
 		log.Printf("Failed to process email images, %s", err)
 		return images, err
 	}
 	for _, image := range images {
-		log.Printf("Image: %s\n", image)
 		m.Attach(image)
 	}
 

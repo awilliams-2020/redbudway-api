@@ -31,11 +31,17 @@ type QuoteDetails struct {
 	// expires
 	Expires int64 `json:"expires,omitempty"`
 
+	// images
+	Images []string `json:"images"`
+
 	// invoice Id
 	InvoiceID string `json:"invoiceId"`
 
 	// number
 	Number string `json:"number"`
+
+	// pdf
+	Pdf string `json:"pdf,omitempty"`
 
 	// request
 	Request string `json:"request,omitempty"`

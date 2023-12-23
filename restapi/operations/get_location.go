@@ -68,6 +68,9 @@ type GetLocationOKBody struct {
 
 	// state
 	State string `json:"state"`
+
+	// time zone
+	TimeZone string `json:"timeZone"`
 }
 
 // Validate validates this get location o k body

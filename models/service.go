@@ -8,6 +8,7 @@ package models
 import (
 	"context"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
@@ -24,7 +25,7 @@ type Service struct {
 	AvailableTimeSlots int64 `json:"availableTimeSlots"`
 
 	// business
-	Business string `json:"business,omitempty"`
+	Business *Business `json:"business,omitempty"`
 
 	// description
 	Description string `json:"description,omitempty"`
@@ -64,18 +65,68 @@ type Service struct {
 
 	// tradesperson Id
 	TradespersonID string `json:"tradespersonId,omitempty"`
-
-	// vanity URL
-	VanityURL string `json:"vanityURL"`
 }
 
 // Validate validates this service
 func (m *Service) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.validateBusiness(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }
 
-// ContextValidate validates this service based on context it is used
+func (m *Service) validateBusiness(formats strfmt.Registry) error {
+	if swag.IsZero(m.Business) { // not required
+		return nil
+	}
+
+	if m.Business != nil {
+		if err := m.Business.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("business")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("business")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this service based on the context it is used
 func (m *Service) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateBusiness(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *Service) contextValidateBusiness(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Business != nil {
+		if err := m.Business.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("business")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("business")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

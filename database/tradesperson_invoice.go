@@ -5,16 +5,16 @@ import (
 	"time"
 )
 
-func SaveInvoice(stripeInvoiceID, customerID, tradpespersonID string, fixedPriceID, created int64) (int64, error) {
+func SaveInvoice(stripeInvoiceID, customerID, tradpespersonID, timeZone string, fixedPriceID, created int64) (int64, error) {
 	invoiceCreate := time.Unix(created, 0)
 	var invoiceID int64
-	stmt, err := db.Prepare("INSERT INTO tradesperson_invoices (invoiceId, fixedPriceId, customerId, tradespersonId, created) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO tradesperson_invoices (invoiceId, fixedPriceId, customerId, tradespersonId, created, timeZone) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return invoiceID, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(stripeInvoiceID, fixedPriceID, customerID, tradpespersonID, invoiceCreate)
+	results, err := stmt.Exec(stripeInvoiceID, fixedPriceID, customerID, tradpespersonID, invoiceCreate, timeZone)
 	if err != nil {
 		return invoiceID, err
 	}

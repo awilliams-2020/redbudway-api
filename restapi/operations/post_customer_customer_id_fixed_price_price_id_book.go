@@ -81,12 +81,18 @@ func (o *PostCustomerCustomerIDFixedPricePriceIDBook) ServeHTTP(rw http.Response
 // swagger:model PostCustomerCustomerIDFixedPricePriceIDBookBody
 type PostCustomerCustomerIDFixedPricePriceIDBookBody struct {
 
+	// code
+	Code string `json:"code,omitempty"`
+
 	// form
 	Form []models.FormFields `json:"form"`
 
 	// time slots
 	// Min Items: 1
 	TimeSlots []*models.TimeSlot `json:"timeSlots"`
+
+	// time zone
+	TimeZone string `json:"timeZone,omitempty"`
 }
 
 // Validate validates this post customer customer ID fixed price price ID book body

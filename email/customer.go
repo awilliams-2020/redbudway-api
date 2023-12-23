@@ -150,13 +150,14 @@ func SendCustomerRefund(stripeInvoice *stripe.Invoice, stripeProduct *stripe.Pro
 	return email(stripeInvoice.CustomerEmail, *stripeInvoice.CustomerName, "Refund", body)
 }
 
-func SendCustomerSubscriptionConfirmation(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice string) error {
+func SendCustomerSubscriptionConfirmation(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice, formRowsCols string) error {
 	body := customerSubscriptionConfirmation
 
 	tradespersonInfo := fmt.Sprintf("%s<br>%s<br>%s", tradesperson.Name, tradesperson.Email, tradesperson.Number)
 	body = strings.Replace(body, "{TRADESPERSON_INFO}", tradespersonInfo, -1)
 	body = strings.Replace(body, "{SERVICE_NAME}", stripeProduct.Name, -1)
 	body = strings.Replace(body, "{TIME_AND_PRICE}", timeAndPrice, -1)
+	body = strings.Replace(body, "{FORM_ROWS_COLS}", formRowsCols, -1)
 
 	return email(stripeCustomer.Email, stripeCustomer.Name, "Confirmation", body)
 }

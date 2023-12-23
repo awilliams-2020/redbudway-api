@@ -72,13 +72,13 @@ func CreateFixedPrice(tradespersonID string, fixedPrice *models.ServiceDetails) 
 	if err != nil {
 		return false, err
 	}
-	stmt, err := db.Prepare("INSERT INTO fixed_prices (tradespersonId, priceId, category, subcategory, title, price, description, subscription, subInterval, selectPlaces, archived) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false)")
+	stmt, err := db.Prepare("INSERT INTO fixed_prices (tradespersonId, priceId, category, subcategory, title, price, description, subscription, subInterval, selectPlaces, archived, timeZone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, false, ?)")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(tradespersonID, price.ID, fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.Title, price.UnitAmountDecimal, fixedPrice.Description, fixedPrice.Subscription, fixedPrice.Interval, fixedPrice.SelectPlaces)
+	results, err := stmt.Exec(tradespersonID, price.ID, fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.Title, price.UnitAmountDecimal, fixedPrice.Description, fixedPrice.Subscription, fixedPrice.Interval, fixedPrice.SelectPlaces, fixedPrice.TimeZone)
 	if err != nil {
 		return false, err
 	}
@@ -155,6 +155,27 @@ func GetFixedPriceJobs(fixedPriceID int64, tradespersonId string) (int64, error)
 	switch err = row.Scan(&count); err {
 	case sql.ErrNoRows:
 		log.Printf("Invoice with fixedPriceID %s has no invoices %s", fixedPriceID)
+	case nil:
+		//
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return count, nil
+}
+
+func GetQuoteJobs(quoteID int64, tradespersonId string) (int64, error) {
+	count := int64(0)
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM tradesperson_quotes WHERE tradespersonId=? AND quoteId=?")
+	if err != nil {
+		return count, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonId, quoteID)
+	switch err = row.Scan(&count); err {
+	case sql.ErrNoRows:
+		log.Printf("Quote with quote ID %s has no quotes %s", quoteID)
 	case nil:
 		//
 	default:
@@ -373,7 +394,7 @@ func GetOtherServices(tradespersonID string, fixedPriceID int64) ([]*models.Othe
 func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.ServiceDetails, int64, error) {
 	fixedPrice := &models.ServiceDetails{}
 
-	stmt, err := db.Prepare("SELECT f.id, f.category, f.subCategory, f.title, f.price, f.description, f.subscription, f.subInterval, f.selectPlaces, f.archived FROM tradesperson_account a INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE a.tradespersonId=? AND f.priceId=?")
+	stmt, err := db.Prepare("SELECT f.id, f.category, f.subCategory, f.title, f.price, f.description, f.subscription, f.subInterval, f.selectPlaces, f.archived, f.timeZone FROM tradesperson_account a INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId WHERE a.tradespersonId=? AND f.priceId=?")
 	if err != nil {
 		return fixedPrice, 0, err
 	}
@@ -382,7 +403,7 @@ func GetTradespersonFixedPrice(tradespersonID string, priceID string) (*models.S
 	row := stmt.QueryRow(tradespersonID, priceID)
 	var ID, price int64
 	var interval sql.NullString
-	switch err = row.Scan(&ID, &fixedPrice.Category, &fixedPrice.SubCategory, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.SelectPlaces, &fixedPrice.Archived); err {
+	switch err = row.Scan(&ID, &fixedPrice.Category, &fixedPrice.SubCategory, &fixedPrice.Title, &price, &fixedPrice.Description, &fixedPrice.Subscription, &interval, &fixedPrice.SelectPlaces, &fixedPrice.Archived, &fixedPrice.TimeZone); err {
 	case sql.ErrNoRows:
 		return fixedPrice, ID, err
 	case nil:
@@ -686,13 +707,13 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 	case sql.ErrNoRows:
 		return updated, fmt.Errorf("FixedPriced with priceId %s does not exist", priceID)
 	case nil:
-		stmt, err := db.Prepare("UPDATE fixed_prices SET category=?, subcategory=?, title=?, description=?, selectPlaces=?, archived=? WHERE priceId=?")
+		stmt, err := db.Prepare("UPDATE fixed_prices SET category=?, subcategory=?, title=?, description=?, selectPlaces=?, archived=?, timeZone=? WHERE priceId=?")
 		if err != nil {
 			return updated, err
 		}
 		defer stmt.Close()
 
-		_, err = stmt.Exec(fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.Title, fixedPrice.Description, fixedPrice.SelectPlaces, fixedPrice.Archived, priceID)
+		_, err = stmt.Exec(fixedPrice.Category, fixedPrice.SubCategory, fixedPrice.Title, fixedPrice.Description, fixedPrice.SelectPlaces, fixedPrice.Archived, fixedPrice.TimeZone, priceID)
 		if err != nil {
 			return updated, err
 		}
@@ -713,7 +734,7 @@ func UpdateFixedPrice(tradespersonID, priceID string, fixedPrice *models.Service
 			return updated, err
 		}
 
-		stmt, err = db.Prepare("SELECT f.id FROM fixed_prices f INNER JOIN fixed_price_form fm ON f.id=fm.fixedPriceId WHERE f.priceId=?")
+		stmt, err = db.Prepare("SELECT f.id FROM fixed_prices f INNER JOIN fixed_price_form fm ON f.id=fm.fixedPriceId WHERE f.id=?")
 		if err != nil {
 			return updated, err
 		}
@@ -810,40 +831,6 @@ func GetTradespersonFixedPrices(tradespersonID string, page int64) []*models.Ser
 	}
 
 	return fixedPrices
-}
-
-//Find better way
-func updateImages(ID int64, images []*string, table string) error {
-	deleteSql := "DELETE FROM quote_images WHERE quoteId=?"
-	insertSql := "INSERT INTO quote_images (quoteId, url) VALUES (?, ?)"
-	if table == "fixed_price" {
-		deleteSql = "DELETE FROM fixed_price_images WHERE fixedPriceId=?"
-		insertSql = "INSERT INTO fixed_price_images (fixedPriceId, url) VALUES (?, ?)"
-	}
-	stmt, err := db.Prepare(deleteSql)
-	if err != nil {
-		return err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(ID)
-	if err != nil {
-		return err
-	}
-
-	for _, url := range images {
-		stmt, err := db.Prepare(insertSql)
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
-		_, err = stmt.Exec(ID, url)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func insertQuoteSpecialties(ID int64, quote *models.ServiceDetails) error {

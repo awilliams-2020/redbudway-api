@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"log"
-	"os"
+	"math"
 	"redbudway-api/database"
 	"redbudway-api/email"
 	"redbudway-api/internal"
@@ -132,11 +132,11 @@ func GetCustomerCustomerIDBillingLinkHandler(params operations.GetCustomerCustom
 	return response
 }
 
-func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, stripeProduct *stripe.Product, cuStripeID, customerID, timeAndPrice, formRowsCols string) {
+func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, stripeProduct *stripe.Product, cuStripeID, timeAndPrice, formRowsCols string) {
 
 	stripeCustomer, err := customer.Get(cuStripeID, nil)
 	if err != nil {
-		log.Printf("Failed to retrieve customer, %s", customerID)
+		log.Printf("Failed to retrieve stripe customer, %s", cuStripeID)
 		return
 	}
 
@@ -152,8 +152,10 @@ func emailHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, st
 func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCustomerCustomerIDFixedPricePriceIDBookParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	priceID := params.PriceID
+	timeZone := params.Booking.TimeZone
 	timeSlots := params.Booking.TimeSlots
 	form := params.Booking.Form
+	code := params.Booking.Code
 	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostCustomerCustomerIDFixedPricePriceIDBookCreatedBody{Booked: false}
@@ -203,11 +205,24 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 		return response
 	}
 
+	discount, err := database.GetDiscount(priceID, code)
+	if err != nil {
+		log.Printf("Failed to retrieve discount with %s, %s", priceID, code)
+		return response
+	}
+
 	var timeAndPrice bytes.Buffer
 	for _, timeSlot := range timeSlots {
 		decimalPrice := (stripePrice.UnitAmountDecimal / float64(100.00)) * float64(timeSlot.Quantity)
+		if discount.Valid {
+			if discount.Type == "percent_off" {
+				decimalPrice = decimalPrice - math.Ceil(decimalPrice*discount.Percent)/100
+			} else {
+				decimalPrice = decimalPrice - discount.Amount
+			}
+		}
 		appFee := decimalPrice * sellingFee
-		fee := int64(appFee * 100)
+		fee := int64(math.Floor(appFee * 100))
 
 		endDate, err := internal.GetEndDate(timeSlot.EndTime)
 		if err != nil {
@@ -224,6 +239,13 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			DueDate:                     &timeStamp,
 			OnBehalfOf:                  stripe.String(tpStripeID),
 			PendingInvoiceItemsBehavior: stripe.String("exclude"),
+		}
+		if discount.Valid {
+			invoiceParams.Discounts = []*stripe.InvoiceDiscountParams{
+				{
+					Coupon: stripe.String(discount.CouponID),
+				},
+			}
 		}
 		invoiceParams.AddMetadata("tradesperson_id", tradespersonID)
 		stripeInvoice, err := invoice.New(invoiceParams)
@@ -245,7 +267,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			return response
 		}
 
-		_, err = database.SaveInvoice(stripeInvoice.ID, customerID, tradespersonID, fixedPriceID, stripeInvoice.Created)
+		_, err = database.SaveInvoice(stripeInvoice.ID, customerID, tradespersonID, timeZone, fixedPriceID, stripeInvoice.Created)
 		if err != nil {
 			log.Printf("Failed to save invoice %v", err)
 			return response
@@ -257,7 +279,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 			return response
 		}
 
-		results, err := internal.CreateTimeAndPrice(timeSlot.StartTime, timeSlot.EndTime, decimalPrice)
+		results, err := internal.CreateTimeAndPrice(timeSlot.StartTime, timeSlot.EndTime, timeZone, decimalPrice)
 		if err != nil {
 			log.Printf("Failed to create time and price, %v", err)
 			return response
@@ -274,7 +296,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 		}
 	}
 
-	go emailHelper(tradesperson, stripePrice, stripeProduct, cuStripeID, customerID, timeAndPrice.String(), formRowsCols)
+	go emailHelper(tradesperson, stripePrice, stripeProduct, cuStripeID, timeAndPrice.String(), formRowsCols)
 
 	payload.Booked = true
 	response.SetPayload(&payload)
@@ -282,7 +304,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 	return response
 }
 
-func emailSubscriptionHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, cuStripeID, body string) {
+func emailSubscriptionHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, cuStripeID, timeAndPrice, formRowsCols string) {
 	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
 	if err != nil {
 		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
@@ -295,11 +317,11 @@ func emailSubscriptionHelper(tradesperson models.Tradesperson, stripePrice *stri
 		return
 	}
 
-	if err := email.SendCustomerSubscriptionConfirmation(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+	if err := email.SendCustomerSubscriptionConfirmation(tradesperson, stripeCustomer, stripeProduct, timeAndPrice, formRowsCols); err != nil {
 		log.Printf("Failed to send customer confirmation email, %v", err)
 	}
 
-	if err := email.SendTradespersonSubscriptionBooking(tradesperson, stripeCustomer, stripeProduct, body); err != nil {
+	if err := email.SendTradespersonSubscriptionBooking(tradesperson, stripeCustomer, stripeProduct, timeAndPrice); err != nil {
 		log.Printf("Failed to send tradesperson confirmation email, %v", err)
 	}
 }
@@ -307,7 +329,10 @@ func emailSubscriptionHelper(tradesperson models.Tradesperson, stripePrice *stri
 func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.PostCustomerCustomerIDSubscriptionPriceIDBookParams, principal interface{}) middleware.Responder {
 	customerID := params.CustomerID
 	priceID := params.PriceID
+	timeZone := params.Booking.TimeZone
 	timeSlots := params.Booking.TimeSlots
+	form := params.Booking.Form
+	code := params.Booking.Code
 	token := params.HTTPRequest.Header.Get("Authorization")
 
 	payload := operations.PostCustomerCustomerIDSubscriptionPriceIDBookCreatedBody{}
@@ -360,16 +385,16 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 		return response
 	}
 
-	var body bytes.Buffer
+	discount, err := database.GetDiscount(priceID, code)
+	if err != nil {
+		log.Printf("Failed to retrieve discount ID with %s, %s, %v", priceID, code, err)
+		return response
+	}
+
+	var timeAndPrice bytes.Buffer
 	for _, timeSlot := range timeSlots {
 		decimalPrice := (stripePrice.UnitAmountDecimal / float64(100.00)) * float64(timeSlot.Quantity)
-
-		startDate, err := internal.GetStartDate(timeSlot.FutureTime)
-		if err != nil {
-			log.Printf("Failed to get startDate from futureTime, %v", err)
-		}
-		timeStamp := startDate.Unix()
-
+		timeStamp := timeSlot.AnchorDate / int64(1000)
 		subscriptionParams := &stripe.SubscriptionParams{
 			Customer: stripe.String(cuStripeID),
 			Items: []*stripe.SubscriptionItemsParams{
@@ -387,6 +412,9 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 			PaymentBehavior:   stripe.String("default_incomplete"),
 			OnBehalfOf:        stripe.String(tpStripeID),
 		}
+		if discount.Valid {
+			subscriptionParams.Coupon = stripe.String(discount.CouponID)
+		}
 		subscriptionParams.AddMetadata("tradesperson_id", tradespersonID)
 		stripeSubscription, err := sub.New(subscriptionParams)
 		if err != nil {
@@ -394,7 +422,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 			return response
 		}
 
-		_, err = database.SaveSubscription(stripeSubscription.ID, cuStripeID, tradespersonID, fixedPriceID, stripeSubscription.Created)
+		_, err = database.SaveSubscription(stripeSubscription.ID, cuStripeID, tradespersonID, timeZone, fixedPriceID, stripeSubscription.Created)
 		if err != nil {
 			log.Printf("Failed to save subscription %v", err)
 			return response
@@ -420,16 +448,24 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 			}
 		}
 
-		timeAndPrice, err := internal.CreateSubscriptionTimeAndPrice(interval, timeSlot.StartTime, timeSlot.EndTime, decimalPrice)
+		results, err := internal.CreateSubscriptionTimeAndPrice(interval, timeSlot.StartTime, timeSlot.EndTime, timeZone, decimalPrice)
 		if err != nil {
 			log.Printf("Failed to create time and price, %v", err)
 			return response
 		}
-		body.WriteString(timeAndPrice)
-
+		timeAndPrice.WriteString(results)
 	}
 
-	go emailSubscriptionHelper(tradesperson, stripePrice, cuStripeID, body.String())
+	var formRowsCols string
+	if len(form) != 0 {
+		formRowsCols = internal.CreateForm(form)
+		if err != nil {
+			log.Printf("Failed to create form, %v", err)
+			return response
+		}
+	}
+
+	go emailSubscriptionHelper(tradesperson, stripePrice, cuStripeID, timeAndPrice.String(), formRowsCols)
 
 	payload.Booked = true
 	response.SetPayload(&payload)
@@ -473,7 +509,7 @@ func GetCustomerCustomerIDPaymentDefaultHandler(params operations.GetCustomerCus
 	return response
 }
 
-func emailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDetails, images []string, cuStripeID, message string) {
+func emailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDetails, images []string, cuStripeID, message, quoteID string) {
 	stripeCustomer, err := customer.Get(cuStripeID, nil)
 	if err != nil {
 		log.Printf("Failed to get stripe customer, %v", err)
@@ -482,15 +518,9 @@ func emailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDet
 	if err := email.SendCustomerQuoteConfirmation(tradesperson, stripeCustomer, message, quote); err != nil {
 		log.Printf("Failed to send customer email, %v", err)
 	}
-	images, err = email.SendTradespersonQuoteRequest(tradesperson, stripeCustomer, message, quote, images)
+	images, err = email.SendTradespersonQuoteRequest(tradesperson, stripeCustomer, message, quoteID, quote, images)
 	if err != nil {
 		log.Printf("Failed to send tradesperson email, %v", err)
-	}
-	for _, imagePath := range images {
-		err := os.Remove(imagePath)
-		if err != nil {
-			log.Printf("Failed to delete image, %s", imagePath)
-		}
 	}
 }
 
@@ -564,7 +594,7 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 				return response
 			}
 			if created {
-				go emailQuoteHelper(tradesperson, _quote, images, cuStripeID, message)
+				go emailQuoteHelper(tradesperson, _quote, images, cuStripeID, message, stripeQuote.ID)
 
 				payload.Requested = true
 				response.SetPayload(&payload)
@@ -593,17 +623,27 @@ func DeleteCustomerCustomerIDHandler(params operations.DeleteCustomerCustomerIDP
 		return response
 	}
 
-	_, err = database.GetCustomerStripeID(customerID)
+	cuStripeID, err := database.GetCustomerStripeID(customerID)
 	if err != nil {
 		log.Printf("Failed to get customer %s stripe ID, %v", customerID, err)
 		return response
 	}
 
-	deleted, err := database.DeleteCustomerAccount(customerID)
+	stripeCustomer, err := customer.Del(cuStripeID, nil)
 	if err != nil {
-		log.Printf("Failed to delete customer %s account, %v", customerID, err)
+		log.Printf("Failed to delete customer %s stripe account, %v", customerID, err)
 		return response
 	}
+
+	deleted := false
+	if stripeCustomer.Deleted {
+		deleted, err = database.DeleteCustomerAccount(customerID)
+		if err != nil {
+			log.Printf("Failed to delete customer %s account, %v", customerID, err)
+			return response
+		}
+	}
+
 	payload.Deleted = deleted
 	response.SetPayload(&payload)
 
@@ -896,5 +936,34 @@ func PutCustomerCustomerIDHandler(params operations.PutCustomerCustomerIDParams,
 
 	response = operations.NewPutCustomerCustomerIDOK()
 	response.SetPayload(payload)
+	return response
+}
+
+func GetCustomerCustomerIDPromoHandler(params operations.GetCustomerCustomerIDPromoParams, principal interface{}) middleware.Responder {
+	customerID := params.CustomerID
+	code := params.Code
+	priceID := params.PriceID
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	response := operations.NewGetCustomerCustomerIDPromoOK()
+	discount := &operations.GetCustomerCustomerIDPromoOKBody{}
+	discount.Valid = false
+
+	valid, err := ValidateCustomerAccessToken(customerID, token)
+	if err != nil {
+		log.Printf("Failed to validate customer %s, accessToken %s", customerID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor customer %s, accessToken %s", customerID, token)
+		return response
+	}
+
+	discount, err = database.GetDiscount(priceID, code)
+	if err != nil {
+		log.Printf("Failed to retrieve discount with %s, %s", priceID, code)
+		return response
+	}
+	response.SetPayload(discount)
+
 	return response
 }

@@ -19,7 +19,7 @@ var emailUpdated string
 
 func email(email, name, subject, body string) error {
 	m := gomail.NewMessage()
-	m.SetHeader("From", "service@redbudway.com")
+	m.SetAddressHeader("From", "service@redbudway.com", "Redbud Way")
 	m.SetAddressHeader("To", email, name)
 	m.SetHeader("Subject", subject)
 

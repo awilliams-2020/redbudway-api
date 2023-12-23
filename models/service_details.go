@@ -91,6 +91,9 @@ type ServiceDetails struct {
 	// time slots
 	TimeSlots []*TimeSlot `json:"timeSlots"`
 
+	// time zone
+	TimeZone bool `json:"timeZone"`
+
 	// title
 	// Required: true
 	Title *string `json:"title"`

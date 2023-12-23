@@ -31,7 +31,6 @@ func GetLocationHandler(params operations.GetLocationParams) middleware.Responde
 		log.Printf("Failed to read body in %v", err)
 	}
 	var r map[string]interface{}
-
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		log.Printf("Failed to unmarshal response, %v", err)
@@ -42,7 +41,8 @@ func GetLocationHandler(params operations.GetLocationParams) middleware.Responde
 	if address["CountryCode"].(string) == "USA" {
 		city := address["City"].(string)
 		state := address["Region"].(string)
-		payload := operations.GetLocationOKBody{City: city, State: state}
+		timeZone := getTimeZone(latitude, longitude)
+		payload := operations.GetLocationOKBody{City: city, State: state, TimeZone: timeZone}
 		response.SetPayload(&payload)
 	}
 
@@ -55,7 +55,6 @@ func GetAddressHandler(params operations.GetAddressParams) middleware.Responder 
 	payload := operations.GetAddressOKBody{City: "", State: ""}
 	response := operations.NewGetAddressOK().WithPayload(&payload)
 	URL := fmt.Sprintf("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%s&countryCode=US&f=json&outFields=city,region&token=%s", address, os.Getenv("ARCGIS_TOKEN"))
-	log.Println(URL)
 	resp, err := http.Get(URL)
 	if err != nil {
 		log.Printf("Failed to get users location from arcgis api, %v", err)
@@ -82,9 +81,41 @@ func GetAddressHandler(params operations.GetAddressParams) middleware.Responder 
 		attributes := candidate["attributes"].(map[string]interface{})
 		city := attributes["city"].(string)
 		state := attributes["region"].(string)
-		payload := operations.GetAddressOKBody{City: city, State: state}
+		location := candidate["location"].(map[string]interface{})
+		longitude := fmt.Sprintf("%f", location["x"].(float64))
+		latitude := fmt.Sprintf("%f", location["y"].(float64))
+		timeZone := getTimeZone(latitude, longitude)
+		payload := operations.GetAddressOKBody{City: city, State: state, TimeZone: timeZone}
 		response.SetPayload(&payload)
 	}
 
 	return response
+}
+
+func getTimeZone(latitude, longitude string) string {
+	timeZone := ""
+	URL := fmt.Sprintf("https://api.wheretheiss.at/v1/coordinates/%s,%s", latitude, longitude)
+	resp, err := http.Get(URL)
+	if err != nil {
+		log.Printf("Failed to get users timezone from wheretheiss api, %v", err)
+		return timeZone
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read body in %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return timeZone
+	}
+	var r map[string]interface{}
+	err = json.Unmarshal(body, &r)
+	if err != nil {
+		log.Printf("Failed to unmarshal response, %v", err)
+		return timeZone
+	}
+
+	timeZone = r["timezone_id"].(string)
+
+	return timeZone
 }

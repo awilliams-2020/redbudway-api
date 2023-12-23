@@ -85,6 +85,9 @@ type GetTradespersonTradespersonIDSettingsOKBody struct {
 	// display number
 	DisplayNumber bool `json:"displayNumber"`
 
+	// time zone
+	TimeZone string `json:"timeZone,omitempty"`
+
 	// vanity URL
 	VanityURL string `json:"vanityURL"`
 }

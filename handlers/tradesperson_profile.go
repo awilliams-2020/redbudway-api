@@ -149,7 +149,7 @@ func GetTradespersonTradespersonIDSettingsHandler(params operations.GetTradesper
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT vanityURL, number, email, address FROM tradesperson_settings WHERE tradespersonId=?")
+	stmt, err := db.Prepare("SELECT vanityURL, number, email, address, timeZone FROM tradesperson_settings WHERE tradespersonId=?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return response
@@ -157,9 +157,10 @@ func GetTradespersonTradespersonIDSettingsHandler(params operations.GetTradesper
 	defer stmt.Close()
 
 	var vanityURL sql.NullString
+	var timeZone string
 	var displayNumber, displayEmail, displayAddress bool
 	row := stmt.QueryRow(tradespersonID)
-	switch err = row.Scan(&vanityURL, &displayNumber, &displayEmail, &displayAddress); err {
+	switch err = row.Scan(&vanityURL, &displayNumber, &displayEmail, &displayAddress, &timeZone); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s doesn't exist", tradespersonID)
 	case nil:
@@ -169,7 +170,7 @@ func GetTradespersonTradespersonIDSettingsHandler(params operations.GetTradesper
 		payload.DisplayNumber = displayNumber
 		payload.DisplayEmail = displayEmail
 		payload.DisplayAddress = displayAddress
-
+		payload.TimeZone = timeZone
 		response.SetPayload(&payload)
 	default:
 		log.Printf("Unknown %v", err)
@@ -193,17 +194,46 @@ func PutTradespersonTradespersonIDSettingsHandler(params operations.PutTradesper
 		return response
 	}
 
-	updated, err := database.UpdateTradespersonDisplaySettings(tradespersonID, settings)
+	updated := false
+
+	updated, err = database.UpdateTradespersonDisplaySettings(tradespersonID, settings)
 	if err != nil {
 		log.Printf("Failed to update tradesperson display settings %s", err)
 	}
-	if updated {
-		updated, err = database.UpdateTradespersonVanitySettings(tradespersonID, settings)
-		if err != nil {
-			log.Printf("Failed to update tradesperson vanity settings %s", err)
-		}
+	updated, err = database.UpdateTradespersonVanitySettings(tradespersonID, settings)
+	if err != nil {
+		log.Printf("Failed to update tradesperson vanity settings %s", err)
 	}
+
 	payload := operations.PutTradespersonTradespersonIDSettingsOKBody{Updated: updated}
+
+	response.SetPayload(&payload)
+
+	return response
+}
+
+func PutTradespersonTradespersonIDTimeZoneHandler(params operations.PutTradespersonTradespersonIDTimeZoneParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	settings := params.Settings
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	response := operations.NewPutTradespersonTradespersonIDTimeZoneOK()
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	} else if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		return response
+	}
+
+	updated, err := database.UpdateTradespersonTimeZoneSettings(tradespersonID, settings)
+	if err != nil {
+		log.Printf("Failed to update tradesperson timezone settings %s", err)
+	}
+
+	payload := operations.PutTradespersonTradespersonIDTimeZoneOKBody{Updated: updated}
 
 	response.SetPayload(&payload)
 

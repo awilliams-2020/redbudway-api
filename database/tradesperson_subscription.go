@@ -2,16 +2,16 @@ package database
 
 import "time"
 
-func SaveSubscription(stripeSubscriptionID, cuStripeID, tradpespersonID string, fixedPriceID, created int64) (int64, error) {
+func SaveSubscription(stripeSubscriptionID, cuStripeID, tradpespersonID, timeZone string, fixedPriceID, created int64) (int64, error) {
 	subscriptionCreated := time.Unix(created, 0)
 	var subscriptionID int64
-	stmt, err := db.Prepare("INSERT INTO tradesperson_subscriptions (subscriptionId, fixedPriceId, cuStripeId, tradespersonId, created) VALUES (?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO tradesperson_subscriptions (subscriptionId, fixedPriceId, cuStripeId, tradespersonId, created, timeZone) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return subscriptionID, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(stripeSubscriptionID, fixedPriceID, cuStripeID, tradpespersonID, subscriptionCreated)
+	results, err := stmt.Exec(stripeSubscriptionID, fixedPriceID, cuStripeID, tradpespersonID, subscriptionCreated, timeZone)
 	if err != nil {
 		return subscriptionID, err
 	}

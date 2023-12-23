@@ -320,6 +320,20 @@ func UpdateTradespersonVanitySettings(tradespersonID string, settings operations
 	return true, nil
 }
 
+func UpdateTradespersonTimeZoneSettings(tradespersonID string, settings operations.PutTradespersonTradespersonIDTimeZoneBody) (bool, error) {
+	stmt, err := db.Prepare("UPDATE tradesperson_settings SET timeZone=? WHERE tradespersonId=?")
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(settings.TimeZone, tradespersonID)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func GetTradespersonJobs(tradespersonID string) (int64, error) {
 	jobs := int64(0)
 	count := int64(0)
@@ -463,4 +477,65 @@ func DeleteTradespersonAccount(tradepersonID, stripeID string) (bool, error) {
 		return false, err
 	}
 	return rowsAffected == 1, nil
+}
+
+func GetTradespersonBranding(tradespersonID string) (*models.Branding, error) {
+	branding := &models.Branding{}
+	stmt, err := db.Prepare("SELECT logo, icon, `primary`, secondary FROM tradesperson_branding WHERE tradespersonId=?")
+	if err != nil {
+		return branding, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID)
+	switch err = row.Scan(&branding.Logo, &branding.Icon, &branding.Primary, &branding.Secondary); err {
+	case sql.ErrNoRows:
+		//
+	case nil:
+		//
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return branding, nil
+}
+
+func UpdateTradespersonBranding(tradespersonID, logoURL, iconURL string, branding *models.Branding) (string, error) {
+	var stripeID string
+
+	stmt, err := db.Prepare("SELECT a.stripeId FROM tradesperson_account a INNER JOIN tradesperson_branding b WHERE a.tradespersonId=?")
+	if err != nil {
+		return stripeID, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(tradespersonID)
+	switch err = row.Scan(&stripeID); err {
+	case sql.ErrNoRows:
+		stmt, err := db.Prepare("INSERT INTO tradesperson_branding (tradespersonId, logo, icon, `primary`, secondary) VALUES (?, ?, ?, ?, ?)")
+		if err != nil {
+			return stripeID, err
+		}
+		defer stmt.Close()
+
+		_, err = stmt.Exec(tradespersonID, logoURL, iconURL, branding.Primary, branding.Secondary)
+		if err != nil {
+			return stripeID, err
+		}
+	case nil:
+		stmt, err := db.Prepare("UPDATE tradesperson_branding SET logo=?, icon=?, `primary`=?, secondary=? WHERE tradespersonId=?")
+		if err != nil {
+			return stripeID, err
+		}
+		defer stmt.Close()
+
+		_, err = stmt.Exec(logoURL, iconURL, branding.Primary, branding.Secondary, tradespersonID)
+		if err != nil {
+			return stripeID, err
+		}
+	default:
+		log.Printf("Unknown %v", err)
+	}
+
+	return stripeID, nil
 }

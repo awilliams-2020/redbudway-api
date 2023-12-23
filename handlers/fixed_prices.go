@@ -21,11 +21,11 @@ const PAGE_SIZE = float64(9)
 
 func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Service) ([]*models.Service, error) {
 	var id, price int64
-	var vanityURL, interval sql.NullString
+	var vanityURL, interval, icon sql.NullString
 	var stripeID, tradespersonID string
 	for rows.Next() {
 		fixedPrice := &models.Service{}
-		if err := rows.Scan(&stripeID, &id, &tradespersonID, &fixedPrice.PriceID, &fixedPrice.Title, &price, &fixedPrice.Subscription, &interval, &vanityURL); err != nil {
+		if err := rows.Scan(&stripeID, &id, &tradespersonID, &fixedPrice.PriceID, &fixedPrice.Title, &price, &fixedPrice.Subscription, &interval, &vanityURL, &icon); err != nil {
 			return fixedPrices, err
 		}
 
@@ -33,7 +33,6 @@ func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Ser
 		if err != nil {
 			log.Printf("Failed to get tradesperson profile %s", err)
 		}
-		fixedPrice.Business = tradesperson.Name
 		fixedPrice.Interval = interval.String
 		strPrice := fmt.Sprintf("%.2f", float64(price)/float64(100.00))
 		floatPrice, err := strconv.ParseFloat(strPrice, 64)
@@ -46,8 +45,12 @@ func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Ser
 		if err != nil {
 			log.Printf("Failed to get fixedPrice image %s", err)
 		}
-		fixedPrice.VanityURL = vanityURL.String
 		fixedPrice.TradespersonID = tradespersonID
+		fixedPrice.Business = &models.Business{
+			Name:      tradesperson.Name,
+			Icon:      icon.String,
+			VanityURL: vanityURL.String,
+		}
 		fixedPrice.AvailableTimeSlots, err = database.GetAvailableTimeSlots(id, fixedPrice.Subscription)
 		if err != nil {
 			log.Printf("Failed to get timeslots %s", err)
@@ -75,7 +78,7 @@ func processFixedPriceRows(db *sql.DB, rows *sql.Rows, fixedPrices []*models.Ser
 	return fixedPrices, nil
 }
 
-func getFixedPricesWithFilters(state, city, category, subCategory, sort string, specialties, fromDate, toDate *string, page int64, min, max *int64) ([]*models.Service, error) {
+func getFixedPricesWithSpecialties(state, city, category, subCategory, sort string, specialties, fromDate, toDate *string, page int64, min, max *int64) ([]*models.Service, error) {
 	query := ""
 	fixedPrices := []*models.Service{}
 	db := database.GetConnection()
@@ -91,7 +94,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 
 	rows := &sql.Rows{}
 	if specialties != nil && min == nil && max == nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -105,7 +108,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min != nil && max == nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -119,7 +122,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min != nil && max != nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -133,7 +136,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min != nil && max != nil && fromDate != nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -147,7 +150,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min != nil && max != nil && fromDate != nil && toDate != nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -161,7 +164,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min == nil && max != nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -175,7 +178,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min == nil && max != nil && fromDate != nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -189,7 +192,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min == nil && max != nil && fromDate != nil && toDate != nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -203,7 +206,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min == nil && max == nil && fromDate != nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -217,7 +220,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties != nil && min == nil && max == nil && fromDate != nil && toDate != nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_specialties fi ON fi.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) " + query + " AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -231,7 +234,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min != nil && max == nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -245,7 +248,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min != nil && max != nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -259,7 +262,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min != nil && max != nil && fromDate != nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -273,7 +276,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min != nil && max != nil && fromDate != nil && toDate != nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price >= ? AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -287,7 +290,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min == nil && max != nil && fromDate == nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price <= ? GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -301,7 +304,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min == nil && max != nil && fromDate != nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -315,7 +318,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min == nil && max != nil && fromDate != nil && toDate != nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.price <= ? AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -329,7 +332,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min == nil && max == nil && fromDate != nil && toDate == nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -343,7 +346,7 @@ func getFixedPricesWithFilters(state, city, category, subCategory, sort string, 
 			return fixedPrices, err
 		}
 	} else if specialties == nil && min == nil && max == nil && fromDate != nil && toDate != nil {
-		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+		stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false AND f.id=(SELECT fixedPriceId from fixed_price_time_slots WHERE startTime >= DATE(?) AND startTime <= DATE(?) AND fixedPriceId=f.id LIMIT 1) GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 		if err != nil {
 			log.Printf("Failed to create select statement %s", err)
 			return fixedPrices, err
@@ -372,7 +375,7 @@ func getSubCategoryFixedPrices(state, city, category, subCategory, sort string, 
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND f.subcategory=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices, err
@@ -400,7 +403,7 @@ func getCategoryFixedPrices(state, city, category, sort string, page int64) ([]*
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE f.category=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE f.category=? AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return fixedPrices, err
@@ -428,7 +431,7 @@ func getAllFixedPrices(state, city, sort string, page int64) ([]*models.Service,
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id WHERE (((SELECT COUNT(*) FROM fixed_price_time_slots WHERE fixedPriceId=f.id AND startTime > CURDATE()) > 0  OR f.subscription=True) OR f.subscription=True) AND ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT a.stripeId, f.id, f.tradespersonId, f.priceId, f.title, f.price, f.subscription, f.subInterval, s.vanityURL, b.icon FROM tradesperson_account a INNER JOIN tradesperson_settings s ON a.tradespersonId=s.tradespersonId INNER JOIN fixed_prices f ON a.tradespersonId=f.tradespersonId LEFT JOIN fixed_price_state_cities c ON c.fixedPriceId=f.id LEFT JOIN tradesperson_branding b ON b.tradespersonId=f.tradespersonId WHERE ((? = '' AND ? = '') OR f.selectPlaces=false OR c.state=? OR JSON_CONTAINS(c.cities, JSON_OBJECT('name', ?))) AND f.archived=false GROUP BY f.id ORDER BY " + sort + " LIMIT ?, ?")
 	if err != nil {
 		return fixedPrices, err
 	}
@@ -493,7 +496,7 @@ func GetFixedPricesHandler(params operations.GetFixedPricesParams) middleware.Re
 				return response
 			}
 		} else {
-			fixedPrices, err = getFixedPricesWithFilters(state, city, *params.Category, *params.SubCategory, sort, params.Specialties, params.FromDate, params.ToDate, page, params.Min, params.Max)
+			fixedPrices, err = getFixedPricesWithSpecialties(state, city, *params.Category, *params.SubCategory, sort, params.Specialties, params.FromDate, params.ToDate, page, params.Min, params.Max)
 			if err != nil {
 				log.Printf("%s", err)
 				return response
