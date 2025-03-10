@@ -54,10 +54,20 @@ func GetAddressHandler(params operations.GetAddressParams) middleware.Responder 
 
 	payload := operations.GetAddressOKBody{City: "", State: ""}
 	response := operations.NewGetAddressOK().WithPayload(&payload)
+
+	client := &http.Client{}
 	URL := fmt.Sprintf("https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=%s&countryCode=US&f=json&outFields=city,region&token=%s", address, os.Getenv("ARCGIS_TOKEN"))
-	resp, err := http.Get(URL)
+	req, err := http.NewRequest(http.MethodGet, URL, nil)
 	if err != nil {
-		log.Printf("Failed to get users location from arcgis api, %v", err)
+		log.Printf("Failed to create new request, %v", err)
+		return response
+	}
+	referer := fmt.Sprintf("https://%sredbudway.com", os.Getenv("SUBDOMAIN"))
+	req.Header.Set("Referer", referer)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Failed to get user calendar events, %v", err)
 		return response
 	}
 	defer resp.Body.Close()

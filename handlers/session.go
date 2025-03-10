@@ -430,8 +430,6 @@ func GetCustomerCustomerIDAccessTokenHandler(params operations.GetCustomerCustom
 }
 
 func GetTradespersonGoogleInfo(tradespersonID, accessToken string) (string, string, error) {
-	var res map[string]interface{}
-
 	var email, picture string
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, "https://www.googleapis.com/oauth2/v1/userinfo", nil)
@@ -452,13 +450,14 @@ func GetTradespersonGoogleInfo(tradespersonID, accessToken string) (string, stri
 	if err != nil {
 		log.Printf("Failed to read body in %v", err)
 	}
-	err = json.Unmarshal(body, &res)
+	var results map[string]interface{}
+	err = json.Unmarshal(body, &results)
 	if err != nil {
 		log.Printf("Failed to unmarshal response, %v", err)
 		return email, picture, err
 	}
-	email = res["email"].(string)
-	picture = res["picture"].(string)
+	email = results["email"].(string)
+	picture = results["picture"].(string)
 
 	return email, picture, nil
 }
