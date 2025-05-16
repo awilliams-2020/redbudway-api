@@ -1,4 +1,4 @@
-FROM golang:1.19.5-alpine3.17
+FROM golang:1.24.3-alpine3.21
 
 ARG VIPS_VERSION="8.14.1"
 
