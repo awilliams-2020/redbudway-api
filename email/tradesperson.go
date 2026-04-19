@@ -38,9 +38,7 @@ func SendProviderWelcome(accountEmail string) error {
 	m.SetHeader("Subject", "Welcome provider")
 	m.SetBody("text/html", welcome)
 
-	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
-
-	return d.DialAndSend(m)
+	return sendMailMessage(m)
 }
 
 func SendTradespersonMessage(businessName, businessEmail, service, message string, stripeCustomer *stripe.Customer, images []string) ([]string, error) {
@@ -59,9 +57,7 @@ func SendTradespersonMessage(businessName, businessEmail, service, message strin
 		m.Attach(image)
 	}
 
-	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
-
-	return images, d.DialAndSend(m)
+	return images, sendMailMessage(m)
 }
 
 func SendTradespersonBooking(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice, formRowsCols string) error {
@@ -119,9 +115,7 @@ func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustom
 
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
-
-	return images, d.DialAndSend(m)
+	return images, sendMailMessage(m)
 }
 
 func SendTradespersonQuoteAccepted(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message string, quote *models.ServiceDetails) error {

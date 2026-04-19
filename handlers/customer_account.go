@@ -290,10 +290,6 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 	var formRowsCols string
 	if len(form) != 0 {
 		formRowsCols = internal.CreateForm(form)
-		if err != nil {
-			log.Printf("Failed to create form, %v", err)
-			return response
-		}
 	}
 
 	go emailHelper(tradesperson, stripePrice, stripeProduct, cuStripeID, timeAndPrice.String(), formRowsCols)
@@ -363,6 +359,7 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 	tradesperson, tpStripeID, tradespersonID, err := database.GetTradespersonAccountByPriceID(priceID)
 	if err != nil {
 		log.Printf("Failed to retrieve tradesperson from price id, %s", priceID)
+		return response
 	}
 
 	sellingFee, err := database.GetTradespersonSellingFee(tradespersonID)
@@ -459,10 +456,6 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 	var formRowsCols string
 	if len(form) != 0 {
 		formRowsCols = internal.CreateForm(form)
-		if err != nil {
-			log.Printf("Failed to create form, %v", err)
-			return response
-		}
 	}
 
 	go emailSubscriptionHelper(tradesperson, stripePrice, cuStripeID, timeAndPrice.String(), formRowsCols)

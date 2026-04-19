@@ -2,11 +2,48 @@ package email
 
 import (
 	_ "embed"
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/go-gomail/gomail"
 )
+
+// loadSMTPConfig reads outbound mail settings from the environment (same contract as production SMTP).
+func loadSMTPConfig() (host string, port int, user string, password string, err error) {
+	password = os.Getenv("SMTP_PASSWORD")
+	if password == "" {
+		return "", 0, "", "", fmt.Errorf("SMTP_PASSWORD is not set")
+	}
+	host = os.Getenv("SMTP_HOST")
+	if host == "" {
+		host = "mail.redbudway.com"
+	}
+	port = 587
+	if ps := os.Getenv("SMTP_PORT"); ps != "" {
+		p, convErr := strconv.Atoi(ps)
+		if convErr != nil {
+			return "", 0, "", "", fmt.Errorf("invalid SMTP_PORT: %w", convErr)
+		}
+		port = p
+	}
+	user = os.Getenv("SMTP_USER")
+	if user == "" {
+		user = "service@redbudway.com"
+	}
+	return host, port, user, password, nil
+}
+
+// sendMailMessage sends a fully built gomail message using SMTP_* env (attachments, custom From, etc.).
+func sendMailMessage(m *gomail.Message) error {
+	host, port, user, password, err := loadSMTPConfig()
+	if err != nil {
+		return err
+	}
+	d := gomail.NewDialer(host, port, user, password)
+	return d.DialAndSend(m)
+}
 
 //go:embed html/password.html
 var password string
@@ -17,16 +54,20 @@ var passwordUpdated string
 //go:embed html/email-updated.html
 var emailUpdated string
 
-func email(email, name, subject, body string) error {
+func email(toEmail, name, subject, body string) error {
+	host, port, user, password, err := loadSMTPConfig()
+	if err != nil {
+		return err
+	}
+
 	m := gomail.NewMessage()
-	m.SetAddressHeader("From", "service@redbudway.com", "Redbud Way")
-	m.SetAddressHeader("To", email, name)
+	m.SetAddressHeader("From", user, "Redbud Way")
+	m.SetAddressHeader("To", toEmail, name)
 	m.SetHeader("Subject", subject)
 
 	m.SetBody("text/html", body)
 
-	d := gomail.NewDialer("mail.redbudway.com", 587, "service@redbudway.com", "MerCedEsAmgGt22$")
-
+	d := gomail.NewDialer(host, port, user, password)
 	return d.DialAndSend(m)
 }
 
