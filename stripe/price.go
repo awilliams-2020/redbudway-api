@@ -3,8 +3,8 @@ package stripe
 import (
 	"redbudway-api/models"
 
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/price"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/price"
 )
 
 func CreatePrice(fixedPrice *models.ServiceDetails) (*stripe.Price, error) {

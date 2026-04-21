@@ -7,10 +7,10 @@ import (
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/account"
-	"github.com/stripe/stripe-go/v72/accountlink"
-	"github.com/stripe/stripe-go/v72/file"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/account"
+	"github.com/stripe/stripe-go/v82/accountlink"
+	"github.com/stripe/stripe-go/v82/file"
 )
 
 func CreateTradespersonStripeAccount(tradesperson operations.PostTradespersonBody) (*stripe.Account, error) {
@@ -22,7 +22,7 @@ func CreateTradespersonStripeAccount(tradesperson operations.PostTradespersonBod
 		Settings: &stripe.AccountSettingsParams{
 			Payouts: &stripe.AccountSettingsPayoutsParams{
 				DebitNegativeBalances: stripe.Bool(true),
-				Schedule: &stripe.PayoutScheduleParams{
+				Schedule: &stripe.AccountSettingsPayoutsScheduleParams{
 					DelayDays: stripe.Int64(7),
 				},
 			},
