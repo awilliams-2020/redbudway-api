@@ -50,4 +50,7 @@ Thumbs.db
 *.wmv
 
 #Golang
-go.sum
+# (go.sum is committed for reproducible builds)
+
+# Local planning / story docs (Markdown — not committed)
+docs/**/*.md
