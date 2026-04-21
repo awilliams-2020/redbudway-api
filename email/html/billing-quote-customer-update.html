@@ -5,7 +5,7 @@
 
   <meta charset="utf-8">
   <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>Quote</title>
+  <title>{PAGE_TITLE}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link href="https://fonts.googleapis.com/css?family=Rajdhani:400,600,700&display=swap" rel="stylesheet">
@@ -94,9 +94,8 @@
 <body style="background-color: #e9ecef;">
 
   <!-- start preheader -->
-  <div class="preheader"
-    style="display: none; max-width: 0; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
-    A quote is waiting for you
+  <div class="preheader" style="display: none; max-width: 0; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
+    {PREHEADER}
   </div>
   <!-- end preheader -->
 
@@ -142,8 +141,7 @@
           <tr>
             <td align="left" bgcolor="#ffffff"
               style="padding: 36px 24px 0; font-family: 'Rajdhani', sans-serif; border-top: 3px solid #d4dadf;">
-              <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">Quote
-                received</h1>
+              <h1 style="margin: 0; font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 48px;">{HERO_TITLE}</h1>
             </td>
           </tr>
         </table>
@@ -170,25 +168,18 @@
           <tr>
             <td align="left" bgcolor="#ffffff"
               style="padding: 24px; font-family: 'Rajdhani', sans-serif; font-size: 16px; line-height: 24px;">
-              <p style="margin: 0; color:black;">You have received a quote. If you have any questions concerning the
-                quote please reach out to the service provider.</p>
+              <p style="margin: 0; color:black;">Hi {CUSTOMER_NAME},</p>
               <br>
-              <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                <tr>
-                  <td align="center" bgcolor="#ffffff" style="padding: 12px;">
-                    <table border="0" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td align="center" bgcolor="#4682b4">
-                          <a href="{VIEW_QUOTE}" target="_blank"
-                            style="display: inline-block; padding: 16px 36px; font-family: 'Rajdhani', sans-serif; font-size: 16px; color: #ffffff; text-decoration: none; ">
-                            View Quote
-                          </a>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
+              {LEAD_PARAGRAPH}
+              <br>
+              {LINE_ITEMS_TABLE}
+              <br>
+              {PAY_BLOCK}
+              <br>
+              <p style="margin: 0; color:black;"><b>Description</b></p>
+              <p style="margin: 0; color:black;">{DESCRIPTION}</p>
+              <br>
+              {REPLY_HINT}
               <br>
             </td>
           </tr>
@@ -227,8 +218,7 @@
           <tr>
             <td align="center" bgcolor="#e9ecef"
               style="padding: 12px 24px; font-family: 'Rajdhani', sans-serif; font-size: 14px; line-height: 20px; color: #666;">
-              <p style="margin: 0;">You received this email because a quote request was made through Redbud Way. If you did
-                not request a quote feel free to contact us.</p>
+              <p style="margin: 0;">{FOOTER_PERMISSION}</p>
             </td>
           </tr>
           <!-- end permission -->

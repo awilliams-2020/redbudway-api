@@ -55,6 +55,11 @@ var passwordUpdated string
 var emailUpdated string
 
 func email(toEmail, name, subject, body string) error {
+	return emailWithOptionalReplyTo(toEmail, name, subject, body, "")
+}
+
+// emailWithOptionalReplyTo sends HTML mail; when replyTo is non-empty, sets the Reply-To header.
+func emailWithOptionalReplyTo(toEmail, name, subject, body, replyTo string) error {
 	host, port, user, password, err := loadSMTPConfig()
 	if err != nil {
 		return err
@@ -64,6 +69,9 @@ func email(toEmail, name, subject, body string) error {
 	m.SetAddressHeader("From", user, "Redbud Way")
 	m.SetAddressHeader("To", toEmail, name)
 	m.SetHeader("Subject", subject)
+	if strings.TrimSpace(replyTo) != "" {
+		m.SetHeader("Reply-To", replyTo)
+	}
 
 	m.SetBody("text/html", body)
 

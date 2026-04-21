@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/go-gomail/gomail"
-	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v82"
 )
 
 //go:embed html/tradesperson-booking.html
@@ -92,18 +92,10 @@ func SendTradespersonSubscriptionBooking(tradesperson models.Tradesperson, strip
 }
 
 func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message, quoteID string, quote *models.ServiceDetails, images []string) ([]string, error) {
-	m := gomail.NewMessage()
-	m.SetHeader("From", "service@redbudway.com")
-	m.SetAddressHeader("To", tradesperson.Email, tradesperson.Name)
-	m.SetHeader("Subject", "Quote Request")
-
 	images, err := internal.ProcessEmailImages(stripeCustomer.Email, quoteID, images)
 	if err != nil {
 		log.Printf("Failed to process email images, %s", err)
 		return images, err
-	}
-	for _, image := range images {
-		m.Attach(image)
 	}
 
 	body := tradespersonQuote
@@ -113,9 +105,7 @@ func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustom
 	body = strings.Replace(body, "{SERVICE_NAME}", *quote.Title, -1)
 	body = strings.Replace(body, "{CUSTOMER_INFO}", customerInfo, -1)
 
-	m.SetBody("text/html", body)
-
-	return images, sendMailMessage(m)
+	return images, SendProviderQuoteRequestResendOrSMTP(tradesperson.Email, tradesperson.Name, "Quote Request", body, images)
 }
 
 func SendTradespersonQuoteAccepted(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message string, quote *models.ServiceDetails) error {
