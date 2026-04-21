@@ -3,15 +3,24 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/stripe"
 	"strconv"
 
-	"github.com/stripe/stripe-go/v72/price"
+	"github.com/stripe/stripe-go/v82/price"
 )
+
+// ErrCatalogQuoteNotFound is returned when no catalog quote row matches the provider + slug.
+var ErrCatalogQuoteNotFound = errors.New("catalog quote not found")
+
+// ErrCatalogQuoteInUse is returned when tradesperson_quotes still reference this catalog template.
+var ErrCatalogQuoteInUse = errors.New("catalog quote has linked payment quote rows")
 
 const PAGE_SIZE = float64(9)
 
@@ -154,7 +163,7 @@ func GetFixedPriceJobs(fixedPriceID int64, tradespersonId string) (int64, error)
 	row := stmt.QueryRow(tradespersonId, fixedPriceID)
 	switch err = row.Scan(&count); err {
 	case sql.ErrNoRows:
-		log.Printf("Invoice with fixedPriceID %s has no invoices %s", fixedPriceID)
+		log.Printf("Invoice with fixedPriceID %d has no invoices", fixedPriceID)
 	case nil:
 		//
 	default:
@@ -175,7 +184,7 @@ func GetQuoteJobs(quoteID int64, tradespersonId string) (int64, error) {
 	row := stmt.QueryRow(tradespersonId, quoteID)
 	switch err = row.Scan(&count); err {
 	case sql.ErrNoRows:
-		log.Printf("Quote with quote ID %s has no quotes %s", quoteID)
+		log.Printf("Quote with quote ID %d has no quotes", quoteID)
 	case nil:
 		//
 	default:
@@ -871,13 +880,13 @@ func CreateQuote(tradespersonID string, quote *models.ServiceDetails) (bool, err
 
 	quoteID := "quote_" + internal.GenerateQuoteSuffix()
 
-	stmt, err := db.Prepare("INSERT INTO quotes (quote, tradespersonId, category, subcategory, title, description, selectPlaces, archived) VALUES (?, ?, ?, ?, ?, ?, ?, false)")
+	stmt, err := db.Prepare("INSERT INTO quotes (quote, tradespersonId, category, subcategory, title, description, selectPlaces, archived, depositPct) VALUES (?, ?, ?, ?, ?, ?, ?, false, ?)")
 	if err != nil {
 		return false, err
 	}
 	defer stmt.Close()
 
-	results, err := stmt.Exec(quoteID, tradespersonID, quote.Category, quote.SubCategory, quote.Title, quote.Description, quote.SelectPlaces)
+	results, err := stmt.Exec(quoteID, tradespersonID, quote.Category, quote.SubCategory, quote.Title, quote.Description, quote.SelectPlaces, quote.DepositPct)
 	if err != nil {
 		return false, err
 	}
@@ -1168,7 +1177,7 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 
 	quotes := []*models.Service{}
 
-	stmt, err := db.Prepare("SELECT id, quote, title, description, archived FROM quotes WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
+	stmt, err := db.Prepare("SELECT id, quote, title, description, archived, depositPct FROM quotes WHERE tradespersonId=? ORDER BY id DESC LIMIT ?, ?")
 	if err != nil {
 		log.Printf("Failed to create select statement %s", err)
 		return quotes
@@ -1186,7 +1195,7 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 	var description string
 	for rows.Next() {
 		quote := models.Service{}
-		if err := rows.Scan(&ID, &quote.QuoteID, &quote.Title, &description, &quote.Archived); err != nil {
+		if err := rows.Scan(&ID, &quote.QuoteID, &quote.Title, &description, &quote.Archived, &quote.DepositPct); err != nil {
 			log.Printf("Failed to scan row %s\n", err)
 			return quotes
 		}
@@ -1205,4 +1214,57 @@ func GetTradespersonQuotes(tradespersonID string, page int64) []*models.Service 
 		quotes = append(quotes, &quote)
 	}
 	return quotes
+}
+
+// DeleteTradespersonCatalogQuote removes a catalog quote template (quotes row) for the provider.
+// It refuses to delete if any tradesperson_quotes rows reference this template (Stripe quote requests).
+func DeleteTradespersonCatalogQuote(tradespersonID, catalogQuoteSlug string) error {
+	var id int64
+	err := db.QueryRow("SELECT id FROM quotes WHERE tradespersonId = ? AND quote = ?", tradespersonID, catalogQuoteSlug).Scan(&id)
+	if err == sql.ErrNoRows {
+		return ErrCatalogQuoteNotFound
+	}
+	if err != nil {
+		return err
+	}
+
+	var n int
+	err = db.QueryRow(
+		"SELECT COUNT(*) FROM tradesperson_quotes WHERE tradespersonId = ? AND quoteId = ?",
+		tradespersonID, id,
+	).Scan(&n)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		return ErrCatalogQuoteInUse
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	res, err := tx.Exec("DELETE FROM quotes WHERE id = ? AND tradespersonId = ?", id, tradespersonID)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected != 1 {
+		return ErrCatalogQuoteNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	imgDir := filepath.Join("images", tradespersonID, catalogQuoteSlug)
+	if err := os.RemoveAll(imgDir); err != nil {
+		log.Printf("DeleteTradespersonCatalogQuote: remove images %s: %v", imgDir, err)
+	}
+
+	return nil
 }

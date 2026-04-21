@@ -9,7 +9,7 @@ import (
 	"redbudway-api/restapi/operations"
 	"strconv"
 
-	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v82"
 )
 
 func CreateAmountOffCoupon(tradespersonId string, stripeCoupon *stripe.Coupon, coupon *models.Coupon) error {
@@ -278,7 +278,7 @@ func GetCouponsWithPromos(tradespersonID string) ([]*models.Coupon, error) {
 		}
 		coupon.Promos = promos
 		if err := json.Unmarshal([]byte(services), &coupon.Services); err != nil {
-			log.Printf("Failed to unmarshal services into promo", err)
+			log.Printf("Failed to unmarshal services into promo: %v", err)
 		}
 		coupons = append(coupons, coupon)
 	}

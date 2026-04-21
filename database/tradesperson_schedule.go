@@ -6,11 +6,11 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/stripe/stripe-go/v72/customer"
-	"github.com/stripe/stripe-go/v72/invoice"
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
-	"github.com/stripe/stripe-go/v72/sub"
+	"github.com/stripe/stripe-go/v82/customer"
+	"github.com/stripe/stripe-go/v82/invoice"
+	"github.com/stripe/stripe-go/v82/price"
+	"github.com/stripe/stripe-go/v82/product"
+	sub "github.com/stripe/stripe-go/v82/subscription"
 
 	"redbudway-api/internal"
 	"redbudway-api/models"
@@ -75,7 +75,7 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*
 		status = string(stripeInvoice.Status)
 		quantity = stripeInvoice.Lines.Data[0].Quantity
 		stripeID = stripeInvoice.Customer.ID
-		_customer.Name = *stripeInvoice.CustomerName
+		_customer.Name = stripeInvoice.CustomerName
 		_customer.Address = &models.Address{
 			City:    stripeInvoice.CustomerAddress.City,
 			LineOne: stripeInvoice.CustomerAddress.Line1,
@@ -84,7 +84,7 @@ func getCustomer(subscription bool, subscriptionID, invoiceID sql.NullString) (*
 			State:   stripeInvoice.CustomerAddress.State,
 		}
 		_customer.Email = stripeInvoice.CustomerEmail
-		_customer.Phone = *stripeInvoice.CustomerPhone
+		_customer.Phone = stripeInvoice.CustomerPhone
 	}
 	return _customer, quantity, status, stripeID
 }

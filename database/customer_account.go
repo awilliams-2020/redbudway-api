@@ -6,12 +6,14 @@ import (
 	"redbudway-api/email"
 	"redbudway-api/internal"
 	"redbudway-api/restapi/operations"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/coupon"
-	"github.com/stripe/stripe-go/v72/promotioncode"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/coupon"
+	"github.com/stripe/stripe-go/v82/customer"
+	"github.com/stripe/stripe-go/v82/promotioncode"
 )
 
 func CreateCustomerAccount(_customer operations.PostCustomerBody, stripeAccount *stripe.Customer) (uuid.UUID, error) {
@@ -53,6 +55,80 @@ func CreateCustomerAccount(_customer operations.PostCustomerBody, stripeAccount 
 	}
 
 	return customerID, nil
+}
+
+// GetCustomerAccountByEmail returns internal customerId and Stripe customer id when a row exists.
+func GetCustomerAccountByEmail(email string) (customerID string, stripeID string, err error) {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return "", "", sql.ErrNoRows
+	}
+
+	stmt, err := db.Prepare("SELECT customerId, stripeId FROM customer_account WHERE email=?")
+	if err != nil {
+		return "", "", err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(email)
+	switch err = row.Scan(&customerID, &stripeID); err {
+	case sql.ErrNoRows:
+		return "", "", err
+	case nil:
+		return customerID, stripeID, nil
+	default:
+		log.Printf("GetCustomerAccountByEmail: %v", err)
+		return "", "", err
+	}
+}
+
+// CreateGuestCustomerAccount creates a Stripe customer and a local customer_account row with a random password hash (no verification email).
+func CreateGuestCustomerAccount(email, name string) (customerID string, stripeID string, err error) {
+	email = strings.TrimSpace(email)
+	if email == "" {
+		return "", "", sql.ErrNoRows
+	}
+
+	cuID, err := internal.GenerateUUID()
+	if err != nil {
+		return "", "", err
+	}
+	customerID = cuID.String()
+
+	params := &stripe.CustomerParams{
+		Email: stripe.String(email),
+	}
+	name = strings.TrimSpace(name)
+	if name != "" {
+		params.Name = stripe.String(name)
+	}
+
+	stripeCustomer, err := customer.New(params)
+	if err != nil {
+		return "", "", err
+	}
+
+	randPw, err := internal.RandomPassword()
+	if err != nil {
+		return "", "", err
+	}
+	passwordHash, err := internal.HashPassword(randPw)
+	if err != nil {
+		return "", "", err
+	}
+
+	stmt, err := db.Prepare("INSERT INTO customer_account (stripeId, customerId, email, password) VALUES (?, ?, ?, ?)")
+	if err != nil {
+		return "", "", err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(stripeCustomer.ID, customerID, email, passwordHash)
+	if err != nil {
+		return "", "", err
+	}
+
+	return customerID, stripeCustomer.ID, nil
 }
 
 func GetCustomerStripeID(customerID string) (string, error) {

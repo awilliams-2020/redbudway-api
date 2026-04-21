@@ -6,7 +6,7 @@ import (
 
 	"redbudway-api/restapi/operations"
 
-	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v82/customer"
 )
 
 func GetQuoteReviews(quoteID string, page int64) ([]*operations.GetQuoteQuoteIDReviewsOKBodyReviewsItems0, error) {
@@ -133,7 +133,7 @@ func CreateQuoteReview(customerID, message string, ID, rating int64) (bool, erro
 	}
 	defer stmt.Close()
 
-	log.Printf("ID: %s", ID)
+	log.Printf("ID: %d", ID)
 	results, err := stmt.Exec(ID, customerID, rating, message)
 	if err != nil {
 		return false, err

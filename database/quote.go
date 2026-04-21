@@ -12,7 +12,8 @@ func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *models.Bus
 	quote := &models.ServiceDetails{}
 	business := &models.Business{}
 
-	stmt, err := db.Prepare("SELECT tp.name, tp.tradespersonId, ts.vanityURL, q.id, q.title, q.description, q.category, q.subcategory, q.selectPlaces, b.icon FROM quotes q INNER JOIN tradesperson_profile tp ON tp.tradespersonId=q.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId INNER JOIN tradesperson_branding b ON b.tradespersonId=q.tradespersonId WHERE q.archived=false AND q.quote=?")
+	// LEFT JOIN branding: a row may be missing even when the quote exists (dashboard lists quotes without requiring branding).
+	stmt, err := db.Prepare("SELECT tp.name, tp.tradespersonId, ts.vanityURL, q.id, q.title, q.description, q.category, q.subcategory, q.selectPlaces, b.icon FROM quotes q INNER JOIN tradesperson_profile tp ON tp.tradespersonId=q.tradespersonId INNER JOIN tradesperson_settings ts ON ts.tradespersonId=q.tradespersonId LEFT JOIN tradesperson_branding b ON b.tradespersonId=q.tradespersonId WHERE q.archived=false AND q.quote=?")
 	if err != nil {
 		return quote, business, err
 	}

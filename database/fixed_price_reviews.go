@@ -5,7 +5,7 @@ import (
 	"log"
 	"redbudway-api/restapi/operations"
 
-	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v82/customer"
 )
 
 func GetFixedPriceReviews(priceID string, page int64) ([]*operations.GetFixedPricePriceIDReviewsOKBodyReviewsItems0, error) {

@@ -8,7 +8,7 @@ import (
 	"redbudway-api/restapi/operations"
 
 	"github.com/gofrs/uuid"
-	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v82"
 )
 
 func GetTradespersonSellingFee(tradespersonID string) (float64, error) {
@@ -148,7 +148,7 @@ func GetTradespersonProfile(tradespersonID string) (models.Tradesperson, error) 
 func UpdateTradespersonProfileImage(tradespersonID, image string) error {
 	imageURL, err := internal.SaveProfileImage(tradespersonID, image)
 	if err != nil {
-		log.Println("Failed to save profile image, %s", err)
+		log.Printf("Failed to save profile image, %v", err)
 	}
 
 	stmt, err := db.Prepare("UPDATE tradesperson_profile SET image =? WHERE tradespersonId=?")
