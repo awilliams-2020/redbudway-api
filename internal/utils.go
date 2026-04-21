@@ -1,9 +1,13 @@
 package internal
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	"image/jpeg"
+	_ "image/png" // register PNG decode for image.Decode
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -14,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/h2non/bimg"
+	_ "golang.org/x/image/webp" // register WebP decode for image.Decode
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -72,7 +76,7 @@ func SaveProfileImage(tradespersonID, image string) (string, error) {
 	fileName := fmt.Sprintf("%s/%s%s", path, tradespersonID, format)
 	f, err := os.Create(fileName)
 	if err != nil {
-		log.Println("Failed to create file with name %s", fileName)
+		log.Printf("Failed to create file with name %s", fileName)
 		return url, err
 	}
 	defer f.Close()
@@ -118,7 +122,7 @@ func SaveImage(tradespersonID, image, imageType string) (string, error) {
 	fileName := fmt.Sprintf("%s/%s%s", path, imageType, format)
 	f, err := os.Create(fileName)
 	if err != nil {
-		log.Println("Failed to create file with name %s", fileName)
+		log.Printf("Failed to create file with name %s", fileName)
 		return url, err
 	}
 	defer f.Close()
@@ -167,28 +171,30 @@ func removeImages(servicePath string, images []string) error {
 }
 
 func saveImage(path, imageBytes string, index int) (string, error) {
-	fileName := fmt.Sprintf("%s/image_%d%s", path, index, ".webp")
+	fileName := fmt.Sprintf("%s/image_%d%s", path, index, ".jpg")
 
 	data := strings.Split(imageBytes, ",")
+	if len(data) < 2 {
+		return fileName, fmt.Errorf("invalid data URL")
+	}
 
 	dec, err := base64.StdEncoding.DecodeString(data[1])
 	if err != nil {
-		return "", err
+		return fileName, err
 	}
 
-	converted, err := bimg.NewImage(dec).Convert(bimg.WEBP)
+	img, _, err := image.Decode(bytes.NewReader(dec))
 	if err != nil {
 		return fileName, err
 	}
 
-	processed, err := bimg.NewImage(converted).Process(bimg.Options{Quality: 70})
-	if err != nil {
+	var buf bytes.Buffer
+	if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 70}); err != nil {
 		return fileName, err
 	}
 
-	writeError := bimg.Write(fileName, processed)
-	if writeError != nil {
-		return fileName, writeError
+	if err := os.WriteFile(fileName, buf.Bytes(), 0644); err != nil {
+		return fileName, err
 	}
 
 	return fileName, nil
@@ -269,9 +275,12 @@ func ProcessImages(tradespersonID, serviceID string, service *models.ServiceDeta
 func GetImage(ID, tradespersonID string) (string, error) {
 	url := ""
 
-	fileName := fmt.Sprintf("%s/%s/%s/%s", "images", tradespersonID, ID, "image_0.webp")
-	if _, err := os.Stat(fileName); !os.IsNotExist(err) {
-		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/" + fileName
+	for _, base := range []string{"image_0.jpg", "image_0.webp"} {
+		fileName := fmt.Sprintf("%s/%s/%s/%s", "images", tradespersonID, ID, base)
+		if _, err := os.Stat(fileName); !os.IsNotExist(err) {
+			url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/" + fileName
+			break
+		}
 	}
 	if url == "" {
 		url = "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/assets/images/placeholder.svg"

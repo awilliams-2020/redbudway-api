@@ -7,11 +7,27 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 )
+
+// recaptchaSiteVerifyURL is the Google siteverify endpoint; tests may replace it with httptest.
+var recaptchaSiteVerifyURL = "https://www.google.com/recaptcha/api/siteverify"
+
+func recaptchaSecret() (string, error) {
+	if s := os.Getenv("RECAPTCHA_SECRET"); s != "" {
+		return s, nil
+	}
+	return "", fmt.Errorf("RECAPTCHA_SECRET is not set (must pair with reCaptchaKey in Angular environments)")
+}
 
 func VerifyReCaptcha(token string) (bool, error) {
 	valid := false
-	URL := fmt.Sprintf("https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s", "6Lfi4wopAAAAAEYrv06awJFtSL2NP1vxxCuJYKjC", token)
+	secret, err := recaptchaSecret()
+	if err != nil {
+		log.Printf("%v", err)
+		return valid, err
+	}
+	URL := fmt.Sprintf("%s?secret=%s&response=%s", recaptchaSiteVerifyURL, secret, token)
 	resp, err := http.Post(URL, "application/json", bytes.NewBuffer([]byte{}))
 	if err != nil {
 		log.Printf("Failed to recaptcha token, %v", err)
