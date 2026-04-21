@@ -23,6 +23,9 @@ import (
 	"github.com/stripe/stripe-go/v82/quote"
 )
 
+// Metadata on guest Checkout Sessions when a partial deposit must be linked to the invoice after payment.
+const guestCheckoutMetadataInvoiceAttach = "guest_invoice_attach"
+
 // Guest checkout: payment is tied to a Stripe Invoice created after the quote is accepted (not the quote itself).
 type postCheckoutGuestSessionBody struct {
 	TradespersonID  string `json:"tradespersonId"`
@@ -501,6 +504,7 @@ func finalizeInvoiceIfDraft(inv *stripe.Invoice) (*stripe.Invoice, error) {
 		Params: stripe.Params{
 			Expand: []*string{
 				stripe.String("quote"),
+				stripe.String("customer"),
 			},
 		},
 	})
@@ -547,6 +551,7 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		Params: stripe.Params{
 			Expand: []*string{
 				stripe.String("quote"),
+				stripe.String("customer"),
 			},
 		},
 	})
@@ -657,14 +662,33 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	amountCents := inv.AmountRemaining
-	if amountCents < 50 {
+	var depositPct int64
+	if err := database.GetConnection().QueryRow(
+		`SELECT q.depositPct FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?`,
+		body.TradespersonID, quoteStripeID,
+	).Scan(&depositPct); err != nil {
+		depositPct = -1
+	}
+
+	dpForCalc := depositPct
+	if dpForCalc < 0 || dpForCalc > 100 {
+		dpForCalc = 0
+	}
+	amountCents, partialDeposit, okAmount := guestDepositChargeCents(inv, dpForCalc)
+	if !okAmount {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(map[string]string{"error": "amount due is too small"})
 		return
 	}
 
-	if u := strings.TrimSpace(inv.HostedInvoiceURL); u != "" {
+	if partialDeposit && stripeInvoiceCustomerID(inv) == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": "deposit requires a Stripe customer on the invoice; use the full hosted invoice link or contact the provider."})
+		return
+	}
+
+	// Hosted invoice page cannot collect a custom partial amount — use Checkout for deposit slices.
+	if u := strings.TrimSpace(inv.HostedInvoiceURL); u != "" && !partialDeposit {
 		ensureQuoteInvoiceDepositFooter(body.TradespersonID, quoteStripeID, sq)
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(postCheckoutGuestSessionResponse{ID: inv.ID, URL: u})
@@ -681,12 +705,9 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		desc = "Invoice payment"
 	}
 
-	var depositPct int64
-	if err := database.GetConnection().QueryRow(
-		`SELECT q.depositPct FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?`,
-		body.TradespersonID, quoteStripeID,
-	).Scan(&depositPct); err != nil {
-		depositPct = -1
+	displayDepositPct := depositPct
+	if displayDepositPct < 0 || displayDepositPct > 100 {
+		displayDepositPct = 0
 	}
 
 	ensureQuoteInvoiceDepositFooter(body.TradespersonID, quoteStripeID, sq)
@@ -715,14 +736,14 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	productData := &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-		Name: stripe.String(checkoutLineItemDisplayName(desc, depositPct)),
+		Name: stripe.String(checkoutLineItemDisplayName(desc, displayDepositPct)),
 	}
-	if depLine := checkoutLineItemDepositDescription(depositPct); depLine != "" {
+	if depLine := checkoutLineItemDepositDescription(displayDepositPct); depLine != "" {
 		productData.Description = stripe.String(depLine)
 	}
 
 	piDesc := desc
-	if depLine := checkoutLineItemDepositDescription(depositPct); depLine != "" {
+	if depLine := checkoutLineItemDepositDescription(displayDepositPct); depLine != "" {
 		piDesc = fmt.Sprintf("%s — %s", desc, depLine)
 	}
 	piDesc = truncateStripeLineItemName(piDesc, 1000)
@@ -760,6 +781,11 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 	params.AddMetadata("stripe_invoice_id", inv.ID)
 	params.AddMetadata("stripe_quote_id", quoteStripeID)
 	params.AddMetadata("guest_pay", "true")
+	if partialDeposit {
+		params.AddMetadata(guestCheckoutMetadataInvoiceAttach, "true")
+		params.Customer = stripe.String(stripeInvoiceCustomerID(inv))
+		params.PaymentIntentData.AddMetadata(guestCheckoutMetadataInvoiceAttach, "true")
+	}
 
 	sess, err := session.New(params)
 	if err != nil {

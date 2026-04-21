@@ -329,6 +329,9 @@ func extraPublicRoutes(inner http.Handler) http.Handler {
 		case r.Method == http.MethodPost && p == "/v1/checkout/guest-session":
 			handlers.PostCheckoutGuestSessionHTTP(w, r)
 			return
+		case r.Method == http.MethodPost && p == "/v1/checkout/guest-invoice-complete":
+			handlers.PostCheckoutGuestInvoiceCompleteHTTP(w, r)
+			return
 		case r.Method == http.MethodPost && p == "/v1/checkout/guest-accept-quote":
 			handlers.PostCheckoutGuestAcceptQuoteHTTP(w, r)
 			return
