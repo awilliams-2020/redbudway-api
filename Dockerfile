@@ -1,17 +1,4 @@
-FROM golang:1.24.3-alpine3.21
-
-ARG VIPS_VERSION="8.14.1"
-
-RUN wget https://github.com/libvips/libvips/releases/download/v${VIPS_VERSION}/vips-${VIPS_VERSION}.tar.xz
-RUN apk update && apk add meson build-base pkgconfig glib-dev gobject-introspection-dev libxml2-dev expat-dev jpeg-dev libwebp-dev libpng-dev
-
-RUN tar -xf vips-${VIPS_VERSION}.tar.xz
-WORKDIR /go/vips-${VIPS_VERSION}
-RUN meson build
-WORKDIR /go/vips-${VIPS_VERSION}/build
-RUN meson compile && \
-    meson test && \
-    meson install
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /usr/src/app
 
@@ -20,7 +7,17 @@ RUN go mod download && go mod verify
 
 COPY . .
 
-RUN go build -v -o /usr/local/bin/app ./cmd/redbud-way-api-server/main.go
+ENV CGO_ENABLED=0
+RUN go build -trimpath -ldflags="-s -w" -o /app ./cmd/redbud-way-api-server/main.go
+
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tzdata
+
+WORKDIR /usr/src/app
+
+COPY --from=builder /app /usr/local/bin/app
+
 EXPOSE 80
 
-CMD ["app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["/usr/local/bin/app", "--host", "0.0.0.0", "--port", "80"]
