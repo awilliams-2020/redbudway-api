@@ -34,10 +34,10 @@ func NewPutTradespersonTradespersonIDGoogleToken(ctx *middleware.Context, handle
 	return &PutTradespersonTradespersonIDGoogleToken{Context: ctx, Handler: handler}
 }
 
-/* PutTradespersonTradespersonIDGoogleToken swagger:route PUT /tradesperson/{tradespersonId}/google-token putTradespersonTradespersonIdGoogleToken
+/*
+	PutTradespersonTradespersonIDGoogleToken swagger:route PUT /tradesperson/{tradespersonId}/google-token putTradespersonTradespersonIdGoogleToken
 
 PutTradespersonTradespersonIDGoogleToken put tradesperson tradesperson ID google token API
-
 */
 type PutTradespersonTradespersonIDGoogleToken struct {
 	Context *middleware.Context

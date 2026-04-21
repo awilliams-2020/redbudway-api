@@ -35,10 +35,10 @@ func NewGetTradespersonTradespersonIDBillingInvoiceInvoiceID(ctx *middleware.Con
 	return &GetTradespersonTradespersonIDBillingInvoiceInvoiceID{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDBillingInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/invoice/{invoiceId} getTradespersonTradespersonIdBillingInvoiceInvoiceId
+/*
+	GetTradespersonTradespersonIDBillingInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/invoice/{invoiceId} getTradespersonTradespersonIdBillingInvoiceInvoiceId
 
 GetTradespersonTradespersonIDBillingInvoiceInvoiceID get tradesperson tradesperson ID billing invoice invoice ID API
-
 */
 type GetTradespersonTradespersonIDBillingInvoiceInvoiceID struct {
 	Context *middleware.Context
@@ -220,6 +220,11 @@ func (o *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody) ContextVali
 func (o *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Customer != nil {
+
+		if swag.IsZero(o.Customer) { // not required
+			return nil
+		}
+
 		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingInvoiceInvoiceIdOK" + "." + "customer")
@@ -236,6 +241,11 @@ func (o *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody) contextVali
 func (o *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody) contextValidateService(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Service != nil {
+
+		if swag.IsZero(o.Service) { // not required
+			return nil
+		}
+
 		if err := o.Service.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingInvoiceInvoiceIdOK" + "." + "service")
@@ -252,6 +262,11 @@ func (o *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody) contextVali
 func (o *GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBody) contextValidateTimeSlot(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.TimeSlot != nil {
+
+		if swag.IsZero(o.TimeSlot) { // not required
+			return nil
+		}
+
 		if err := o.TimeSlot.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingInvoiceInvoiceIdOK" + "." + "timeSlot")

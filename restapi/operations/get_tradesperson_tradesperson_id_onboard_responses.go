@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDOnboardOKCode is the HTTP code returned for type GetTradespersonTradespersonIDOnboardOK
 const GetTradespersonTradespersonIDOnboardOKCode int = 200
 
-/*GetTradespersonTradespersonIDOnboardOK Stripe onboarding URL
+/*
+GetTradespersonTradespersonIDOnboardOK Stripe onboarding URL
 
 swagger:response getTradespersonTradespersonIdOnboardOK
 */

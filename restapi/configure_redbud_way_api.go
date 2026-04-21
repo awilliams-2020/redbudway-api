@@ -4,12 +4,14 @@ package restapi
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
-	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v82"
 
 	"redbudway-api/database"
 	"redbudway-api/handlers"
@@ -17,7 +19,7 @@ import (
 	"redbudway-api/restapi/operations"
 )
 
-//go:generate swagger generate server --target ../../redbudway-api --name RedbudWayAPI --spec ../swagger.yaml --principal interface{}
+//go:generate swagger generate server --target .. --name RedbudWayAPI --spec ../swagger.yaml --principal interface{}
 
 func configureFlags(api *operations.RedbudWayAPIAPI) {
 	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
@@ -258,7 +260,12 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler)
 
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler)
+
 	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler)
+
+	api.PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler = operations.PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandlerFunc(handlers.PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler)
+	api.GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler = operations.GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandlerFunc(handlers.GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler)
 
 	api.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler = operations.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandlerFunc(handlers.PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDRefundHandler)
 
@@ -298,6 +305,8 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.PutTradespersonTradespersonIDQuoteQuoteIDHandler = operations.PutTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(handlers.PutTradespersonTradespersonIDQuoteQuoteIDHandler)
 
+	api.DeleteTradespersonTradespersonIDQuoteQuoteIDHandler = operations.DeleteTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(handlers.DeleteTradespersonTradespersonIDQuoteQuoteIDHandler)
+
 	api.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler = operations.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandlerFunc(handlers.PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler)
 
 	api.PutTradespersonTradespersonIDPromoPromoIDHandler = operations.PutTradespersonTradespersonIDPromoPromoIDHandlerFunc(handlers.PutTradespersonTradespersonIDPromoPromoIDHandler)
@@ -308,7 +317,41 @@ func configureAPI(api *operations.RedbudWayAPIAPI) http.Handler {
 
 	api.ServerShutdown = func() {}
 
-	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+	inner := setupGlobalMiddleware(api.Serve(setupMiddlewares))
+	return extraPublicRoutes(inner)
+}
+
+// extraPublicRoutes registers a few unauthenticated POST routes not present in swagger (or overridden).
+func extraPublicRoutes(inner http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := strings.TrimSuffix(r.URL.Path, "/")
+		switch {
+		case r.Method == http.MethodPost && p == "/v1/checkout/guest-session":
+			handlers.PostCheckoutGuestSessionHTTP(w, r)
+			return
+		case r.Method == http.MethodPost && p == "/v1/checkout/guest-accept-quote":
+			handlers.PostCheckoutGuestAcceptQuoteHTTP(w, r)
+			return
+		case r.Method == http.MethodPost && p == "/v1/tradesperson/google-signup":
+			handlers.PostTradespersonGoogleSignupHTTP(w, r)
+			return
+		case r.Method == http.MethodPost && p == "/v1/tradesperson/google-login":
+			handlers.PostTradespersonGoogleLoginHTTP(w, r)
+			return
+		case r.Method == http.MethodPost && strings.HasPrefix(p, "/v1/quote/") && strings.HasSuffix(p, "/request"):
+			catalogQuoteID := strings.TrimSuffix(strings.TrimPrefix(p, "/v1/quote/"), "/request")
+			if catalogQuoteID == "" || strings.Contains(catalogQuoteID, "/") {
+				w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				w.WriteHeader(http.StatusBadRequest)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "invalid quote path"})
+				return
+			}
+			handlers.PostPublicQuoteRequestHTTP(w, r, catalogQuoteID)
+			return
+		default:
+			inner.ServeHTTP(w, r)
+		}
+	})
 }
 
 // The TLS configuration before HTTPS server starts.

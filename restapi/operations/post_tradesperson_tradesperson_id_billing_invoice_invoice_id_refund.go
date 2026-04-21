@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund(ctx *middlew
 	return &PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund swagger:route POST /tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/refund postTradespersonTradespersonIdBillingInvoiceInvoiceIdRefund
+/*
+	PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund swagger:route POST /tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/refund postTradespersonTradespersonIdBillingInvoiceInvoiceIdRefund
 
 PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund post tradesperson tradesperson ID billing invoice invoice ID refund API
-
 */
 type PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefund struct {
 	Context *middleware.Context

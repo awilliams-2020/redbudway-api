@@ -32,10 +32,10 @@ func NewDeleteTradespersonTradespersonIDGoogleToken(ctx *middleware.Context, han
 	return &DeleteTradespersonTradespersonIDGoogleToken{Context: ctx, Handler: handler}
 }
 
-/* DeleteTradespersonTradespersonIDGoogleToken swagger:route DELETE /tradesperson/{tradespersonId}/google-token deleteTradespersonTradespersonIdGoogleToken
+/*
+	DeleteTradespersonTradespersonIDGoogleToken swagger:route DELETE /tradesperson/{tradespersonId}/google-token deleteTradespersonTradespersonIdGoogleToken
 
 DeleteTradespersonTradespersonIDGoogleToken delete tradesperson tradesperson ID google token API
-
 */
 type DeleteTradespersonTradespersonIDGoogleToken struct {
 	Context *middleware.Context

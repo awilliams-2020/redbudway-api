@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDCoupon(ctx *middleware.Context, handler Po
 	return &PostTradespersonTradespersonIDCoupon{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDCoupon swagger:route POST /tradesperson/{tradespersonId}/coupon postTradespersonTradespersonIdCoupon
+/*
+	PostTradespersonTradespersonIDCoupon swagger:route POST /tradesperson/{tradespersonId}/coupon postTradespersonTradespersonIdCoupon
 
 PostTradespersonTradespersonIDCoupon post tradesperson tradesperson ID coupon API
-
 */
 type PostTradespersonTradespersonIDCoupon struct {
 	Context *middleware.Context

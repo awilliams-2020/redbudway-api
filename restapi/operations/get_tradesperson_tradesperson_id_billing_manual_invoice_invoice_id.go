@@ -36,10 +36,10 @@ func NewGetTradespersonTradespersonIDBillingManualInvoiceInvoiceID(ctx *middlewa
 	return &GetTradespersonTradespersonIDBillingManualInvoiceInvoiceID{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDBillingManualInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId} getTradespersonTradespersonIdBillingManualInvoiceInvoiceId
+/*
+	GetTradespersonTradespersonIDBillingManualInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/manual-invoice/{invoiceId} getTradespersonTradespersonIdBillingManualInvoiceInvoiceId
 
 GetTradespersonTradespersonIDBillingManualInvoiceInvoiceID get tradesperson tradesperson ID billing manual invoice invoice ID API
-
 */
 type GetTradespersonTradespersonIDBillingManualInvoiceInvoiceID struct {
 	Context *middleware.Context
@@ -203,6 +203,11 @@ func (o *GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOKBody) conte
 	for i := 0; i < len(o.Cost); i++ {
 
 		if o.Cost[i] != nil {
+
+			if swag.IsZero(o.Cost[i]) { // not required
+				return nil
+			}
+
 			if err := o.Cost[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getTradespersonTradespersonIdBillingManualInvoiceInvoiceIdOK" + "." + "cost" + "." + strconv.Itoa(i))
@@ -221,6 +226,11 @@ func (o *GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOKBody) conte
 func (o *GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOKBody) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Customer != nil {
+
+		if swag.IsZero(o.Customer) { // not required
+			return nil
+		}
+
 		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingManualInvoiceInvoiceIdOK" + "." + "customer")

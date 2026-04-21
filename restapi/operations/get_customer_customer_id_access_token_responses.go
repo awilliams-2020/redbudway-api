@@ -14,7 +14,8 @@ import (
 // GetCustomerCustomerIDAccessTokenOKCode is the HTTP code returned for type GetCustomerCustomerIDAccessTokenOK
 const GetCustomerCustomerIDAccessTokenOKCode int = 200
 
-/*GetCustomerCustomerIDAccessTokenOK A valid customer accessToken
+/*
+GetCustomerCustomerIDAccessTokenOK A valid customer accessToken
 
 swagger:response getCustomerCustomerIdAccessTokenOK
 */

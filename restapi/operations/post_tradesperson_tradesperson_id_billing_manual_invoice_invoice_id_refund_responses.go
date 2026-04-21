@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundOKCode is the HTTP code returned for type PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundOK
 const PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundOKCode int = 200
 
-/*PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundOK If manual invoice refunded
+/*
+PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundOK If manual invoice refunded
 
 swagger:response postTradespersonTradespersonIdBillingManualInvoiceInvoiceIdRefundOK
 */

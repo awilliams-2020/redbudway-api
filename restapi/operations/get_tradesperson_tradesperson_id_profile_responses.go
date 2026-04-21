@@ -16,7 +16,8 @@ import (
 // GetTradespersonTradespersonIDProfileOKCode is the HTTP code returned for type GetTradespersonTradespersonIDProfileOK
 const GetTradespersonTradespersonIDProfileOKCode int = 200
 
-/*GetTradespersonTradespersonIDProfileOK A tradesperson
+/*
+GetTradespersonTradespersonIDProfileOK A tradesperson
 
 swagger:response getTradespersonTradespersonIdProfileOK
 */

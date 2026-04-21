@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeOKCode is the HTTP code returned for type PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeOK
 const PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeOKCode int = 200
 
-/*PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeOK If quote was sent
+/*
+PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeOK If quote was sent
 
 swagger:response postTradespersonTradespersonIdBillingQuoteQuoteIdFinalizeOK
 */

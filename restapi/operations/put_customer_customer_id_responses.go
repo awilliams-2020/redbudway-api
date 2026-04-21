@@ -14,7 +14,8 @@ import (
 // PutCustomerCustomerIDOKCode is the HTTP code returned for type PutCustomerCustomerIDOK
 const PutCustomerCustomerIDOKCode int = 200
 
-/*PutCustomerCustomerIDOK Updated customer account
+/*
+PutCustomerCustomerIDOK Updated customer account
 
 swagger:response putCustomerCustomerIdOK
 */

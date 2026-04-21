@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDQuoteCreatedCode is the HTTP code returned for type PostTradespersonTradespersonIDQuoteCreated
 const PostTradespersonTradespersonIDQuoteCreatedCode int = 201
 
-/*PostTradespersonTradespersonIDQuoteCreated Created quote
+/*
+PostTradespersonTradespersonIDQuoteCreated Created quote
 
 swagger:response postTradespersonTradespersonIdQuoteCreated
 */

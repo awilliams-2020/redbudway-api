@@ -14,7 +14,8 @@ import (
 // PostCustomerCustomerIDVerifyOKCode is the HTTP code returned for type PostCustomerCustomerIDVerifyOK
 const PostCustomerCustomerIDVerifyOKCode int = 200
 
-/*PostCustomerCustomerIDVerifyOK Verified customer account
+/*
+PostCustomerCustomerIDVerifyOK Verified customer account
 
 swagger:response postCustomerCustomerIdVerifyOK
 */

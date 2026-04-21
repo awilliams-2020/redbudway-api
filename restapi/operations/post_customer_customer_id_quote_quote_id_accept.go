@@ -32,10 +32,10 @@ func NewPostCustomerCustomerIDQuoteQuoteIDAccept(ctx *middleware.Context, handle
 	return &PostCustomerCustomerIDQuoteQuoteIDAccept{Context: ctx, Handler: handler}
 }
 
-/* PostCustomerCustomerIDQuoteQuoteIDAccept swagger:route POST /customer/{customerId}/quote/{quoteId}/accept postCustomerCustomerIdQuoteQuoteIdAccept
+/*
+	PostCustomerCustomerIDQuoteQuoteIDAccept swagger:route POST /customer/{customerId}/quote/{quoteId}/accept postCustomerCustomerIdQuoteQuoteIdAccept
 
 PostCustomerCustomerIDQuoteQuoteIDAccept post customer customer ID quote quote ID accept API
-
 */
 type PostCustomerCustomerIDQuoteQuoteIDAccept struct {
 	Context *middleware.Context

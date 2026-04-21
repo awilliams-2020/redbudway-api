@@ -29,10 +29,10 @@ func NewGetProfileVanityOrIDQuotes(ctx *middleware.Context, handler GetProfileVa
 	return &GetProfileVanityOrIDQuotes{Context: ctx, Handler: handler}
 }
 
-/* GetProfileVanityOrIDQuotes swagger:route GET /profile/{vanityOrId}/quotes getProfileVanityOrIdQuotes
+/*
+	GetProfileVanityOrIDQuotes swagger:route GET /profile/{vanityOrId}/quotes getProfileVanityOrIdQuotes
 
 GetProfileVanityOrIDQuotes get profile vanity or ID quotes API
-
 */
 type GetProfileVanityOrIDQuotes struct {
 	Context *middleware.Context

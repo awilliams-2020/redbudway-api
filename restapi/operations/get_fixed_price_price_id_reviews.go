@@ -34,10 +34,10 @@ func NewGetFixedPricePriceIDReviews(ctx *middleware.Context, handler GetFixedPri
 	return &GetFixedPricePriceIDReviews{Context: ctx, Handler: handler}
 }
 
-/* GetFixedPricePriceIDReviews swagger:route GET /fixed-price/{priceId}/reviews getFixedPricePriceIdReviews
+/*
+	GetFixedPricePriceIDReviews swagger:route GET /fixed-price/{priceId}/reviews getFixedPricePriceIdReviews
 
 GetFixedPricePriceIDReviews get fixed price price ID reviews API
-
 */
 type GetFixedPricePriceIDReviews struct {
 	Context *middleware.Context
@@ -143,6 +143,11 @@ func (o *GetFixedPricePriceIDReviewsOKBody) contextValidateReviews(ctx context.C
 	for i := 0; i < len(o.Reviews); i++ {
 
 		if o.Reviews[i] != nil {
+
+			if swag.IsZero(o.Reviews[i]) { // not required
+				return nil
+			}
+
 			if err := o.Reviews[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getFixedPricePriceIdReviewsOK" + "." + "reviews" + "." + strconv.Itoa(i))

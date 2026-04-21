@@ -36,10 +36,10 @@ func NewGetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions(ctx *m
 	return &GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions swagger:route GET /tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptions
+/*
+	GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions swagger:route GET /tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptions
 
 GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions get tradesperson tradesperson ID billing customer stripe ID subscriptions API
-
 */
 type GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptions struct {
 	Context *middleware.Context
@@ -180,6 +180,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBody
 func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBody) contextValidateAddress(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Address != nil {
+
+		if swag.IsZero(o.Address) { // not required
+			return nil
+		}
+
 		if err := o.Address.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionsOK" + "." + "address")
@@ -198,6 +203,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBody
 	for i := 0; i < len(o.Subscriptions); i++ {
 
 		if o.Subscriptions[i] != nil {
+
+			if swag.IsZero(o.Subscriptions[i]) { // not required
+				return nil
+			}
+
 			if err := o.Subscriptions[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionsOK" + "." + "subscriptions" + "." + strconv.Itoa(i))
@@ -314,6 +324,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBody
 	for i := 0; i < len(o.Details); i++ {
 
 		if o.Details[i] != nil {
+
+			if swag.IsZero(o.Details[i]) { // not required
+				return nil
+			}
+
 			if err := o.Details[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("details" + "." + strconv.Itoa(i))
@@ -424,6 +439,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsOKBody
 	for i := 0; i < len(o.TimeSlots); i++ {
 
 		if o.TimeSlots[i] != nil {
+
+			if swag.IsZero(o.TimeSlots[i]) { // not required
+				return nil
+			}
+
 			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))

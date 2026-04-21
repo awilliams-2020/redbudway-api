@@ -14,7 +14,8 @@ import (
 // PutTradespersonTradespersonIDGoogleTokenOKCode is the HTTP code returned for type PutTradespersonTradespersonIDGoogleTokenOK
 const PutTradespersonTradespersonIDGoogleTokenOKCode int = 200
 
-/*PutTradespersonTradespersonIDGoogleTokenOK Valid google token
+/*
+PutTradespersonTradespersonIDGoogleTokenOK Valid google token
 
 swagger:response putTradespersonTradespersonIdGoogleTokenOK
 */

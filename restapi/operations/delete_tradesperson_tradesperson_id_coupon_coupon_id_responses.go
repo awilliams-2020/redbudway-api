@@ -14,7 +14,8 @@ import (
 // DeleteTradespersonTradespersonIDCouponCouponIDOKCode is the HTTP code returned for type DeleteTradespersonTradespersonIDCouponCouponIDOK
 const DeleteTradespersonTradespersonIDCouponCouponIDOKCode int = 200
 
-/*DeleteTradespersonTradespersonIDCouponCouponIDOK If coupon was deleted
+/*
+DeleteTradespersonTradespersonIDCouponCouponIDOK If coupon was deleted
 
 swagger:response deleteTradespersonTradespersonIdCouponCouponIdOK
 */

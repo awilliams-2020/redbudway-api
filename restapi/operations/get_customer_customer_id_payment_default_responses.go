@@ -14,7 +14,8 @@ import (
 // GetCustomerCustomerIDPaymentDefaultOKCode is the HTTP code returned for type GetCustomerCustomerIDPaymentDefaultOK
 const GetCustomerCustomerIDPaymentDefaultOKCode int = 200
 
-/*GetCustomerCustomerIDPaymentDefaultOK Customer default payment
+/*
+GetCustomerCustomerIDPaymentDefaultOK Customer default payment
 
 swagger:response getCustomerCustomerIdPaymentDefaultOK
 */

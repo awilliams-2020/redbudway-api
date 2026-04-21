@@ -14,7 +14,8 @@ import (
 // GetCustomerCustomerIDBillingLinkOKCode is the HTTP code returned for type GetCustomerCustomerIDBillingLinkOK
 const GetCustomerCustomerIDBillingLinkOKCode int = 200
 
-/*GetCustomerCustomerIDBillingLinkOK Stripe billing link
+/*
+GetCustomerCustomerIDBillingLinkOK Stripe billing link
 
 swagger:response getCustomerCustomerIdBillingLinkOK
 */

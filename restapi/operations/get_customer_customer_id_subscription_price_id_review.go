@@ -32,10 +32,10 @@ func NewGetCustomerCustomerIDSubscriptionPriceIDReview(ctx *middleware.Context, 
 	return &GetCustomerCustomerIDSubscriptionPriceIDReview{Context: ctx, Handler: handler}
 }
 
-/* GetCustomerCustomerIDSubscriptionPriceIDReview swagger:route GET /customer/{customerId}/subscription/{priceId}/review getCustomerCustomerIdSubscriptionPriceIdReview
+/*
+	GetCustomerCustomerIDSubscriptionPriceIDReview swagger:route GET /customer/{customerId}/subscription/{priceId}/review getCustomerCustomerIdSubscriptionPriceIdReview
 
 GetCustomerCustomerIDSubscriptionPriceIDReview get customer customer ID subscription price ID review API
-
 */
 type GetCustomerCustomerIDSubscriptionPriceIDReview struct {
 	Context *middleware.Context

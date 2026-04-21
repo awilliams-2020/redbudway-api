@@ -32,10 +32,10 @@ func NewGetCustomerCustomerIDFixedPricePriceIDReview(ctx *middleware.Context, ha
 	return &GetCustomerCustomerIDFixedPricePriceIDReview{Context: ctx, Handler: handler}
 }
 
-/* GetCustomerCustomerIDFixedPricePriceIDReview swagger:route GET /customer/{customerId}/fixed-price/{priceId}/review getCustomerCustomerIdFixedPricePriceIdReview
+/*
+	GetCustomerCustomerIDFixedPricePriceIDReview swagger:route GET /customer/{customerId}/fixed-price/{priceId}/review getCustomerCustomerIdFixedPricePriceIdReview
 
 GetCustomerCustomerIDFixedPricePriceIDReview get customer customer ID fixed price price ID review API
-
 */
 type GetCustomerCustomerIDFixedPricePriceIDReview struct {
 	Context *middleware.Context

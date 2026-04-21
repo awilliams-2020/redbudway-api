@@ -14,7 +14,8 @@ import (
 // PutTradespersonTradespersonIDCouponCouponIDOKCode is the HTTP code returned for type PutTradespersonTradespersonIDCouponCouponIDOK
 const PutTradespersonTradespersonIDCouponCouponIDOKCode int = 200
 
-/*PutTradespersonTradespersonIDCouponCouponIDOK If coupon was updated
+/*
+PutTradespersonTradespersonIDCouponCouponIDOK If coupon was updated
 
 swagger:response putTradespersonTradespersonIdCouponCouponIdOK
 */

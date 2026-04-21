@@ -29,10 +29,10 @@ func NewGetTradespersonTradespersonIDBillingCustomers(ctx *middleware.Context, h
 	return &GetTradespersonTradespersonIDBillingCustomers{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDBillingCustomers swagger:route GET /tradesperson/{tradespersonId}/billing/customers getTradespersonTradespersonIdBillingCustomers
+/*
+	GetTradespersonTradespersonIDBillingCustomers swagger:route GET /tradesperson/{tradespersonId}/billing/customers getTradespersonTradespersonIdBillingCustomers
 
 GetTradespersonTradespersonIDBillingCustomers get tradesperson tradesperson ID billing customers API
-
 */
 type GetTradespersonTradespersonIDBillingCustomers struct {
 	Context *middleware.Context

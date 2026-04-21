@@ -32,10 +32,10 @@ func NewPostResetEmail(ctx *middleware.Context, handler PostResetEmailHandler) *
 	return &PostResetEmail{Context: ctx, Handler: handler}
 }
 
-/* PostResetEmail swagger:route POST /reset-email postResetEmail
+/*
+	PostResetEmail swagger:route POST /reset-email postResetEmail
 
 PostResetEmail post reset email API
-
 */
 type PostResetEmail struct {
 	Context *middleware.Context

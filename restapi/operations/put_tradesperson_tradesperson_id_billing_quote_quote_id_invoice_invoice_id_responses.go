@@ -14,7 +14,8 @@ import (
 // PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKCode is the HTTP code returned for type PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOK
 const PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKCode int = 200
 
-/*PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOK If invoice memo was updated
+/*
+PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOK If invoice memo was updated
 
 swagger:response putTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK
 */

@@ -32,10 +32,10 @@ func NewPostCustomerCustomerIDAccessToken(ctx *middleware.Context, handler PostC
 	return &PostCustomerCustomerIDAccessToken{Context: ctx, Handler: handler}
 }
 
-/* PostCustomerCustomerIDAccessToken swagger:route POST /customer/{customerId}/access-token postCustomerCustomerIdAccessToken
+/*
+	PostCustomerCustomerIDAccessToken swagger:route POST /customer/{customerId}/access-token postCustomerCustomerIdAccessToken
 
 PostCustomerCustomerIDAccessToken post customer customer ID access token API
-
 */
 type PostCustomerCustomerIDAccessToken struct {
 	Context *middleware.Context

@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDSyncOKCode is the HTTP code returned for type GetTradespersonTradespersonIDSyncOK
 const GetTradespersonTradespersonIDSyncOKCode int = 200
 
-/*GetTradespersonTradespersonIDSyncOK Sync tradesperson business info
+/*
+GetTradespersonTradespersonIDSyncOK Sync tradesperson business info
 
 swagger:response getTradespersonTradespersonIdSyncOK
 */

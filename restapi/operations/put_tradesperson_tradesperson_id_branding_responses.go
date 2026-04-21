@@ -14,7 +14,8 @@ import (
 // PutTradespersonTradespersonIDBrandingOKCode is the HTTP code returned for type PutTradespersonTradespersonIDBrandingOK
 const PutTradespersonTradespersonIDBrandingOKCode int = 200
 
-/*PutTradespersonTradespersonIDBrandingOK Updates tradesperson branding
+/*
+PutTradespersonTradespersonIDBrandingOK Updates tradesperson branding
 
 swagger:response putTradespersonTradespersonIdBrandingOK
 */

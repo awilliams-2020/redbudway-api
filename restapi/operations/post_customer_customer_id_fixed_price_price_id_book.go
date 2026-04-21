@@ -37,10 +37,10 @@ func NewPostCustomerCustomerIDFixedPricePriceIDBook(ctx *middleware.Context, han
 	return &PostCustomerCustomerIDFixedPricePriceIDBook{Context: ctx, Handler: handler}
 }
 
-/* PostCustomerCustomerIDFixedPricePriceIDBook swagger:route POST /customer/{customerId}/fixed-price/{priceId}/book postCustomerCustomerIdFixedPricePriceIdBook
+/*
+	PostCustomerCustomerIDFixedPricePriceIDBook swagger:route POST /customer/{customerId}/fixed-price/{priceId}/book postCustomerCustomerIdFixedPricePriceIdBook
 
 PostCustomerCustomerIDFixedPricePriceIDBook post customer customer ID fixed price price ID book API
-
 */
 type PostCustomerCustomerIDFixedPricePriceIDBook struct {
 	Context *middleware.Context
@@ -207,6 +207,11 @@ func (o *PostCustomerCustomerIDFixedPricePriceIDBookBody) contextValidateTimeSlo
 	for i := 0; i < len(o.TimeSlots); i++ {
 
 		if o.TimeSlots[i] != nil {
+
+			if swag.IsZero(o.TimeSlots[i]) { // not required
+				return nil
+			}
+
 			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("booking" + "." + "timeSlots" + "." + strconv.Itoa(i))

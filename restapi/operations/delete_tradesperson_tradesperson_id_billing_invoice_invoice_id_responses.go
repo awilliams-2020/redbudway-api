@@ -14,7 +14,8 @@ import (
 // DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOKCode is the HTTP code returned for type DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOK
 const DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOKCode int = 200
 
-/*DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOK If invoice deleted
+/*
+DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDOK If invoice deleted
 
 swagger:response deleteTradespersonTradespersonIdBillingInvoiceInvoiceIdOK
 */

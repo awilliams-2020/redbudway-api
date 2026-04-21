@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDQuotePagesOKCode is the HTTP code returned for type GetTradespersonTradespersonIDQuotePagesOK
 const GetTradespersonTradespersonIDQuotePagesOKCode int = 200
 
-/*GetTradespersonTradespersonIDQuotePagesOK Number of quote pages
+/*
+GetTradespersonTradespersonIDQuotePagesOK Number of quote pages
 
 swagger:response getTradespersonTradespersonIdQuotePagesOK
 */

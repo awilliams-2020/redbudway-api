@@ -32,10 +32,10 @@ func NewGetAddress(ctx *middleware.Context, handler GetAddressHandler) *GetAddre
 	return &GetAddress{Context: ctx, Handler: handler}
 }
 
-/* GetAddress swagger:route GET /address getAddress
+/*
+	GetAddress swagger:route GET /address getAddress
 
 GetAddress get address API
-
 */
 type GetAddress struct {
 	Context *middleware.Context

@@ -16,7 +16,8 @@ import (
 // GetQuotesOKCode is the HTTP code returned for type GetQuotesOK
 const GetQuotesOKCode int = 200
 
-/*GetQuotesOK Tradesperson quote services
+/*
+GetQuotesOK Tradesperson quote services
 
 swagger:response getQuotesOK
 */

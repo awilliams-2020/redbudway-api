@@ -14,7 +14,8 @@ import (
 // GetForgotPasswordOKCode is the HTTP code returned for type GetForgotPasswordOK
 const GetForgotPasswordOKCode int = 200
 
-/*GetForgotPasswordOK Forgot password
+/*
+GetForgotPasswordOK Forgot password
 
 swagger:response getForgotPasswordOK
 */

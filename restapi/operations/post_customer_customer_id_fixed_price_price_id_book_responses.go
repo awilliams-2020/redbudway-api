@@ -14,7 +14,8 @@ import (
 // PostCustomerCustomerIDFixedPricePriceIDBookCreatedCode is the HTTP code returned for type PostCustomerCustomerIDFixedPricePriceIDBookCreated
 const PostCustomerCustomerIDFixedPricePriceIDBookCreatedCode int = 201
 
-/*PostCustomerCustomerIDFixedPricePriceIDBookCreated If fixed price was booked
+/*
+PostCustomerCustomerIDFixedPricePriceIDBookCreated If fixed price was booked
 
 swagger:response postCustomerCustomerIdFixedPricePriceIdBookCreated
 */

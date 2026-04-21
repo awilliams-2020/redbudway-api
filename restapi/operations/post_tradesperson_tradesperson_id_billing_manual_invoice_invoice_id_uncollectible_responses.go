@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleOKCode is the HTTP code returned for type PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleOK
 const PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleOKCode int = 200
 
-/*PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleOK If manual invoice was marked uncollectible
+/*
+PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDUncollectibleOK If manual invoice was marked uncollectible
 
 swagger:response postTradespersonTradespersonIdBillingManualInvoiceInvoiceIdUncollectibleOK
 */

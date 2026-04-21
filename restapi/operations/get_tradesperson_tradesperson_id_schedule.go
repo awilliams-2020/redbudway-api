@@ -36,10 +36,10 @@ func NewGetTradespersonTradespersonIDSchedule(ctx *middleware.Context, handler G
 	return &GetTradespersonTradespersonIDSchedule{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDSchedule swagger:route GET /tradesperson/{tradespersonId}/schedule getTradespersonTradespersonIdSchedule
+/*
+	GetTradespersonTradespersonIDSchedule swagger:route GET /tradesperson/{tradespersonId}/schedule getTradespersonTradespersonIdSchedule
 
 GetTradespersonTradespersonIDSchedule get tradesperson tradesperson ID schedule API
-
 */
 type GetTradespersonTradespersonIDSchedule struct {
 	Context *middleware.Context
@@ -185,6 +185,11 @@ func (o *GetTradespersonTradespersonIDScheduleOKBody) contextValidateServices(ct
 	for i := 0; i < len(o.Services); i++ {
 
 		if o.Services[i] != nil {
+
+			if swag.IsZero(o.Services[i]) { // not required
+				return nil
+			}
+
 			if err := o.Services[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getTradespersonTradespersonIdScheduleOK" + "." + "services" + "." + strconv.Itoa(i))
@@ -298,6 +303,11 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0) contextValid
 	for i := 0; i < len(o.TimeSlots); i++ {
 
 		if o.TimeSlots[i] != nil {
+
+			if swag.IsZero(o.TimeSlots[i]) { // not required
+				return nil
+			}
+
 			if err := o.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))
@@ -405,6 +415,11 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems
 	for i := 0; i < len(o.Customers); i++ {
 
 		if o.Customers[i] != nil {
+
+			if swag.IsZero(o.Customers[i]) { // not required
+				return nil
+			}
+
 			if err := o.Customers[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("customers" + "." + strconv.Itoa(i))
@@ -512,6 +527,11 @@ func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems
 func (o *GetTradespersonTradespersonIDScheduleOKBodyServicesItems0TimeSlotsItems0CustomersItems0) contextValidateInfo(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Info != nil {
+
+		if swag.IsZero(o.Info) { // not required
+			return nil
+		}
+
 		if err := o.Info.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("info")

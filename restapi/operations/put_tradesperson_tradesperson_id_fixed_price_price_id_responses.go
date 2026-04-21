@@ -14,7 +14,8 @@ import (
 // PutTradespersonTradespersonIDFixedPricePriceIDOKCode is the HTTP code returned for type PutTradespersonTradespersonIDFixedPricePriceIDOK
 const PutTradespersonTradespersonIDFixedPricePriceIDOKCode int = 200
 
-/*PutTradespersonTradespersonIDFixedPricePriceIDOK Updated fixed-price
+/*
+PutTradespersonTradespersonIDFixedPricePriceIDOK Updated fixed-price
 
 swagger:response putTradespersonTradespersonIdFixedPricePriceIdOK
 */

@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDEmailOKCode is the HTTP code returned for type PostTradespersonTradespersonIDEmailOK
 const PostTradespersonTradespersonIDEmailOKCode int = 200
 
-/*PostTradespersonTradespersonIDEmailOK Email sent to tradesperson
+/*
+PostTradespersonTradespersonIDEmailOK Email sent to tradesperson
 
 swagger:response postTradespersonTradespersonIdEmailOK
 */

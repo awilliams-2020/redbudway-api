@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDCouponCouponIDPromoOKCode is the HTTP code returned for type PostTradespersonTradespersonIDCouponCouponIDPromoOK
 const PostTradespersonTradespersonIDCouponCouponIDPromoOKCode int = 200
 
-/*PostTradespersonTradespersonIDCouponCouponIDPromoOK If promo was created
+/*
+PostTradespersonTradespersonIDCouponCouponIDPromoOK If promo was created
 
 swagger:response postTradespersonTradespersonIdCouponCouponIdPromoOK
 */

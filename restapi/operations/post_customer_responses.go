@@ -14,7 +14,8 @@ import (
 // PostCustomerCreatedCode is the HTTP code returned for type PostCustomerCreated
 const PostCustomerCreatedCode int = 201
 
-/*PostCustomerCreated Created customer account
+/*
+PostCustomerCreated Created customer account
 
 swagger:response postCustomerCreated
 */

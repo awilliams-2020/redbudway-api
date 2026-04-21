@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDTimeSlotsOKCode is the HTTP code returned for type GetTradespersonTradespersonIDTimeSlotsOK
 const GetTradespersonTradespersonIDTimeSlotsOKCode int = 200
 
-/*GetTradespersonTradespersonIDTimeSlotsOK Service time slots
+/*
+GetTradespersonTradespersonIDTimeSlotsOK Service time slots
 
 swagger:response getTradespersonTradespersonIdTimeSlotsOK
 */

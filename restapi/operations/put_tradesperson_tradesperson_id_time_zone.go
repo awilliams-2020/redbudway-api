@@ -32,10 +32,10 @@ func NewPutTradespersonTradespersonIDTimeZone(ctx *middleware.Context, handler P
 	return &PutTradespersonTradespersonIDTimeZone{Context: ctx, Handler: handler}
 }
 
-/* PutTradespersonTradespersonIDTimeZone swagger:route PUT /tradesperson/{tradespersonId}/time-zone putTradespersonTradespersonIdTimeZone
+/*
+	PutTradespersonTradespersonIDTimeZone swagger:route PUT /tradesperson/{tradespersonId}/time-zone putTradespersonTradespersonIdTimeZone
 
 PutTradespersonTradespersonIDTimeZone put tradesperson tradesperson ID time zone API
-
 */
 type PutTradespersonTradespersonIDTimeZone struct {
 	Context *middleware.Context

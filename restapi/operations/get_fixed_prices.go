@@ -29,10 +29,10 @@ func NewGetFixedPrices(ctx *middleware.Context, handler GetFixedPricesHandler) *
 	return &GetFixedPrices{Context: ctx, Handler: handler}
 }
 
-/* GetFixedPrices swagger:route GET /fixed-prices getFixedPrices
+/*
+	GetFixedPrices swagger:route GET /fixed-prices getFixedPrices
 
 GetFixedPrices get fixed prices API
-
 */
 type GetFixedPrices struct {
 	Context *middleware.Context

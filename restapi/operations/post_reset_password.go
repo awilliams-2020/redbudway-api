@@ -34,10 +34,10 @@ func NewPostResetPassword(ctx *middleware.Context, handler PostResetPasswordHand
 	return &PostResetPassword{Context: ctx, Handler: handler}
 }
 
-/* PostResetPassword swagger:route POST /reset-password postResetPassword
+/*
+	PostResetPassword swagger:route POST /reset-password postResetPassword
 
 PostResetPassword post reset password API
-
 */
 type PostResetPassword struct {
 	Context *middleware.Context

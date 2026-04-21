@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOKCode is the HTTP code returned for type GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOK
 const GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOKCode int = 200
 
-/*GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOK Manual invoice
+/*
+GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDOK Manual invoice
 
 swagger:response getTradespersonTradespersonIdBillingManualInvoiceInvoiceIdOK
 */

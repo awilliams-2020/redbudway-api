@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDLoginLinkOKCode is the HTTP code returned for type GetTradespersonTradespersonIDLoginLinkOK
 const GetTradespersonTradespersonIDLoginLinkOKCode int = 200
 
-/*GetTradespersonTradespersonIDLoginLinkOK Stripe login link to dashboard
+/*
+GetTradespersonTradespersonIDLoginLinkOK Stripe login link to dashboard
 
 swagger:response getTradespersonTradespersonIdLoginLinkOK
 */

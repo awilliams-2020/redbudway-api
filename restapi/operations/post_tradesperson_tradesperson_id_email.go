@@ -34,10 +34,10 @@ func NewPostTradespersonTradespersonIDEmail(ctx *middleware.Context, handler Pos
 	return &PostTradespersonTradespersonIDEmail{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDEmail swagger:route POST /tradesperson/{tradespersonId}/email postTradespersonTradespersonIdEmail
+/*
+	PostTradespersonTradespersonIDEmail swagger:route POST /tradesperson/{tradespersonId}/email postTradespersonTradespersonIdEmail
 
 PostTradespersonTradespersonIDEmail post tradesperson tradesperson ID email API
-
 */
 type PostTradespersonTradespersonIDEmail struct {
 	Context *middleware.Context

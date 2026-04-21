@@ -14,7 +14,8 @@ import (
 // GetCustomerCustomerIDPromoOKCode is the HTTP code returned for type GetCustomerCustomerIDPromoOK
 const GetCustomerCustomerIDPromoOKCode int = 200
 
-/*GetCustomerCustomerIDPromoOK A discount amount
+/*
+GetCustomerCustomerIDPromoOK A discount amount
 
 swagger:response getCustomerCustomerIdPromoOK
 */

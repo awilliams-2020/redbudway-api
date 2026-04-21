@@ -14,7 +14,8 @@ import (
 // PostCustomerCustomerIDFixedPricePriceIDReviewOKCode is the HTTP code returned for type PostCustomerCustomerIDFixedPricePriceIDReviewOK
 const PostCustomerCustomerIDFixedPricePriceIDReviewOKCode int = 200
 
-/*PostCustomerCustomerIDFixedPricePriceIDReviewOK Reviewed service
+/*
+PostCustomerCustomerIDFixedPricePriceIDReviewOK Reviewed service
 
 swagger:response postCustomerCustomerIdFixedPricePriceIdReviewOK
 */

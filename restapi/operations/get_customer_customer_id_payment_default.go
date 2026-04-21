@@ -32,10 +32,10 @@ func NewGetCustomerCustomerIDPaymentDefault(ctx *middleware.Context, handler Get
 	return &GetCustomerCustomerIDPaymentDefault{Context: ctx, Handler: handler}
 }
 
-/* GetCustomerCustomerIDPaymentDefault swagger:route GET /customer/{customerId}/payment/default getCustomerCustomerIdPaymentDefault
+/*
+	GetCustomerCustomerIDPaymentDefault swagger:route GET /customer/{customerId}/payment/default getCustomerCustomerIdPaymentDefault
 
 GetCustomerCustomerIDPaymentDefault get customer customer ID payment default API
-
 */
 type GetCustomerCustomerIDPaymentDefault struct {
 	Context *middleware.Context

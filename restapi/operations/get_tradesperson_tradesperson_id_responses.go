@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDOKCode is the HTTP code returned for type GetTradespersonTradespersonIDOK
 const GetTradespersonTradespersonIDOKCode int = 200
 
-/*GetTradespersonTradespersonIDOK Status of tradesperson stripe account
+/*
+GetTradespersonTradespersonIDOK Status of tradesperson stripe account
 
 swagger:response getTradespersonTradespersonIdOK
 */

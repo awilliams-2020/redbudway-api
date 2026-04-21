@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDAccessToken(ctx *middleware.Context, handl
 	return &PostTradespersonTradespersonIDAccessToken{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDAccessToken swagger:route POST /tradesperson/{tradespersonId}/access-token postTradespersonTradespersonIdAccessToken
+/*
+	PostTradespersonTradespersonIDAccessToken swagger:route POST /tradesperson/{tradespersonId}/access-token postTradespersonTradespersonIdAccessToken
 
 PostTradespersonTradespersonIDAccessToken post tradesperson tradesperson ID access token API
-
 */
 type PostTradespersonTradespersonIDAccessToken struct {
 	Context *middleware.Context

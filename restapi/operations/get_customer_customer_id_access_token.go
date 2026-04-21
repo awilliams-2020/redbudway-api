@@ -32,10 +32,10 @@ func NewGetCustomerCustomerIDAccessToken(ctx *middleware.Context, handler GetCus
 	return &GetCustomerCustomerIDAccessToken{Context: ctx, Handler: handler}
 }
 
-/* GetCustomerCustomerIDAccessToken swagger:route GET /customer/{customerId}/access-token getCustomerCustomerIdAccessToken
+/*
+	GetCustomerCustomerIDAccessToken swagger:route GET /customer/{customerId}/access-token getCustomerCustomerIdAccessToken
 
 GetCustomerCustomerIDAccessToken get customer customer ID access token API
-
 */
 type GetCustomerCustomerIDAccessToken struct {
 	Context *middleware.Context

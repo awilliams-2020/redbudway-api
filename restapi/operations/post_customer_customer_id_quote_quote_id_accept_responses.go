@@ -14,7 +14,8 @@ import (
 // PostCustomerCustomerIDQuoteQuoteIDAcceptOKCode is the HTTP code returned for type PostCustomerCustomerIDQuoteQuoteIDAcceptOK
 const PostCustomerCustomerIDQuoteQuoteIDAcceptOKCode int = 200
 
-/*PostCustomerCustomerIDQuoteQuoteIDAcceptOK If quote was accepted
+/*
+PostCustomerCustomerIDQuoteQuoteIDAcceptOK If quote was accepted
 
 swagger:response postCustomerCustomerIdQuoteQuoteIdAcceptOK
 */

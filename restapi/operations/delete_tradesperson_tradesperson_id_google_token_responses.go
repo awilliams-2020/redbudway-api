@@ -14,7 +14,8 @@ import (
 // DeleteTradespersonTradespersonIDGoogleTokenOKCode is the HTTP code returned for type DeleteTradespersonTradespersonIDGoogleTokenOK
 const DeleteTradespersonTradespersonIDGoogleTokenOKCode int = 200
 
-/*DeleteTradespersonTradespersonIDGoogleTokenOK Revoked google token
+/*
+DeleteTradespersonTradespersonIDGoogleTokenOK Revoked google token
 
 swagger:response deleteTradespersonTradespersonIdGoogleTokenOK
 */

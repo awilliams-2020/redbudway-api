@@ -68,6 +68,53 @@ paths:
               timeZone:
                 type: string
                 x-omitempty: false
+  /checkout/guest-session:
+    post:
+      summary: Guest Checkout Session from a Stripe Quote (reCAPTCHA required; no client-supplied amount)
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            required:
+              - tradespersonId
+              - stripeQuoteId
+              - token
+            properties:
+              tradespersonId:
+                type: string
+                format: uuid
+              stripeQuoteId:
+                type: string
+                description: Stripe Quote id (qt_...)
+              token:
+                type: string
+                description: reCAPTCHA v3 token
+              successPath:
+                type: string
+                description: App path or absolute URL for Stripe redirect after payment
+              cancelPath:
+                type: string
+                description: App path or absolute URL if user cancels
+      responses:
+        '200':
+          description: Stripe Checkout Session created
+          schema:
+            type: object
+            properties:
+              id:
+                type: string
+              url:
+                type: string
+        '400':
+          description: Bad request
+        '401':
+          description: reCAPTCHA failed
+        '404':
+          description: Quote or provider not found
+        '409':
+          description: Quote not payable
   /forgot-password:
     get:
       parameters:
@@ -1066,6 +1113,27 @@ paths:
               updated:
                 type: boolean
                 x-omitempty: false
+    delete:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: string
+        - in: path
+          name: quoteId
+          type: string
+          required: true
+      responses:
+        '200':
+          description: Catalog quote template removed
+          schema:
+            type: object
+            properties:
+              deleted:
+                type: boolean
+                x-omitempty: false
   /tradesperson/{tradespersonId}/quote/review:
     post:
       security:
@@ -1639,6 +1707,8 @@ paths:
                   type: string
                 customer:
                   type: string
+                customerEmail:
+                  type: string
   /tradesperson/{tradespersonId}/billing/quote/pages:
     get:
       security:
@@ -1703,6 +1773,11 @@ paths:
             properties:
               description:
                 type: string
+              depositPct:
+                type: integer
+                format: int64
+                x-nullable: true
+                description: Deposit percentage 0–100; 0 means full payment at acceptance (no split deposit). Omit to leave unchanged.
               products:
                 type: array
                 items:
@@ -1716,6 +1791,56 @@ paths:
               updated:
                 type: boolean
                 x-omitempty: false
+  /tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-customer:
+    post:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: string
+        - in: path
+          name: quoteId
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Customer notified by email
+          schema:
+            type: object
+            properties:
+              sent:
+                type: boolean
+                x-omitempty: false
+              email_id:
+                type: string
+  /tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-status:
+    get:
+      security:
+        - Bearer: []
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: string
+        - in: path
+          name: quoteId
+          required: true
+          type: string
+        - in: query
+          name: emailId
+          description: Resend email ID returned from notify-customer
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Email delivery status
+          schema:
+            type: object
+            properties:
+              last_event:
+                type: string
   /tradesperson/{tradespersonId}/billing/quote/{quoteId}/cancel:
     post:
       security:
@@ -1762,6 +1887,31 @@ paths:
               finalized:
                 type: boolean
                 x-omitempty: false
+  /tradesperson/{tradespersonId}/billing/quote/{quoteId}/resend-finalized-email:
+    post:
+      security:
+        - Bearer: []
+      description: Resend the same email the customer received when the quote was finalized (open quote, accept link). Only allowed when the Stripe quote status is open.
+      parameters:
+        - in: path
+          name: tradespersonId
+          required: true
+          type: string
+        - in: path
+          name: quoteId
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Email sent
+          schema:
+            type: object
+            properties:
+              sent:
+                type: boolean
+                x-omitempty: false
+              email_id:
+                type: string
   /tradesperson/{tradespersonId}/billing/quote/{quoteId}/revise:
     post:
       security:
@@ -1844,6 +1994,14 @@ paths:
                 type: string
                 x-omitempty: false
               total:
+                type: integer
+                format: int64
+              amountPaid:
+                description: Amount collected so far (Stripe invoice), cents
+                type: integer
+                format: int64
+              amountRemaining:
+                description: Balance still due on the invoice (Stripe), cents
                 type: integer
                 format: int64
               status:
@@ -2942,7 +3100,6 @@ paths:
               - email
               - password
               - number
-              - address
             properties:
               name:
                 type: string
@@ -3700,6 +3857,10 @@ definitions:
         x-omitempty: false
       business:
         $ref: '#/definitions/Business'
+      depositPct:
+        type: integer
+        format: int64
+        x-omitempty: false
   ServiceDetails:
     type: object
     required:
@@ -3792,6 +3953,10 @@ definitions:
       repeat:
         type: integer
         x-omitempty: false
+      depositPct:
+        type: integer
+        format: int64
+        x-omitempty: false
       form:
         type: array
         x-omitempty: false
@@ -3834,6 +3999,9 @@ definitions:
             type: string
           description:
             type: string
+          depositPct:
+            type: integer
+            format: int64
           products:
             type: array
             items:

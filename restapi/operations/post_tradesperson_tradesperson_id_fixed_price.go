@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDFixedPrice(ctx *middleware.Context, handle
 	return &PostTradespersonTradespersonIDFixedPrice{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDFixedPrice swagger:route POST /tradesperson/{tradespersonId}/fixed-price postTradespersonTradespersonIdFixedPrice
+/*
+	PostTradespersonTradespersonIDFixedPrice swagger:route POST /tradesperson/{tradespersonId}/fixed-price postTradespersonTradespersonIdFixedPrice
 
 PostTradespersonTradespersonIDFixedPrice post tradesperson tradesperson ID fixed price API
-
 */
 type PostTradespersonTradespersonIDFixedPrice struct {
 	Context *middleware.Context

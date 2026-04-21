@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDBillingSubscriptionsOKCode is the HTTP code returned for type GetTradespersonTradespersonIDBillingSubscriptionsOK
 const GetTradespersonTradespersonIDBillingSubscriptionsOKCode int = 200
 
-/*GetTradespersonTradespersonIDBillingSubscriptionsOK Customers active, canceled, incomplete subscriptions
+/*
+GetTradespersonTradespersonIDBillingSubscriptionsOK Customers active, canceled, incomplete subscriptions
 
 swagger:response getTradespersonTradespersonIdBillingSubscriptionsOK
 */

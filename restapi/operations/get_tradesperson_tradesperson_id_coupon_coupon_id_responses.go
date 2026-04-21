@@ -16,7 +16,8 @@ import (
 // GetTradespersonTradespersonIDCouponCouponIDOKCode is the HTTP code returned for type GetTradespersonTradespersonIDCouponCouponIDOK
 const GetTradespersonTradespersonIDCouponCouponIDOKCode int = 200
 
-/*GetTradespersonTradespersonIDCouponCouponIDOK Coupon returned
+/*
+GetTradespersonTradespersonIDCouponCouponIDOK Coupon returned
 
 swagger:response getTradespersonTradespersonIdCouponCouponIdOK
 */

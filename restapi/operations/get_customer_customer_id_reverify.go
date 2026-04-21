@@ -29,10 +29,10 @@ func NewGetCustomerCustomerIDReverify(ctx *middleware.Context, handler GetCustom
 	return &GetCustomerCustomerIDReverify{Context: ctx, Handler: handler}
 }
 
-/* GetCustomerCustomerIDReverify swagger:route GET /customer/{customerId}/reverify getCustomerCustomerIdReverify
+/*
+	GetCustomerCustomerIDReverify swagger:route GET /customer/{customerId}/reverify getCustomerCustomerIdReverify
 
 GetCustomerCustomerIDReverify get customer customer ID reverify API
-
 */
 type GetCustomerCustomerIDReverify struct {
 	Context *middleware.Context

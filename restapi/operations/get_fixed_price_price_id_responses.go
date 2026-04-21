@@ -14,7 +14,8 @@ import (
 // GetFixedPricePriceIDOKCode is the HTTP code returned for type GetFixedPricePriceIDOK
 const GetFixedPricePriceIDOKCode int = 200
 
-/*GetFixedPricePriceIDOK Fixed Price Details
+/*
+GetFixedPricePriceIDOK Fixed Price Details
 
 swagger:response getFixedPricePriceIdOK
 */

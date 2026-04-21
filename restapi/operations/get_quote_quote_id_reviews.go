@@ -34,10 +34,10 @@ func NewGetQuoteQuoteIDReviews(ctx *middleware.Context, handler GetQuoteQuoteIDR
 	return &GetQuoteQuoteIDReviews{Context: ctx, Handler: handler}
 }
 
-/* GetQuoteQuoteIDReviews swagger:route GET /quote/{quoteId}/reviews getQuoteQuoteIdReviews
+/*
+	GetQuoteQuoteIDReviews swagger:route GET /quote/{quoteId}/reviews getQuoteQuoteIdReviews
 
 GetQuoteQuoteIDReviews get quote quote ID reviews API
-
 */
 type GetQuoteQuoteIDReviews struct {
 	Context *middleware.Context
@@ -143,6 +143,11 @@ func (o *GetQuoteQuoteIDReviewsOKBody) contextValidateReviews(ctx context.Contex
 	for i := 0; i < len(o.Reviews); i++ {
 
 		if o.Reviews[i] != nil {
+
+			if swag.IsZero(o.Reviews[i]) { // not required
+				return nil
+			}
+
 			if err := o.Reviews[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getQuoteQuoteIdReviewsOK" + "." + "reviews" + "." + strconv.Itoa(i))

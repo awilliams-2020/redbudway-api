@@ -32,10 +32,10 @@ func NewGetLocation(ctx *middleware.Context, handler GetLocationHandler) *GetLoc
 	return &GetLocation{Context: ctx, Handler: handler}
 }
 
-/* GetLocation swagger:route GET /location getLocation
+/*
+	GetLocation swagger:route GET /location getLocation
 
 GetLocation get location API
-
 */
 type GetLocation struct {
 	Context *middleware.Context

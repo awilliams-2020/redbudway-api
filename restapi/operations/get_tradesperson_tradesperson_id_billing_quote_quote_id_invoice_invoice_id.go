@@ -36,10 +36,10 @@ func NewGetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID(ctx *mi
 	return &GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId} getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceId
+/*
+	GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId} getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceId
 
 GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID get tradesperson tradesperson ID billing quote quote ID invoice invoice ID API
-
 */
 type GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID struct {
 	Context *middleware.Context
@@ -79,6 +79,12 @@ func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID) Serve
 //
 // swagger:model GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody
 type GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody struct {
+
+	// Amount collected so far (Stripe invoice), cents
+	AmountPaid int64 `json:"amountPaid,omitempty"`
+
+	// Balance still due on the invoice (Stripe), cents
+	AmountRemaining int64 `json:"amountRemaining,omitempty"`
 
 	// created
 	Created int64 `json:"created,omitempty"`
@@ -195,6 +201,11 @@ func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody)
 func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Customer != nil {
+
+		if swag.IsZero(o.Customer) { // not required
+			return nil
+		}
+
 		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK" + "." + "customer")
@@ -213,6 +224,11 @@ func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody)
 	for i := 0; i < len(o.Products); i++ {
 
 		if o.Products[i] != nil {
+
+			if swag.IsZero(o.Products[i]) { // not required
+				return nil
+			}
+
 			if err := o.Products[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK" + "." + "products" + "." + strconv.Itoa(i))

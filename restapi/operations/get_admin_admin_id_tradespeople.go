@@ -32,10 +32,10 @@ func NewGetAdminAdminIDTradespeople(ctx *middleware.Context, handler GetAdminAdm
 	return &GetAdminAdminIDTradespeople{Context: ctx, Handler: handler}
 }
 
-/* GetAdminAdminIDTradespeople swagger:route GET /admin/{adminId}/tradespeople getAdminAdminIdTradespeople
+/*
+	GetAdminAdminIDTradespeople swagger:route GET /admin/{adminId}/tradespeople getAdminAdminIdTradespeople
 
 GetAdminAdminIDTradespeople get admin admin ID tradespeople API
-
 */
 type GetAdminAdminIDTradespeople struct {
 	Context *middleware.Context

@@ -32,10 +32,10 @@ func NewPutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID(ctx *mi
 	return &PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID{Context: ctx, Handler: handler}
 }
 
-/* PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID swagger:route PUT /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId} putTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceId
+/*
+	PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID swagger:route PUT /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId} putTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceId
 
 PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID put tradesperson tradesperson ID billing quote quote ID invoice invoice ID API
-
 */
 type PutTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID struct {
 	Context *middleware.Context

@@ -14,7 +14,8 @@ import (
 // GetQuoteQuoteIDOKCode is the HTTP code returned for type GetQuoteQuoteIDOK
 const GetQuoteQuoteIDOKCode int = 200
 
-/*GetQuoteQuoteIDOK Quote details
+/*
+GetQuoteQuoteIDOK Quote details
 
 swagger:response getQuoteQuoteIdOK
 */

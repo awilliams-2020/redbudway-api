@@ -32,10 +32,10 @@ func NewGetAdminAdminIDAccessToken(ctx *middleware.Context, handler GetAdminAdmi
 	return &GetAdminAdminIDAccessToken{Context: ctx, Handler: handler}
 }
 
-/* GetAdminAdminIDAccessToken swagger:route GET /admin/{adminId}/access-token getAdminAdminIdAccessToken
+/*
+	GetAdminAdminIDAccessToken swagger:route GET /admin/{adminId}/access-token getAdminAdminIdAccessToken
 
 GetAdminAdminIDAccessToken get admin admin ID access token API
-
 */
 type GetAdminAdminIDAccessToken struct {
 	Context *middleware.Context

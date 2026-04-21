@@ -29,10 +29,10 @@ func NewGetTradespersonTradespersonIDSync(ctx *middleware.Context, handler GetTr
 	return &GetTradespersonTradespersonIDSync{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDSync swagger:route GET /tradesperson/{tradespersonId}/sync getTradespersonTradespersonIdSync
+/*
+	GetTradespersonTradespersonIDSync swagger:route GET /tradesperson/{tradespersonId}/sync getTradespersonTradespersonIdSync
 
 GetTradespersonTradespersonIDSync get tradesperson tradesperson ID sync API
-
 */
 type GetTradespersonTradespersonIDSync struct {
 	Context *middleware.Context

@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible(ctx *
 	return &PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible swagger:route POST /tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/uncollectible postTradespersonTradespersonIdBillingInvoiceInvoiceIdUncollectible
+/*
+	PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible swagger:route POST /tradesperson/{tradespersonId}/billing/invoice/{invoiceId}/uncollectible postTradespersonTradespersonIdBillingInvoiceInvoiceIdUncollectible
 
 PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible post tradesperson tradesperson ID billing invoice invoice ID uncollectible API
-
 */
 type PostTradespersonTradespersonIDBillingInvoiceInvoiceIDUncollectible struct {
 	Context *middleware.Context

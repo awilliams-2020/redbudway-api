@@ -16,7 +16,8 @@ import (
 // GetProfileVanityOrIDOKCode is the HTTP code returned for type GetProfileVanityOrIDOK
 const GetProfileVanityOrIDOKCode int = 200
 
-/*GetProfileVanityOrIDOK A tradesperson
+/*
+GetProfileVanityOrIDOK A tradesperson
 
 swagger:response getProfileVanityOrIdOK
 */

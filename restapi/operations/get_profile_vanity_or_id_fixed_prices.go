@@ -29,10 +29,10 @@ func NewGetProfileVanityOrIDFixedPrices(ctx *middleware.Context, handler GetProf
 	return &GetProfileVanityOrIDFixedPrices{Context: ctx, Handler: handler}
 }
 
-/* GetProfileVanityOrIDFixedPrices swagger:route GET /profile/{vanityOrId}/fixed-prices getProfileVanityOrIdFixedPrices
+/*
+	GetProfileVanityOrIDFixedPrices swagger:route GET /profile/{vanityOrId}/fixed-prices getProfileVanityOrIdFixedPrices
 
 GetProfileVanityOrIDFixedPrices get profile vanity or ID fixed prices API
-
 */
 type GetProfileVanityOrIDFixedPrices struct {
 	Context *middleware.Context

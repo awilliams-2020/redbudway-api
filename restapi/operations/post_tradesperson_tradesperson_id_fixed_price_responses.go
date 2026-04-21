@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDFixedPriceCreatedCode is the HTTP code returned for type PostTradespersonTradespersonIDFixedPriceCreated
 const PostTradespersonTradespersonIDFixedPriceCreatedCode int = 201
 
-/*PostTradespersonTradespersonIDFixedPriceCreated Created fixed-price
+/*
+PostTradespersonTradespersonIDFixedPriceCreated Created fixed-price
 
 swagger:response postTradespersonTradespersonIdFixedPriceCreated
 */

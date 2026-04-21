@@ -145,6 +145,76 @@ func init() {
         }
       }
     },
+    "/checkout/guest-session": {
+      "post": {
+        "summary": "Guest Checkout Session from a Stripe Quote (reCAPTCHA required; no client-supplied amount)",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "tradespersonId",
+                "stripeQuoteId",
+                "token"
+              ],
+              "properties": {
+                "cancelPath": {
+                  "description": "App path or absolute URL if user cancels",
+                  "type": "string"
+                },
+                "stripeQuoteId": {
+                  "description": "Stripe Quote id (qt_...)",
+                  "type": "string"
+                },
+                "successPath": {
+                  "description": "App path or absolute URL for Stripe redirect after payment",
+                  "type": "string"
+                },
+                "token": {
+                  "description": "reCAPTCHA v3 token",
+                  "type": "string"
+                },
+                "tradespersonId": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stripe Checkout Session created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "reCAPTCHA failed"
+          },
+          "404": {
+            "description": "Quote or provider not found"
+          },
+          "409": {
+            "description": "Quote not payable"
+          }
+        }
+      }
+    },
     "/customer": {
       "post": {
         "parameters": [
@@ -158,8 +228,7 @@ func init() {
                 "name",
                 "email",
                 "password",
-                "number",
-                "address"
+                "number"
               ],
               "properties": {
                 "address": {
@@ -3501,6 +3570,12 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "depositPct": {
+                  "description": "Deposit percentage 0–100; 0 means full payment at acceptance (no split deposit). Omit to leave unchanged.",
+                  "type": "integer",
+                  "format": "int64",
+                  "x-nullable": true
+                },
                 "description": {
                   "type": "string"
                 },
@@ -3642,6 +3717,16 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "amountPaid": {
+                  "description": "Amount collected so far (Stripe invoice), cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "amountRemaining": {
+                  "description": "Balance still due on the invoice (Stripe), cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
                 "created": {
                   "type": "integer",
                   "format": "int64"
@@ -3926,6 +4011,89 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-customer": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer notified by email",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email_id": {
+                  "type": "string"
+                },
+                "sent": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-status": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Resend email ID returned from notify-customer",
+            "name": "emailId",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email delivery status",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "last_event": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/pdf": {
       "get": {
         "security": [
@@ -3955,6 +4123,47 @@ func init() {
             "description": "Quote pdf",
             "schema": {
               "type": "file"
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/resend-finalized-email": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Resend the same email the customer received when the quote was finalized (open quote, accept link). Only allowed when the Stripe quote status is open.",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email_id": {
+                  "type": "string"
+                },
+                "sent": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
             }
           }
         }
@@ -4047,6 +4256,9 @@ func init() {
                 "type": "object",
                 "properties": {
                   "customer": {
+                    "type": "string"
+                  },
+                  "customerEmail": {
                     "type": "string"
                   },
                   "invoiceId": {
@@ -5475,6 +5687,41 @@ func init() {
             }
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog quote template removed",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/tradesperson/{tradespersonId}/quotes": {
@@ -6163,6 +6410,10 @@ func init() {
         "service": {
           "type": "object",
           "properties": {
+            "depositPct": {
+              "type": "integer",
+              "format": "int64"
+            },
             "description": {
               "type": "string"
             },
@@ -6195,6 +6446,11 @@ func init() {
         },
         "business": {
           "$ref": "#/definitions/Business"
+        },
+        "depositPct": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
         },
         "description": {
           "type": "string"
@@ -6262,6 +6518,11 @@ func init() {
         },
         "category": {
           "type": "string"
+        },
+        "depositPct": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
         },
         "description": {
           "type": "string"
@@ -6596,6 +6857,76 @@ func init() {
         }
       }
     },
+    "/checkout/guest-session": {
+      "post": {
+        "summary": "Guest Checkout Session from a Stripe Quote (reCAPTCHA required; no client-supplied amount)",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": [
+                "tradespersonId",
+                "stripeQuoteId",
+                "token"
+              ],
+              "properties": {
+                "cancelPath": {
+                  "description": "App path or absolute URL if user cancels",
+                  "type": "string"
+                },
+                "stripeQuoteId": {
+                  "description": "Stripe Quote id (qt_...)",
+                  "type": "string"
+                },
+                "successPath": {
+                  "description": "App path or absolute URL for Stripe redirect after payment",
+                  "type": "string"
+                },
+                "token": {
+                  "description": "reCAPTCHA v3 token",
+                  "type": "string"
+                },
+                "tradespersonId": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stripe Checkout Session created",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "reCAPTCHA failed"
+          },
+          "404": {
+            "description": "Quote or provider not found"
+          },
+          "409": {
+            "description": "Quote not payable"
+          }
+        }
+      }
+    },
     "/customer": {
       "post": {
         "parameters": [
@@ -6609,8 +6940,7 @@ func init() {
                 "name",
                 "email",
                 "password",
-                "number",
-                "address"
+                "number"
               ],
               "properties": {
                 "address": {
@@ -9800,6 +10130,12 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "depositPct": {
+                  "description": "Deposit percentage 0–100; 0 means full payment at acceptance (no split deposit). Omit to leave unchanged.",
+                  "type": "integer",
+                  "format": "int64",
+                  "x-nullable": true
+                },
                 "description": {
                   "type": "string"
                 },
@@ -9941,6 +10277,16 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "amountPaid": {
+                  "description": "Amount collected so far (Stripe invoice), cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "amountRemaining": {
+                  "description": "Balance still due on the invoice (Stripe), cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
                 "created": {
                   "type": "integer",
                   "format": "int64"
@@ -10225,6 +10571,89 @@ func init() {
         }
       }
     },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-customer": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Customer notified by email",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email_id": {
+                  "type": "string"
+                },
+                "sent": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-status": {
+      "get": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Resend email ID returned from notify-customer",
+            "name": "emailId",
+            "in": "query",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email delivery status",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "last_event": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/pdf": {
       "get": {
         "security": [
@@ -10254,6 +10683,47 @@ func init() {
             "description": "Quote pdf",
             "schema": {
               "type": "file"
+            }
+          }
+        }
+      }
+    },
+    "/tradesperson/{tradespersonId}/billing/quote/{quoteId}/resend-finalized-email": {
+      "post": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "description": "Resend the same email the customer received when the quote was finalized (open quote, accept link). Only allowed when the Stripe quote status is open.",
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Email sent",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email_id": {
+                  "type": "string"
+                },
+                "sent": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
             }
           }
         }
@@ -11697,6 +12167,41 @@ func init() {
             }
           }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "type": "string",
+            "name": "tradespersonId",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "name": "quoteId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog quote template removed",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "deleted": {
+                  "type": "boolean",
+                  "x-omitempty": false
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/tradesperson/{tradespersonId}/quotes": {
@@ -12338,6 +12843,9 @@ func init() {
         "customer": {
           "type": "string"
         },
+        "customerEmail": {
+          "type": "string"
+        },
         "invoiceId": {
           "type": "string"
         },
@@ -12563,6 +13071,10 @@ func init() {
         "service": {
           "type": "object",
           "properties": {
+            "depositPct": {
+              "type": "integer",
+              "format": "int64"
+            },
             "description": {
               "type": "string"
             },
@@ -12585,6 +13097,10 @@ func init() {
     "QuoteDetailsService": {
       "type": "object",
       "properties": {
+        "depositPct": {
+          "type": "integer",
+          "format": "int64"
+        },
         "description": {
           "type": "string"
         },
@@ -12643,6 +13159,11 @@ func init() {
         },
         "business": {
           "$ref": "#/definitions/Business"
+        },
+        "depositPct": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
         },
         "description": {
           "type": "string"
@@ -12710,6 +13231,11 @@ func init() {
         },
         "category": {
           "type": "string"
+        },
+        "depositPct": {
+          "type": "integer",
+          "format": "int64",
+          "x-omitempty": false
         },
         "description": {
           "type": "string"

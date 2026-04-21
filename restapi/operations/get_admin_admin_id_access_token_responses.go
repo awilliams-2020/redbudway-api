@@ -14,7 +14,8 @@ import (
 // GetAdminAdminIDAccessTokenOKCode is the HTTP code returned for type GetAdminAdminIDAccessTokenOK
 const GetAdminAdminIDAccessTokenOKCode int = 200
 
-/*GetAdminAdminIDAccessTokenOK A valid admin accessToken
+/*
+GetAdminAdminIDAccessTokenOK A valid admin accessToken
 
 swagger:response getAdminAdminIdAccessTokenOK
 */

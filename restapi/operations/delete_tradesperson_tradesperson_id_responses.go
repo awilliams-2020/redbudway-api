@@ -14,7 +14,8 @@ import (
 // DeleteTradespersonTradespersonIDOKCode is the HTTP code returned for type DeleteTradespersonTradespersonIDOK
 const DeleteTradespersonTradespersonIDOKCode int = 200
 
-/*DeleteTradespersonTradespersonIDOK Deletes tradesperson account
+/*
+DeleteTradespersonTradespersonIDOK Deletes tradesperson account
 
 swagger:response deleteTradespersonTradespersonIdOK
 */

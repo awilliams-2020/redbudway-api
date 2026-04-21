@@ -14,7 +14,8 @@ import (
 // PutTradespersonTradespersonIDTimeZoneOKCode is the HTTP code returned for type PutTradespersonTradespersonIDTimeZoneOK
 const PutTradespersonTradespersonIDTimeZoneOKCode int = 200
 
-/*PutTradespersonTradespersonIDTimeZoneOK Updates tradesperson settings
+/*
+PutTradespersonTradespersonIDTimeZoneOK Updates tradesperson settings
 
 swagger:response putTradespersonTradespersonIdTimeZoneOK
 */

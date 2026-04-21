@@ -14,7 +14,8 @@ import (
 // GetTradespersonTradespersonIDAccessTokenOKCode is the HTTP code returned for type GetTradespersonTradespersonIDAccessTokenOK
 const GetTradespersonTradespersonIDAccessTokenOKCode int = 200
 
-/*GetTradespersonTradespersonIDAccessTokenOK A valid tradesperson accessToken
+/*
+GetTradespersonTradespersonIDAccessTokenOK A valid tradesperson accessToken
 
 swagger:response getTradespersonTradespersonIdAccessTokenOK
 */

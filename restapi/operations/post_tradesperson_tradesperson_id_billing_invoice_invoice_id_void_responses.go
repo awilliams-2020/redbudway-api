@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOKCode is the HTTP code returned for type PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOK
 const PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOKCode int = 200
 
-/*PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOK If invoice voided
+/*
+PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidOK If invoice voided
 
 swagger:response postTradespersonTradespersonIdBillingInvoiceInvoiceIdVoidOK
 */

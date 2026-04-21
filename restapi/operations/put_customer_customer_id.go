@@ -32,10 +32,10 @@ func NewPutCustomerCustomerID(ctx *middleware.Context, handler PutCustomerCustom
 	return &PutCustomerCustomerID{Context: ctx, Handler: handler}
 }
 
-/* PutCustomerCustomerID swagger:route PUT /customer/{customerId} putCustomerCustomerId
+/*
+	PutCustomerCustomerID swagger:route PUT /customer/{customerId} putCustomerCustomerId
 
 PutCustomerCustomerID put customer customer ID API
-
 */
 type PutCustomerCustomerID struct {
 	Context *middleware.Context

@@ -29,10 +29,10 @@ func NewGetForgotPassword(ctx *middleware.Context, handler GetForgotPasswordHand
 	return &GetForgotPassword{Context: ctx, Handler: handler}
 }
 
-/* GetForgotPassword swagger:route GET /forgot-password getForgotPassword
+/*
+	GetForgotPassword swagger:route GET /forgot-password getForgotPassword
 
 GetForgotPassword get forgot password API
-
 */
 type GetForgotPassword struct {
 	Context *middleware.Context

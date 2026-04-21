@@ -14,7 +14,8 @@ import (
 // PostCustomerLoginOKCode is the HTTP code returned for type PostCustomerLoginOK
 const PostCustomerLoginOKCode int = 200
 
-/*PostCustomerLoginOK Valid email and password
+/*
+PostCustomerLoginOK Valid email and password
 
 swagger:response postCustomerLoginOK
 */

@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel
 	return &PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel swagger:route POST /tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions/cancel postTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionsCancel
+/*
+	PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel swagger:route POST /tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscriptions/cancel postTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionsCancel
 
 PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel post tradesperson tradesperson ID billing customer stripe ID subscriptions cancel API
-
 */
 type PostTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionsCancel struct {
 	Context *middleware.Context

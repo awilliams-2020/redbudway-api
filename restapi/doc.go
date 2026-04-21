@@ -2,19 +2,19 @@
 
 // Package restapi Redbud Way API
 //
-//  API description in Markdown.
-//  Schemes:
-//    http
-//  Host: redbudway.com
-//  BasePath: /v1
-//  Version: 1.0.0
+//	API description in Markdown.
+//	Schemes:
+//	  http
+//	Host: redbudway.com
+//	BasePath: /v1
+//	Version: 1.0.0
 //
-//  Consumes:
-//    - application/json
+//	Consumes:
+//	  - application/json
 //
-//  Produces:
-//    - application/pdf
-//    - application/json
+//	Produces:
+//	  - application/pdf
+//	  - application/json
 //
 // swagger:meta
 package restapi

@@ -34,10 +34,10 @@ func NewPostTradespersonLogin(ctx *middleware.Context, handler PostTradespersonL
 	return &PostTradespersonLogin{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonLogin swagger:route POST /tradesperson/login postTradespersonLogin
+/*
+	PostTradespersonLogin swagger:route POST /tradesperson/login postTradespersonLogin
 
 PostTradespersonLogin post tradesperson login API
-
 */
 type PostTradespersonLogin struct {
 	Context *middleware.Context

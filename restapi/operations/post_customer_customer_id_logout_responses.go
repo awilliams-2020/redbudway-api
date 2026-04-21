@@ -14,7 +14,8 @@ import (
 // PostCustomerCustomerIDLogoutOKCode is the HTTP code returned for type PostCustomerCustomerIDLogoutOK
 const PostCustomerCustomerIDLogoutOKCode int = 200
 
-/*PostCustomerCustomerIDLogoutOK Log customer out
+/*
+PostCustomerCustomerIDLogoutOK Log customer out
 
 swagger:response postCustomerCustomerIdLogoutOK
 */

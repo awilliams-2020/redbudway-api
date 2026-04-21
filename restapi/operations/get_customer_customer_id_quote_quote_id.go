@@ -36,10 +36,10 @@ func NewGetCustomerCustomerIDQuoteQuoteID(ctx *middleware.Context, handler GetCu
 	return &GetCustomerCustomerIDQuoteQuoteID{Context: ctx, Handler: handler}
 }
 
-/* GetCustomerCustomerIDQuoteQuoteID swagger:route GET /customer/{customerId}/quote/{quoteId} getCustomerCustomerIdQuoteQuoteId
+/*
+	GetCustomerCustomerIDQuoteQuoteID swagger:route GET /customer/{customerId}/quote/{quoteId} getCustomerCustomerIdQuoteQuoteId
 
 GetCustomerCustomerIDQuoteQuoteID get customer customer ID quote quote ID API
-
 */
 type GetCustomerCustomerIDQuoteQuoteID struct {
 	Context *middleware.Context
@@ -182,6 +182,11 @@ func (o *GetCustomerCustomerIDQuoteQuoteIDOKBody) ContextValidate(ctx context.Co
 func (o *GetCustomerCustomerIDQuoteQuoteIDOKBody) contextValidateService(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Service != nil {
+
+		if swag.IsZero(o.Service) { // not required
+			return nil
+		}
+
 		if err := o.Service.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getCustomerCustomerIdQuoteQuoteIdOK" + "." + "service")
@@ -198,6 +203,11 @@ func (o *GetCustomerCustomerIDQuoteQuoteIDOKBody) contextValidateService(ctx con
 func (o *GetCustomerCustomerIDQuoteQuoteIDOKBody) contextValidateTradesperson(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Tradesperson != nil {
+
+		if swag.IsZero(o.Tradesperson) { // not required
+			return nil
+		}
+
 		if err := o.Tradesperson.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getCustomerCustomerIdQuoteQuoteIdOK" + "." + "tradesperson")
@@ -303,6 +313,11 @@ func (o *GetCustomerCustomerIDQuoteQuoteIDOKBodyService) contextValidateProducts
 	for i := 0; i < len(o.Products); i++ {
 
 		if o.Products[i] != nil {
+
+			if swag.IsZero(o.Products[i]) { // not required
+				return nil
+			}
+
 			if err := o.Products[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("getCustomerCustomerIdQuoteQuoteIdOK" + "." + "service" + "." + "products" + "." + strconv.Itoa(i))

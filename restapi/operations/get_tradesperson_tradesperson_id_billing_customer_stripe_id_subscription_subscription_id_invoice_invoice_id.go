@@ -35,10 +35,10 @@ func NewGetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscrip
 	return &GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId} getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionSubscriptionIdInvoiceInvoiceId
+/*
+	GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID swagger:route GET /tradesperson/{tradespersonId}/billing/customer/{stripeId}/subscription/{subscriptionId}/invoice/{invoiceId} getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionSubscriptionIdInvoiceInvoiceId
 
 GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID get tradesperson tradesperson ID billing customer stripe ID subscription subscription ID invoice invoice ID API
-
 */
 type GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceID struct {
 	Context *middleware.Context
@@ -223,6 +223,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscri
 func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOKBody) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Customer != nil {
+
+		if swag.IsZero(o.Customer) { // not required
+			return nil
+		}
+
 		if err := o.Customer.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionSubscriptionIdInvoiceInvoiceIdOK" + "." + "customer")
@@ -239,6 +244,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscri
 func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOKBody) contextValidateService(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Service != nil {
+
+		if swag.IsZero(o.Service) { // not required
+			return nil
+		}
+
 		if err := o.Service.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionSubscriptionIdInvoiceInvoiceIdOK" + "." + "service")
@@ -255,6 +265,11 @@ func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscri
 func (o *GetTradespersonTradespersonIDBillingCustomerStripeIDSubscriptionSubscriptionIDInvoiceInvoiceIDOKBody) contextValidateTimeSlot(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.TimeSlot != nil {
+
+		if swag.IsZero(o.TimeSlot) { // not required
+			return nil
+		}
+
 		if err := o.TimeSlot.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdBillingCustomerStripeIdSubscriptionSubscriptionIdInvoiceInvoiceIdOK" + "." + "timeSlot")

@@ -32,10 +32,10 @@ func NewDeleteTradespersonTradespersonIDBillingInvoiceInvoiceID(ctx *middleware.
 	return &DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID{Context: ctx, Handler: handler}
 }
 
-/* DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID swagger:route DELETE /tradesperson/{tradespersonId}/billing/invoice/{invoiceId} deleteTradespersonTradespersonIdBillingInvoiceInvoiceId
+/*
+	DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID swagger:route DELETE /tradesperson/{tradespersonId}/billing/invoice/{invoiceId} deleteTradespersonTradespersonIdBillingInvoiceInvoiceId
 
 DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID delete tradesperson tradesperson ID billing invoice invoice ID API
-
 */
 type DeleteTradespersonTradespersonIDBillingInvoiceInvoiceID struct {
 	Context *middleware.Context

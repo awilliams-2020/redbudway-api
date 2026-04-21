@@ -35,10 +35,10 @@ func NewGetTradespersonTradespersonIDTimeSlots(ctx *middleware.Context, handler 
 	return &GetTradespersonTradespersonIDTimeSlots{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDTimeSlots swagger:route GET /tradesperson/{tradespersonId}/time-slots getTradespersonTradespersonIdTimeSlots
+/*
+	GetTradespersonTradespersonIDTimeSlots swagger:route GET /tradesperson/{tradespersonId}/time-slots getTradespersonTradespersonIdTimeSlots
 
 GetTradespersonTradespersonIDTimeSlots get tradesperson tradesperson ID time slots API
-
 */
 type GetTradespersonTradespersonIDTimeSlots struct {
 	Context *middleware.Context

@@ -35,10 +35,10 @@ func NewGetFixedPricePriceID(ctx *middleware.Context, handler GetFixedPricePrice
 	return &GetFixedPricePriceID{Context: ctx, Handler: handler}
 }
 
-/* GetFixedPricePriceID swagger:route GET /fixed-price/{priceId} getFixedPricePriceId
+/*
+	GetFixedPricePriceID swagger:route GET /fixed-price/{priceId} getFixedPricePriceId
 
 GetFixedPricePriceID get fixed price price ID API
-
 */
 type GetFixedPricePriceID struct {
 	Context *middleware.Context
@@ -150,6 +150,11 @@ func (o *GetFixedPricePriceIDOKBody) ContextValidate(ctx context.Context, format
 func (o *GetFixedPricePriceIDOKBody) contextValidateBusiness(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Business != nil {
+
+		if swag.IsZero(o.Business) { // not required
+			return nil
+		}
+
 		if err := o.Business.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getFixedPricePriceIdOK" + "." + "business")
@@ -166,6 +171,11 @@ func (o *GetFixedPricePriceIDOKBody) contextValidateBusiness(ctx context.Context
 func (o *GetFixedPricePriceIDOKBody) contextValidateService(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Service != nil {
+
+		if swag.IsZero(o.Service) { // not required
+			return nil
+		}
+
 		if err := o.Service.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getFixedPricePriceIdOK" + "." + "service")

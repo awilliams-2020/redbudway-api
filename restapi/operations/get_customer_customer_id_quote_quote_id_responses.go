@@ -14,7 +14,8 @@ import (
 // GetCustomerCustomerIDQuoteQuoteIDOKCode is the HTTP code returned for type GetCustomerCustomerIDQuoteQuoteIDOK
 const GetCustomerCustomerIDQuoteQuoteIDOKCode int = 200
 
-/*GetCustomerCustomerIDQuoteQuoteIDOK Customer quote service
+/*
+GetCustomerCustomerIDQuoteQuoteIDOK Customer quote service
 
 swagger:response getCustomerCustomerIdQuoteQuoteIdOK
 */

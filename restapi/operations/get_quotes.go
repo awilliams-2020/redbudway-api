@@ -29,10 +29,10 @@ func NewGetQuotes(ctx *middleware.Context, handler GetQuotesHandler) *GetQuotes 
 	return &GetQuotes{Context: ctx, Handler: handler}
 }
 
-/* GetQuotes swagger:route GET /quotes getQuotes
+/*
+	GetQuotes swagger:route GET /quotes getQuotes
 
 GetQuotes get quotes API
-
 */
 type GetQuotes struct {
 	Context *middleware.Context

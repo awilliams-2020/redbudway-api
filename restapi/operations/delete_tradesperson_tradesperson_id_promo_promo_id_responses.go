@@ -14,7 +14,8 @@ import (
 // DeleteTradespersonTradespersonIDPromoPromoIDOKCode is the HTTP code returned for type DeleteTradespersonTradespersonIDPromoPromoIDOK
 const DeleteTradespersonTradespersonIDPromoPromoIDOKCode int = 200
 
-/*DeleteTradespersonTradespersonIDPromoPromoIDOK If promo was deleted
+/*
+DeleteTradespersonTradespersonIDPromoPromoIDOK If promo was deleted
 
 swagger:response deleteTradespersonTradespersonIdPromoPromoIdOK
 */

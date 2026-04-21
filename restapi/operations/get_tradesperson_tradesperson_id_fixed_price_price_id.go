@@ -35,10 +35,10 @@ func NewGetTradespersonTradespersonIDFixedPricePriceID(ctx *middleware.Context, 
 	return &GetTradespersonTradespersonIDFixedPricePriceID{Context: ctx, Handler: handler}
 }
 
-/* GetTradespersonTradespersonIDFixedPricePriceID swagger:route GET /tradesperson/{tradespersonId}/fixed-price/{priceId} getTradespersonTradespersonIdFixedPricePriceId
+/*
+	GetTradespersonTradespersonIDFixedPricePriceID swagger:route GET /tradesperson/{tradespersonId}/fixed-price/{priceId} getTradespersonTradespersonIdFixedPricePriceId
 
 GetTradespersonTradespersonIDFixedPricePriceID get tradesperson tradesperson ID fixed price price ID API
-
 */
 type GetTradespersonTradespersonIDFixedPricePriceID struct {
 	Context *middleware.Context
@@ -189,6 +189,11 @@ func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) ContextValidate(c
 func (o *GetTradespersonTradespersonIDFixedPricePriceIDOKBody) contextValidateFixedPrice(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.FixedPrice != nil {
+
+		if swag.IsZero(o.FixedPrice) { // not required
+			return nil
+		}
+
 		if err := o.FixedPrice.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getTradespersonTradespersonIdFixedPricePriceIdOK" + "." + "fixedPrice")

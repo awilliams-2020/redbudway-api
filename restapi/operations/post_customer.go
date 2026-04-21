@@ -36,10 +36,10 @@ func NewPostCustomer(ctx *middleware.Context, handler PostCustomerHandler) *Post
 	return &PostCustomer{Context: ctx, Handler: handler}
 }
 
-/* PostCustomer swagger:route POST /customer postCustomer
+/*
+	PostCustomer swagger:route POST /customer postCustomer
 
 PostCustomer post customer API
-
 */
 type PostCustomer struct {
 	Context *middleware.Context
@@ -68,8 +68,7 @@ func (o *PostCustomer) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 type PostCustomerBody struct {
 
 	// address
-	// Required: true
-	Address *models.Address `json:"address"`
+	Address *models.Address `json:"address,omitempty"`
 
 	// email
 	// Required: true
@@ -121,9 +120,8 @@ func (o *PostCustomerBody) Validate(formats strfmt.Registry) error {
 }
 
 func (o *PostCustomerBody) validateAddress(formats strfmt.Registry) error {
-
-	if err := validate.Required("customer"+"."+"address", "body", o.Address); err != nil {
-		return err
+	if swag.IsZero(o.Address) { // not required
+		return nil
 	}
 
 	if o.Address != nil {
@@ -201,6 +199,11 @@ func (o *PostCustomerBody) ContextValidate(ctx context.Context, formats strfmt.R
 func (o *PostCustomerBody) contextValidateAddress(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Address != nil {
+
+		if swag.IsZero(o.Address) { // not required
+			return nil
+		}
+
 		if err := o.Address.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("customer" + "." + "address")

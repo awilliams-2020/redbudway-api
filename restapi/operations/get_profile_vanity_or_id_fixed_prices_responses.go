@@ -16,7 +16,8 @@ import (
 // GetProfileVanityOrIDFixedPricesOKCode is the HTTP code returned for type GetProfileVanityOrIDFixedPricesOK
 const GetProfileVanityOrIDFixedPricesOKCode int = 200
 
-/*GetProfileVanityOrIDFixedPricesOK Tradesperson fixed-price services
+/*
+GetProfileVanityOrIDFixedPricesOK Tradesperson fixed-price services
 
 swagger:response getProfileVanityOrIdFixedPricesOK
 */

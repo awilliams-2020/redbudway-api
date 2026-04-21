@@ -32,10 +32,10 @@ func NewPutTradespersonTradespersonIDBranding(ctx *middleware.Context, handler P
 	return &PutTradespersonTradespersonIDBranding{Context: ctx, Handler: handler}
 }
 
-/* PutTradespersonTradespersonIDBranding swagger:route PUT /tradesperson/{tradespersonId}/branding putTradespersonTradespersonIdBranding
+/*
+	PutTradespersonTradespersonIDBranding swagger:route PUT /tradesperson/{tradespersonId}/branding putTradespersonTradespersonIdBranding
 
 PutTradespersonTradespersonIDBranding put tradesperson tradesperson ID branding API
-
 */
 type PutTradespersonTradespersonIDBranding struct {
 	Context *middleware.Context

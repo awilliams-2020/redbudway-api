@@ -14,7 +14,8 @@ import (
 // GetAdminAdminIDTradespeopleOKCode is the HTTP code returned for type GetAdminAdminIDTradespeopleOK
 const GetAdminAdminIDTradespeopleOKCode int = 200
 
-/*GetAdminAdminIDTradespeopleOK A list of tradespeople
+/*
+GetAdminAdminIDTradespeopleOK A list of tradespeople
 
 swagger:response getAdminAdminIdTradespeopleOK
 */

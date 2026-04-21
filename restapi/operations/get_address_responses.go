@@ -14,7 +14,8 @@ import (
 // GetAddressOKCode is the HTTP code returned for type GetAddressOK
 const GetAddressOKCode int = 200
 
-/*GetAddressOK City and State of end user
+/*
+GetAddressOK City and State of end user
 
 swagger:response getAddressOK
 */

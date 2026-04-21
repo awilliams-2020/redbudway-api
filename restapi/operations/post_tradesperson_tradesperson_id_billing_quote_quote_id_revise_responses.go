@@ -14,7 +14,8 @@ import (
 // PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseOKCode is the HTTP code returned for type PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseOK
 const PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseOKCode int = 200
 
-/*PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseOK If quote was revised
+/*
+PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseOK If quote was revised
 
 swagger:response postTradespersonTradespersonIdBillingQuoteQuoteIdReviseOK
 */

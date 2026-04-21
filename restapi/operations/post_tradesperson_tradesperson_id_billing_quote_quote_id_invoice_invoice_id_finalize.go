@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinaliz
 	return &PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize swagger:route POST /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/finalize postTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdFinalize
+/*
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize swagger:route POST /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/finalize postTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdFinalize
 
 PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize post tradesperson tradesperson ID billing quote quote ID invoice invoice ID finalize API
-
 */
 type PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDFinalize struct {
 	Context *middleware.Context

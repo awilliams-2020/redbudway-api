@@ -61,6 +61,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		DeleteTradespersonTradespersonIDPromoPromoIDHandler: DeleteTradespersonTradespersonIDPromoPromoIDHandlerFunc(func(params DeleteTradespersonTradespersonIDPromoPromoIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDPromoPromoID has not yet been implemented")
 		}),
+		DeleteTradespersonTradespersonIDQuoteQuoteIDHandler: DeleteTradespersonTradespersonIDQuoteQuoteIDHandlerFunc(func(params DeleteTradespersonTradespersonIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation DeleteTradespersonTradespersonIDQuoteQuoteID has not yet been implemented")
+		}),
 		GetAddressHandler: GetAddressHandlerFunc(func(params GetAddressParams) middleware.Responder {
 			return middleware.NotImplemented("operation GetAddress has not yet been implemented")
 		}),
@@ -187,6 +190,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler: GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandlerFunc(func(params GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceID has not yet been implemented")
 		}),
+		GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler: GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandlerFunc(func(params GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatus has not yet been implemented")
+		}),
 		GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler: GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandlerFunc(func(params GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDBillingQuoteQuoteIDPdf has not yet been implemented")
 		}),
@@ -258,6 +264,9 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		}),
 		GetTradespersonTradespersonIDTimeSlotsHandler: GetTradespersonTradespersonIDTimeSlotsHandlerFunc(func(params GetTradespersonTradespersonIDTimeSlotsParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GetTradespersonTradespersonIDTimeSlots has not yet been implemented")
+		}),
+		PostCheckoutGuestSessionHandler: PostCheckoutGuestSessionHandlerFunc(func(params PostCheckoutGuestSessionParams) middleware.Responder {
+			return middleware.NotImplemented("operation PostCheckoutGuestSession has not yet been implemented")
 		}),
 		PostCustomerHandler: PostCustomerHandlerFunc(func(params PostCustomerParams) middleware.Responder {
 			return middleware.NotImplemented("operation PostCustomer has not yet been implemented")
@@ -357,6 +366,12 @@ func NewRedbudWayAPIAPI(spec *loads.Document) *RedbudWayAPIAPI {
 		}),
 		PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoid has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomer has not yet been implemented")
+		}),
+		PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmail has not yet been implemented")
 		}),
 		PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler: PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandlerFunc(func(params PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation PostTradespersonTradespersonIDBillingQuoteQuoteIDRevise has not yet been implemented")
@@ -495,6 +510,8 @@ type RedbudWayAPIAPI struct {
 	DeleteTradespersonTradespersonIDGoogleTokenHandler DeleteTradespersonTradespersonIDGoogleTokenHandler
 	// DeleteTradespersonTradespersonIDPromoPromoIDHandler sets the operation handler for the delete tradesperson tradesperson ID promo promo ID operation
 	DeleteTradespersonTradespersonIDPromoPromoIDHandler DeleteTradespersonTradespersonIDPromoPromoIDHandler
+	// DeleteTradespersonTradespersonIDQuoteQuoteIDHandler sets the operation handler for the delete tradesperson tradesperson ID quote quote ID operation
+	DeleteTradespersonTradespersonIDQuoteQuoteIDHandler DeleteTradespersonTradespersonIDQuoteQuoteIDHandler
 	// GetAddressHandler sets the operation handler for the get address operation
 	GetAddressHandler GetAddressHandler
 	// GetAdminAdminIDAccessTokenHandler sets the operation handler for the get admin admin ID access token operation
@@ -579,6 +596,8 @@ type RedbudWayAPIAPI struct {
 	GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler
 	// GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler sets the operation handler for the get tradesperson tradesperson ID billing quote quote ID invoice invoice ID operation
 	GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler
+	// GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler sets the operation handler for the get tradesperson tradesperson ID billing quote quote ID notify status operation
+	GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler
 	// GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler sets the operation handler for the get tradesperson tradesperson ID billing quote quote ID pdf operation
 	GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler
 	// GetTradespersonTradespersonIDBillingQuotesHandler sets the operation handler for the get tradesperson tradesperson ID billing quotes operation
@@ -627,6 +646,8 @@ type RedbudWayAPIAPI struct {
 	GetTradespersonTradespersonIDSyncHandler GetTradespersonTradespersonIDSyncHandler
 	// GetTradespersonTradespersonIDTimeSlotsHandler sets the operation handler for the get tradesperson tradesperson ID time slots operation
 	GetTradespersonTradespersonIDTimeSlotsHandler GetTradespersonTradespersonIDTimeSlotsHandler
+	// PostCheckoutGuestSessionHandler sets the operation handler for the post checkout guest session operation
+	PostCheckoutGuestSessionHandler PostCheckoutGuestSessionHandler
 	// PostCustomerHandler sets the operation handler for the post customer operation
 	PostCustomerHandler PostCustomerHandler
 	// PostCustomerCustomerIDAccessTokenHandler sets the operation handler for the post customer customer ID access token operation
@@ -693,6 +714,10 @@ type RedbudWayAPIAPI struct {
 	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDUncollectibleHandler
 	// PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID invoice invoice ID void operation
 	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID notify customer operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler
+	// PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID resend finalized email operation
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler
 	// PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler sets the operation handler for the post tradesperson tradesperson ID billing quote quote ID revise operation
 	PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler
 	// PostTradespersonTradespersonIDCouponHandler sets the operation handler for the post tradesperson tradesperson ID coupon operation
@@ -843,6 +868,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.DeleteTradespersonTradespersonIDPromoPromoIDHandler == nil {
 		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDPromoPromoIDHandler")
 	}
+	if o.DeleteTradespersonTradespersonIDQuoteQuoteIDHandler == nil {
+		unregistered = append(unregistered, "DeleteTradespersonTradespersonIDQuoteQuoteIDHandler")
+	}
 	if o.GetAddressHandler == nil {
 		unregistered = append(unregistered, "GetAddressHandler")
 	}
@@ -969,6 +997,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	if o.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler")
 	}
+	if o.GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler == nil {
+		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler")
+	}
 	if o.GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler")
 	}
@@ -1040,6 +1071,9 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.GetTradespersonTradespersonIDTimeSlotsHandler == nil {
 		unregistered = append(unregistered, "GetTradespersonTradespersonIDTimeSlotsHandler")
+	}
+	if o.PostCheckoutGuestSessionHandler == nil {
+		unregistered = append(unregistered, "PostCheckoutGuestSessionHandler")
 	}
 	if o.PostCustomerHandler == nil {
 		unregistered = append(unregistered, "PostCustomerHandler")
@@ -1139,6 +1173,12 @@ func (o *RedbudWayAPIAPI) Validate() error {
 	}
 	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler")
+	}
+	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler == nil {
+		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler")
 	}
 	if o.PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler == nil {
 		unregistered = append(unregistered, "PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler")
@@ -1335,6 +1375,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/promo/{promoId}"] = NewDeleteTradespersonTradespersonIDPromoPromoID(o.context, o.DeleteTradespersonTradespersonIDPromoPromoIDHandler)
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/tradesperson/{tradespersonId}/quote/{quoteId}"] = NewDeleteTradespersonTradespersonIDQuoteQuoteID(o.context, o.DeleteTradespersonTradespersonIDQuoteQuoteIDHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
@@ -1506,6 +1550,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
+	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-status"] = NewGetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatus(o.context, o.GetTradespersonTradespersonIDBillingQuoteQuoteIDNotifyStatusHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/pdf"] = NewGetTradespersonTradespersonIDBillingQuoteQuoteIDPdf(o.context, o.GetTradespersonTradespersonIDBillingQuoteQuoteIDPdfHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
@@ -1599,6 +1647,10 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
 	o.handlers["GET"]["/tradesperson/{tradespersonId}/time-slots"] = NewGetTradespersonTradespersonIDTimeSlots(o.context, o.GetTradespersonTradespersonIDTimeSlotsHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/checkout/guest-session"] = NewPostCheckoutGuestSession(o.context, o.PostCheckoutGuestSessionHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -1731,6 +1783,14 @@ func (o *RedbudWayAPIAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/void"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoid(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDVoidHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-customer"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomer(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/tradesperson/{tradespersonId}/billing/quote/{quoteId}/resend-finalized-email"] = NewPostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmail(o.context, o.PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -1868,6 +1928,6 @@ func (o *RedbudWayAPIAPI) AddMiddlewareFor(method, path string, builder middlewa
 	}
 	o.Init()
 	if h, ok := o.handlers[um][path]; ok {
-		o.handlers[method][path] = builder(h)
+		o.handlers[um][path] = builder(h)
 	}
 }

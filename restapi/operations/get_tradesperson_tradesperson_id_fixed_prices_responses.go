@@ -16,7 +16,8 @@ import (
 // GetTradespersonTradespersonIDFixedPricesOKCode is the HTTP code returned for type GetTradespersonTradespersonIDFixedPricesOK
 const GetTradespersonTradespersonIDFixedPricesOKCode int = 200
 
-/*GetTradespersonTradespersonIDFixedPricesOK Tradesperson fixed-price services
+/*
+GetTradespersonTradespersonIDFixedPricesOK Tradesperson fixed-price services
 
 swagger:response getTradespersonTradespersonIdFixedPricesOK
 */

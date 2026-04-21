@@ -14,7 +14,8 @@ import (
 // GetLocationOKCode is the HTTP code returned for type GetLocationOK
 const GetLocationOKCode int = 200
 
-/*GetLocationOK City and State of end user
+/*
+GetLocationOK City and State of end user
 
 swagger:response getLocationOK
 */

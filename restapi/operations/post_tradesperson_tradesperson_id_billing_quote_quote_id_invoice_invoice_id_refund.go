@@ -32,10 +32,10 @@ func NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund(
 	return &PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund swagger:route POST /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/refund postTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdRefund
+/*
+	PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund swagger:route POST /tradesperson/{tradespersonId}/billing/quote/{quoteId}/invoice/{invoiceId}/refund postTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdRefund
 
 PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund post tradesperson tradesperson ID billing quote quote ID invoice invoice ID refund API
-
 */
 type PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund struct {
 	Context *middleware.Context

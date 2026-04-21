@@ -32,10 +32,10 @@ func NewPostCustomerCustomerIDVerify(ctx *middleware.Context, handler PostCustom
 	return &PostCustomerCustomerIDVerify{Context: ctx, Handler: handler}
 }
 
-/* PostCustomerCustomerIDVerify swagger:route POST /customer/{customerId}/verify postCustomerCustomerIdVerify
+/*
+	PostCustomerCustomerIDVerify swagger:route POST /customer/{customerId}/verify postCustomerCustomerIdVerify
 
 PostCustomerCustomerIDVerify post customer customer ID verify API
-
 */
 type PostCustomerCustomerIDVerify struct {
 	Context *middleware.Context

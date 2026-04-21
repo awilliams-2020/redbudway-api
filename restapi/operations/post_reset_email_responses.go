@@ -14,7 +14,8 @@ import (
 // PostResetEmailOKCode is the HTTP code returned for type PostResetEmailOK
 const PostResetEmailOKCode int = 200
 
-/*PostResetEmailOK Reset email
+/*
+PostResetEmailOK Reset email
 
 swagger:response postResetEmailOK
 */

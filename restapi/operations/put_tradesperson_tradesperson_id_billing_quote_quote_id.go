@@ -36,10 +36,10 @@ func NewPutTradespersonTradespersonIDBillingQuoteQuoteID(ctx *middleware.Context
 	return &PutTradespersonTradespersonIDBillingQuoteQuoteID{Context: ctx, Handler: handler}
 }
 
-/* PutTradespersonTradespersonIDBillingQuoteQuoteID swagger:route PUT /tradesperson/{tradespersonId}/billing/quote/{quoteId} putTradespersonTradespersonIdBillingQuoteQuoteId
+/*
+	PutTradespersonTradespersonIDBillingQuoteQuoteID swagger:route PUT /tradesperson/{tradespersonId}/billing/quote/{quoteId} putTradespersonTradespersonIdBillingQuoteQuoteId
 
 PutTradespersonTradespersonIDBillingQuoteQuoteID put tradesperson tradesperson ID billing quote quote ID API
-
 */
 type PutTradespersonTradespersonIDBillingQuoteQuoteID struct {
 	Context *middleware.Context
@@ -79,6 +79,9 @@ func (o *PutTradespersonTradespersonIDBillingQuoteQuoteID) ServeHTTP(rw http.Res
 //
 // swagger:model PutTradespersonTradespersonIDBillingQuoteQuoteIDBody
 type PutTradespersonTradespersonIDBillingQuoteQuoteIDBody struct {
+
+	// Deposit percentage 0–100; 0 means full payment at acceptance (no split deposit). Omit to leave unchanged.
+	DepositPct *int64 `json:"depositPct,omitempty"`
 
 	// description
 	Description string `json:"description,omitempty"`
@@ -146,6 +149,11 @@ func (o *PutTradespersonTradespersonIDBillingQuoteQuoteIDBody) contextValidatePr
 	for i := 0; i < len(o.Products); i++ {
 
 		if o.Products[i] != nil {
+
+			if swag.IsZero(o.Products[i]) { // not required
+				return nil
+			}
+
 			if err := o.Products[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("quote" + "." + "products" + "." + strconv.Itoa(i))

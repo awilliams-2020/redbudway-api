@@ -35,10 +35,10 @@ func NewPostTradespersonTradespersonIDCouponCouponIDPromo(ctx *middleware.Contex
 	return &PostTradespersonTradespersonIDCouponCouponIDPromo{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDCouponCouponIDPromo swagger:route POST /tradesperson/{tradespersonId}/coupon/{couponId}/promo postTradespersonTradespersonIdCouponCouponIdPromo
+/*
+	PostTradespersonTradespersonIDCouponCouponIDPromo swagger:route POST /tradesperson/{tradespersonId}/coupon/{couponId}/promo postTradespersonTradespersonIdCouponCouponIdPromo
 
 PostTradespersonTradespersonIDCouponCouponIDPromo post tradesperson tradesperson ID coupon coupon ID promo API
-
 */
 type PostTradespersonTradespersonIDCouponCouponIDPromo struct {
 	Context *middleware.Context
@@ -136,6 +136,11 @@ func (o *PostTradespersonTradespersonIDCouponCouponIDPromoOKBody) ContextValidat
 func (o *PostTradespersonTradespersonIDCouponCouponIDPromoOKBody) contextValidatePromo(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Promo != nil {
+
+		if swag.IsZero(o.Promo) { // not required
+			return nil
+		}
+
 		if err := o.Promo.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("postTradespersonTradespersonIdCouponCouponIdPromoOK" + "." + "promo")

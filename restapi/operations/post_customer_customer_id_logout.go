@@ -32,10 +32,10 @@ func NewPostCustomerCustomerIDLogout(ctx *middleware.Context, handler PostCustom
 	return &PostCustomerCustomerIDLogout{Context: ctx, Handler: handler}
 }
 
-/* PostCustomerCustomerIDLogout swagger:route POST /customer/{customerId}/logout postCustomerCustomerIdLogout
+/*
+	PostCustomerCustomerIDLogout swagger:route POST /customer/{customerId}/logout postCustomerCustomerIdLogout
 
 PostCustomerCustomerIDLogout post customer customer ID logout API
-
 */
 type PostCustomerCustomerIDLogout struct {
 	Context *middleware.Context

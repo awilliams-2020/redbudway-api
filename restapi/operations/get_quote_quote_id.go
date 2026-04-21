@@ -35,10 +35,10 @@ func NewGetQuoteQuoteID(ctx *middleware.Context, handler GetQuoteQuoteIDHandler)
 	return &GetQuoteQuoteID{Context: ctx, Handler: handler}
 }
 
-/* GetQuoteQuoteID swagger:route GET /quote/{quoteId} getQuoteQuoteId
+/*
+	GetQuoteQuoteID swagger:route GET /quote/{quoteId} getQuoteQuoteId
 
 GetQuoteQuoteID get quote quote ID API
-
 */
 type GetQuoteQuoteID struct {
 	Context *middleware.Context
@@ -150,6 +150,11 @@ func (o *GetQuoteQuoteIDOKBody) ContextValidate(ctx context.Context, formats str
 func (o *GetQuoteQuoteIDOKBody) contextValidateBusiness(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Business != nil {
+
+		if swag.IsZero(o.Business) { // not required
+			return nil
+		}
+
 		if err := o.Business.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getQuoteQuoteIdOK" + "." + "business")
@@ -166,6 +171,11 @@ func (o *GetQuoteQuoteIDOKBody) contextValidateBusiness(ctx context.Context, for
 func (o *GetQuoteQuoteIDOKBody) contextValidateService(ctx context.Context, formats strfmt.Registry) error {
 
 	if o.Service != nil {
+
+		if swag.IsZero(o.Service) { // not required
+			return nil
+		}
+
 		if err := o.Service.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("getQuoteQuoteIdOK" + "." + "service")

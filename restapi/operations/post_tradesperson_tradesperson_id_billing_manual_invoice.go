@@ -36,10 +36,10 @@ func NewPostTradespersonTradespersonIDBillingManualInvoice(ctx *middleware.Conte
 	return &PostTradespersonTradespersonIDBillingManualInvoice{Context: ctx, Handler: handler}
 }
 
-/* PostTradespersonTradespersonIDBillingManualInvoice swagger:route POST /tradesperson/{tradespersonId}/billing/manual-invoice postTradespersonTradespersonIdBillingManualInvoice
+/*
+	PostTradespersonTradespersonIDBillingManualInvoice swagger:route POST /tradesperson/{tradespersonId}/billing/manual-invoice postTradespersonTradespersonIdBillingManualInvoice
 
 PostTradespersonTradespersonIDBillingManualInvoice post tradesperson tradesperson ID billing manual invoice API
-
 */
 type PostTradespersonTradespersonIDBillingManualInvoice struct {
 	Context *middleware.Context
@@ -152,6 +152,11 @@ func (o *PostTradespersonTradespersonIDBillingManualInvoiceBody) contextValidate
 	for i := 0; i < len(o.Products); i++ {
 
 		if o.Products[i] != nil {
+
+			if swag.IsZero(o.Products[i]) { // not required
+				return nil
+			}
+
 			if err := o.Products[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("invoice" + "." + "products" + "." + strconv.Itoa(i))
