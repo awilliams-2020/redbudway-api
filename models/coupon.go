@@ -142,6 +142,11 @@ func (m *Coupon) contextValidatePromos(ctx context.Context, formats strfmt.Regis
 	for i := 0; i < len(m.Promos); i++ {
 
 		if m.Promos[i] != nil {
+
+			if swag.IsZero(m.Promos[i]) { // not required
+				return nil
+			}
+
 			if err := m.Promos[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("promos" + "." + strconv.Itoa(i))

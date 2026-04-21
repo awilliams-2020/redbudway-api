@@ -27,6 +27,9 @@ type Service struct {
 	// business
 	Business *Business `json:"business,omitempty"`
 
+	// deposit pct
+	DepositPct int64 `json:"depositPct"`
+
 	// description
 	Description string `json:"description,omitempty"`
 
@@ -117,6 +120,11 @@ func (m *Service) ContextValidate(ctx context.Context, formats strfmt.Registry) 
 func (m *Service) contextValidateBusiness(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Business != nil {
+
+		if swag.IsZero(m.Business) { // not required
+			return nil
+		}
+
 		if err := m.Business.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("business")

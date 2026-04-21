@@ -54,6 +54,11 @@ func (m OtherServices) ContextValidate(ctx context.Context, formats strfmt.Regis
 	for i := 0; i < len(m); i++ {
 
 		if m[i] != nil {
+
+			if swag.IsZero(m[i]) { // not required
+				return nil
+			}
+
 			if err := m[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName(strconv.Itoa(i))
@@ -146,6 +151,11 @@ func (m *OtherServicesItems0) contextValidateTimeSlots(ctx context.Context, form
 	for i := 0; i < len(m.TimeSlots); i++ {
 
 		if m.TimeSlots[i] != nil {
+
+			if swag.IsZero(m.TimeSlots[i]) { // not required
+				return nil
+			}
+
 			if err := m.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))

@@ -27,6 +27,9 @@ type ServiceDetails struct {
 	// Required: true
 	Category *string `json:"category"`
 
+	// deposit pct
+	DepositPct int64 `json:"depositPct"`
+
 	// description
 	// Required: true
 	Description *string `json:"description"`
@@ -317,6 +320,11 @@ func (m *ServiceDetails) contextValidateStatesAndCities(ctx context.Context, for
 	for i := 0; i < len(m.StatesAndCities); i++ {
 
 		if m.StatesAndCities[i] != nil {
+
+			if swag.IsZero(m.StatesAndCities[i]) { // not required
+				return nil
+			}
+
 			if err := m.StatesAndCities[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("statesAndCities" + "." + strconv.Itoa(i))
@@ -337,6 +345,11 @@ func (m *ServiceDetails) contextValidateTimeSlots(ctx context.Context, formats s
 	for i := 0; i < len(m.TimeSlots); i++ {
 
 		if m.TimeSlots[i] != nil {
+
+			if swag.IsZero(m.TimeSlots[i]) { // not required
+				return nil
+			}
+
 			if err := m.TimeSlots[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("timeSlots" + "." + strconv.Itoa(i))
@@ -441,6 +454,11 @@ func (m *ServiceDetailsStatesAndCitiesItems0) contextValidateCities(ctx context.
 	for i := 0; i < len(m.Cities); i++ {
 
 		if m.Cities[i] != nil {
+
+			if swag.IsZero(m.Cities[i]) { // not required
+				return nil
+			}
+
 			if err := m.Cities[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("cities" + "." + strconv.Itoa(i))

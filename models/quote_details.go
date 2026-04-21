@@ -130,6 +130,11 @@ func (m *QuoteDetails) ContextValidate(ctx context.Context, formats strfmt.Regis
 func (m *QuoteDetails) contextValidateCustomer(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Customer != nil {
+
+		if swag.IsZero(m.Customer) { // not required
+			return nil
+		}
+
 		if err := m.Customer.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("customer")
@@ -146,6 +151,11 @@ func (m *QuoteDetails) contextValidateCustomer(ctx context.Context, formats strf
 func (m *QuoteDetails) contextValidateService(ctx context.Context, formats strfmt.Registry) error {
 
 	if m.Service != nil {
+
+		if swag.IsZero(m.Service) { // not required
+			return nil
+		}
+
 		if err := m.Service.ContextValidate(ctx, formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("service")
@@ -181,6 +191,9 @@ func (m *QuoteDetails) UnmarshalBinary(b []byte) error {
 //
 // swagger:model QuoteDetailsService
 type QuoteDetailsService struct {
+
+	// deposit pct
+	DepositPct int64 `json:"depositPct,omitempty"`
 
 	// description
 	Description string `json:"description,omitempty"`
@@ -251,6 +264,11 @@ func (m *QuoteDetailsService) contextValidateProducts(ctx context.Context, forma
 	for i := 0; i < len(m.Products); i++ {
 
 		if m.Products[i] != nil {
+
+			if swag.IsZero(m.Products[i]) { // not required
+				return nil
+			}
+
 			if err := m.Products[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("service" + "." + "products" + "." + strconv.Itoa(i))
