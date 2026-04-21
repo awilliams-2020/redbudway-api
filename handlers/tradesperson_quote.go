@@ -2,10 +2,10 @@ package handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"math"
-	"os"
+	"net/http"
+
 	"redbudway-api/database"
 	"redbudway-api/email"
 	"redbudway-api/internal"
@@ -13,12 +13,12 @@ import (
 	"redbudway-api/restapi/operations"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/customer"
-	"github.com/stripe/stripe-go/v72/invoice"
-	"github.com/stripe/stripe-go/v72/product"
-	"github.com/stripe/stripe-go/v72/quote"
-	"github.com/stripe/stripe-go/v72/refund"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/customer"
+	"github.com/stripe/stripe-go/v82/invoice"
+	"github.com/stripe/stripe-go/v82/product"
+	"github.com/stripe/stripe-go/v82/quote"
+	"github.com/stripe/stripe-go/v82/refund"
 )
 
 func GetTradespersonTradespersonIDBillingQuotesHandler(params operations.GetTradespersonTradespersonIDBillingQuotesParams, principal interface{}) middleware.Responder {
@@ -86,13 +86,19 @@ func GetTradespersonTradespersonIDBillingQuotesHandler(params operations.GetTrad
 			if stripeQuote.Status == "accepted" {
 				stripeInvoice, err := invoice.Get(stripeQuote.Invoice.ID, nil)
 				if err != nil {
-					log.Printf("Failed to get stripe invoice with ID %s, %s", &stripeQuote.Invoice.ID, err)
+					log.Printf("Failed to get stripe invoice with ID %v, %v", stripeQuote.Invoice.ID, err)
 					return response
 				}
-				_quote.Customer = *stripeInvoice.CustomerName
+				_quote.Customer = stripeInvoice.CustomerName
+				if stripeInvoice.CustomerEmail != "" {
+					_quote.CustomerEmail = stripeInvoice.CustomerEmail
+				}
 			}
 		} else {
 			_quote.Customer = stripeCustomer.Name
+			if stripeCustomer.Email != "" {
+				_quote.CustomerEmail = stripeCustomer.Email
+			}
 		}
 
 		quotes = append(quotes, _quote)
@@ -121,7 +127,7 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.G
 
 	db := database.GetConnection()
 
-	stmt, err := db.Prepare("SELECT tq.request, q.title, q.description, tq.customerId FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?")
+	stmt, err := db.Prepare("SELECT tq.request, q.title, q.description, tq.customerId, q.depositPct FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?")
 	if err != nil {
 		log.Printf("Failed to create prepared statement, %v", err)
 		return response
@@ -129,8 +135,9 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.G
 	defer stmt.Close()
 
 	var message, title, description, customerID string
+	var depositPct int64
 	row := stmt.QueryRow(tradespersonID, quoteID)
-	switch err = row.Scan(&message, &title, &description, &customerID); err {
+	switch err = row.Scan(&message, &title, &description, &customerID, &depositPct); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %s has no quote %s", tradespersonID, quoteID)
 	case nil:
@@ -153,6 +160,7 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.G
 		service := &models.QuoteDetailsService{}
 		service.Title = title
 		service.Description = description
+		service.DepositPct = depositPct
 		products := []*models.Product{}
 
 		params := &stripe.QuoteListLineItemsParams{Quote: stripe.String(quoteID)}
@@ -182,12 +190,12 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.G
 			if stripeQuote.Status == "accepted" {
 				stripeInvoice, err := invoice.Get(stripeQuote.Invoice.ID, nil)
 				if err != nil {
-					log.Printf("Failed to get stripe invoice with ID %s, %s", &stripeQuote.Invoice.ID, err)
+					log.Printf("Failed to get stripe invoice with ID %v, %v", stripeQuote.Invoice.ID, err)
 					return response
 				}
-				_customer.Name = *stripeInvoice.CustomerName
+				_customer.Name = stripeInvoice.CustomerName
 				_customer.Email = stripeInvoice.CustomerEmail
-				_customer.Phone = *stripeInvoice.CustomerPhone
+				_customer.Phone = stripeInvoice.CustomerPhone
 				_customer.Address = &models.Address{
 					LineOne: stripeInvoice.CustomerAddress.Line1,
 					LineTwo: stripeInvoice.CustomerAddress.Line2,
@@ -287,6 +295,15 @@ func PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.P
 		return response
 	}
 
+	sq, err := quote.Get(quoteID, nil)
+	if err != nil {
+		log.Printf("Put quote.Get %s: %v", quoteID, err)
+		return response
+	}
+	if sq.Status == stripe.QuoteStatusAccepted {
+		return errMap(http.StatusConflict, "quote is accepted and cannot be edited")
+	}
+
 	lineItems := []*stripe.QuoteLineItemParams{}
 	total := float64(0.0)
 	for _, _product := range products {
@@ -334,6 +351,26 @@ func PutTradespersonTradespersonIDBillingQuoteQuoteIDHandler(params operations.P
 		log.Printf("Failed ot update quote %s, %v", quoteID, err)
 		return response
 	}
+
+	if params.Quote.DepositPct != nil {
+		db := database.GetConnection()
+		dp := *params.Quote.DepositPct
+		if dp < 0 {
+			dp = 0
+		}
+		if dp > 100 {
+			dp = 100
+		}
+		_, err := db.Exec(
+			`UPDATE quotes q INNER JOIN tradesperson_quotes tq ON q.id = tq.quoteId SET q.depositPct = ? WHERE tq.tradespersonId = ? AND tq.quote = ?`,
+			dp, tradespersonID, quoteID,
+		)
+		if err != nil {
+			log.Printf("Failed to update depositPct for quote %s: %v", quoteID, err)
+			return response
+		}
+	}
+
 	payload.Updated = true
 	response.SetPayload(&payload)
 
@@ -448,18 +485,15 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDFinalizeHandler(params ope
 			payload.Finalized = true
 			response.SetPayload(&payload)
 
-			stripeCustomer, err := customer.Get(stripeQuote.Customer.ID, nil)
-			if err != nil {
-				log.Printf("Failed to get stripe customer, %v", err)
-				return response
+			sq, qerr := quote.Get(quoteID, nil)
+			if qerr != nil {
+				log.Printf("Failed to refresh quote %s after finalize: %v", quoteID, qerr)
+				sq = stripeQuote
 			}
-			customerID, err := database.GetCustomerID(stripeCustomer.ID)
+
+			_, err = sendFinalizedQuoteReadyEmail(tradespersonID, quoteID, sq)
 			if err != nil {
-				log.Printf("Failed to get customer ID, %v", err)
-			}
-			quoteURL := fmt.Sprintf("https://%sredbudway.com/#/session/customer-login?customerId=%s&quoteId=%s", os.Getenv("SUBDOMAIN"), customerID, quoteID)
-			if err := email.SentQuote(stripeCustomer, quoteURL); err != nil {
-				log.Printf("Failed to send customer email, %v", err)
+				log.Printf("Failed to send customer finalize email, %v", err)
 			}
 		}
 	default:
@@ -525,6 +559,20 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDReviseHandler(params opera
 	return response
 }
 
+// loadStripeInvoiceForBillingQuote retrieves an invoice created under Stripe Connect when applicable.
+func loadStripeInvoiceForBillingQuote(connectAccountID, invoiceID string) (*stripe.Invoice, error) {
+	if connectAccountID != "" {
+		p := &stripe.InvoiceParams{}
+		p.SetStripeAccount(connectAccountID)
+		inv, err := invoice.Get(invoiceID, p)
+		if err == nil {
+			return inv, nil
+		}
+		log.Printf("invoice.Get %s with Connect account: %v", invoiceID, err)
+	}
+	return invoice.Get(invoiceID, nil)
+}
+
 func GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler(params operations.GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
 	tradespersonID := params.TradespersonID
 	quoteID := params.QuoteID
@@ -558,15 +606,22 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler(par
 		log.Printf("Tradesperson %s has no quote %s", tradespersonID, quoteID)
 		return response
 	case nil:
-		stripeInvoice, err := invoice.Get(invoiceID, nil)
+		tpStripeID, stripeAccErr := database.GetTradespersonStripeID(tradespersonID)
+		if stripeAccErr != nil {
+			log.Printf("GetTradespersonStripeID %s: %v", tradespersonID, stripeAccErr)
+		}
+
+		stripeInvoice, err := loadStripeInvoiceForBillingQuote(tpStripeID, invoiceID)
 		if err != nil {
 			log.Printf("Failed to get stripe invoice with ID %s, %s", invoiceID, err)
-			return response
+			return errMap(http.StatusBadGateway, "unable to load invoice")
 		}
 
 		_invoice.Created = stripeInvoice.Created
 		_invoice.Description = stripeInvoice.Description
 		_invoice.Total = stripeInvoice.Total
+		_invoice.AmountPaid = stripeInvoice.AmountPaid
+		_invoice.AmountRemaining = stripeInvoice.AmountRemaining
 		_invoice.Status = string(stripeInvoice.Status)
 		_invoice.Number = stripeInvoice.Number
 		_invoice.Pdf = stripeInvoice.InvoicePDF
@@ -582,13 +637,25 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler(par
 		}
 
 		products := []*models.Product{}
-		params := &stripe.QuoteListLineItemsParams{Quote: stripe.String(quoteID)}
-		i := quote.ListLineItems(params)
+		lineParams := &stripe.QuoteListLineItemsParams{Quote: stripe.String(quoteID)}
+		if tpStripeID != "" {
+			lineParams.SetStripeAccount(tpStripeID)
+		}
+		i := quote.ListLineItems(lineParams)
 		for i.Next() {
 			lineItem := i.LineItem()
-			stripeProduct, err := product.Get(lineItem.Price.Product.ID, nil)
+			if lineItem.Price == nil || lineItem.Price.Product == nil || lineItem.Price.Product.ID == "" {
+				log.Printf("quote %s line item missing price or product", quoteID)
+				continue
+			}
+			pp := &stripe.ProductParams{}
+			if tpStripeID != "" {
+				pp.SetStripeAccount(tpStripeID)
+			}
+			stripeProduct, err := product.Get(lineItem.Price.Product.ID, pp)
 			if err != nil {
 				log.Printf("Failed to get stripe product, %v", err)
+				continue
 			}
 			_product := &models.Product{}
 			_product.Title = stripeProduct.Name
@@ -599,16 +666,19 @@ func GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDHandler(par
 		_invoice.Products = products
 
 		customer := models.Customer{}
-		customer.Name = *stripeInvoice.CustomerName
+		customer.Name = stripeInvoice.CustomerName
 		customer.Email = stripeInvoice.CustomerEmail
-		customer.Phone = *stripeInvoice.CustomerPhone
-		address := models.Address{}
-		address.LineOne = stripeInvoice.CustomerAddress.Line1
-		address.LineTwo = stripeInvoice.CustomerAddress.Line2
-		address.City = stripeInvoice.CustomerAddress.City
-		address.State = stripeInvoice.CustomerAddress.State
-		address.ZipCode = stripeInvoice.CustomerAddress.PostalCode
-		customer.Address = &address
+		customer.Phone = stripeInvoice.CustomerPhone
+		if stripeInvoice.CustomerAddress != nil {
+			ca := stripeInvoice.CustomerAddress
+			address := models.Address{}
+			address.LineOne = ca.Line1
+			address.LineTwo = ca.Line2
+			address.City = ca.City
+			address.State = ca.State
+			address.ZipCode = ca.PostalCode
+			customer.Address = &address
+		}
 		_invoice.Customer = &customer
 
 		response.SetPayload(&_invoice)
@@ -803,17 +873,17 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHand
 	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
 	if err != nil {
 		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
+		return errMap(http.StatusUnauthorized, "unauthorized")
 	} else if !valid {
 		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
-		return response
+		return errMap(http.StatusUnauthorized, "unauthorized")
 	}
 
 	db := database.GetConnection()
 
 	stmt, err := db.Prepare("SELECT id FROM tradesperson_quotes WHERE tradespersonId=? AND quote=?")
 	if err != nil {
-		return response
+		return errMap(http.StatusInternalServerError, "internal error")
 	}
 	defer stmt.Close()
 
@@ -822,47 +892,85 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundHand
 	switch err = row.Scan(&id); err {
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson %s has no quote %s", tradespersonID, quoteID)
-		return response
+		return errMap(http.StatusNotFound, "quote not found")
 	case nil:
-		stripeInvoice, err := invoice.Get(invoiceID, nil)
+		sq, err := quote.Get(quoteID, nil)
+		if err != nil {
+			log.Printf("refund quote.Get %s: %v", quoteID, err)
+			return errMap(http.StatusBadRequest, "unable to load quote")
+		}
+		if sq.Status != stripe.QuoteStatusAccepted {
+			return errMap(http.StatusConflict, "quote must be accepted before refunding the invoice")
+		}
+		if sq.Invoice == nil || sq.Invoice.ID != invoiceID {
+			return errMap(http.StatusNotFound, "invoice does not belong to this quote")
+		}
+
+		_, refundTs, err := database.GetInvoiceRefund(invoiceID)
+		if err != nil {
+			log.Printf("refund GetInvoiceRefund %s: %v", invoiceID, err)
+		}
+		if refundTs != 0 {
+			return errMap(http.StatusConflict, "invoice already refunded")
+		}
+
+		stripeInvoice, err := invoice.Get(invoiceID, &stripe.InvoiceParams{
+			Params: stripe.Params{
+				Expand: []*string{stripe.String("payments")},
+			},
+		})
 		if err != nil {
 			log.Printf("Failed to get invoice %s, %v", invoiceID, err)
-			return response
+			return errMap(http.StatusBadRequest, "unable to load invoice")
 		}
 
-		params := &stripe.RefundParams{
-			Charge:          stripe.String(stripeInvoice.Charge.ID),
+		if stripeInvoice.AmountPaid <= 0 {
+			return errMap(http.StatusConflict, "no payment to refund on this invoice")
+		}
+
+		chargeID := chargeIDFromInvoice(stripeInvoice)
+		if chargeID == "" {
+			return errMap(http.StatusConflict, "no charge found for this invoice; complete the refund in Stripe if needed")
+		}
+
+		refundParams := &stripe.RefundParams{
+			Charge:          stripe.String(chargeID),
 			ReverseTransfer: stripe.Bool(true),
 		}
-		stripeRefund, err := refund.New(params)
+		stripeRefund, err := refund.New(refundParams)
 		if err != nil {
 			log.Printf("Failed to refund charge for invoice, %s", err)
-			return response
+			return errMap(http.StatusBadRequest, err.Error())
 		}
 
-		if stripeRefund.Status == "succeeded" || stripeRefund.Status == "pending" {
-			err := database.CreateInvoiceRefund(invoiceID, stripeRefund.ID)
-			if err != nil {
-				log.Printf("Failed to create refund in database, %v", err)
+		if stripeRefund.Status != "succeeded" && stripeRefund.Status != "pending" {
+			return errMap(http.StatusBadRequest, "refund did not complete")
+		}
+
+		if err := database.CreateInvoiceRefund(invoiceID, stripeRefund.ID); err != nil {
+			log.Printf("Failed to create refund in database, %v", err)
+		}
+
+		payload.Refunded = true
+		response.SetPayload(&payload)
+
+		stripeProduct := &stripe.Product{Name: "Your purchase"}
+		if len(stripeInvoice.Lines.Data) > 0 {
+			line := stripeInvoice.Lines.Data[0]
+			if line.Pricing != nil && line.Pricing.PriceDetails != nil && line.Pricing.PriceDetails.Product != "" {
+				if p, err := product.Get(line.Pricing.PriceDetails.Product, nil); err == nil && p != nil {
+					stripeProduct = p
+				}
 			}
+		}
+		decimalPrice := float64(stripeInvoice.AmountPaid) / 100.0
 
-			payload.Refunded = true
-			response.SetPayload(&payload)
-
-			stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.ID, nil)
-			if err != nil {
-				return response
-			}
-
-			decimalPrice := float64(stripeInvoice.Lines.Data[0].Price.UnitAmount / 100.00)
-
-			err = email.SendCustomerRefund(stripeInvoice, stripeProduct, decimalPrice)
-			if err != nil {
-				log.Printf("Failed to send customer refund email, %v", err)
-			}
+		if err := email.SendCustomerRefund(stripeInvoice, stripeProduct, decimalPrice); err != nil {
+			log.Printf("Failed to send customer refund email, %v", err)
 		}
 	default:
 		log.Printf("Unkown %v", err)
+		return errMap(http.StatusInternalServerError, "internal error")
 	}
 
 	return response

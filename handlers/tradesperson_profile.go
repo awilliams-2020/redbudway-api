@@ -72,7 +72,7 @@ func PutTradespersonTradespersonIDProfileHandler(params operations.PutTradespers
 
 	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
 	if err != nil {
-		log.Printf("Failed to get tradesperson %s stripeID, %s", tradesperson, err)
+		log.Printf("Failed to get tradesperson %s stripeID, %v", tradespersonID, err)
 		return response
 	}
 

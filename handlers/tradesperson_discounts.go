@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/coupon"
-	"github.com/stripe/stripe-go/v72/promotioncode"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/coupon"
+	"github.com/stripe/stripe-go/v82/promotioncode"
 )
 
 func PostTradespersonTradespersonIDCouponHandler(params operations.PostTradespersonTradespersonIDCouponParams, principal interface{}) middleware.Responder {

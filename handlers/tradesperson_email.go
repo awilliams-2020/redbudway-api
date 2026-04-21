@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-openapi/runtime/middleware"
 
-	"github.com/stripe/stripe-go/v72/customer"
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
+	"github.com/stripe/stripe-go/v82/customer"
+	"github.com/stripe/stripe-go/v82/price"
+	"github.com/stripe/stripe-go/v82/product"
 
 	"redbudway-api/database"
 	_email "redbudway-api/email"

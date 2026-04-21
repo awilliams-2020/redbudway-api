@@ -2,15 +2,17 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"math"
+	"net/http"
 	"redbudway-api/database"
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v82/customer"
 )
 
 func PostTradespersonTradespersonIDFixedPriceHandler(params operations.PostTradespersonTradespersonIDFixedPriceParams, principal interface{}) middleware.Responder {
@@ -426,6 +428,45 @@ func PutTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.PutTrade
 	}
 	response.SetPayload(&payload)
 
+	return response
+}
+
+func DeleteTradespersonTradespersonIDQuoteQuoteIDHandler(params operations.DeleteTradespersonTradespersonIDQuoteQuoteIDParams, principal interface{}) middleware.Responder {
+	tradespersonID := params.TradespersonID
+	quoteID := params.QuoteID
+	token := params.HTTPRequest.Header.Get("Authorization")
+
+	response := operations.NewDeleteTradespersonTradespersonIDQuoteQuoteIDOK()
+	payload := &operations.DeleteTradespersonTradespersonIDQuoteQuoteIDOKBody{Deleted: false}
+
+	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
+	if err != nil {
+		log.Printf("Failed to validate tradesperson %s, accessToken %s", tradespersonID, token)
+		response.SetPayload(payload)
+		return response
+	}
+	if !valid {
+		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
+		response.SetPayload(payload)
+		return response
+	}
+
+	err = database.DeleteTradespersonCatalogQuote(tradespersonID, quoteID)
+	if errors.Is(err, database.ErrCatalogQuoteNotFound) {
+		return middleware.Error(http.StatusNotFound, map[string]string{"error": "quote template not found"})
+	}
+	if errors.Is(err, database.ErrCatalogQuoteInUse) {
+		return middleware.Error(http.StatusConflict, map[string]string{
+			"error": "cannot delete this template while it has payment quotes linked to it",
+		})
+	}
+	if err != nil {
+		log.Printf("DeleteTradespersonCatalogQuote: %v", err)
+		return middleware.Error(http.StatusInternalServerError, map[string]string{"error": "could not delete quote template"})
+	}
+
+	payload.Deleted = true
+	response.SetPayload(payload)
 	return response
 }
 

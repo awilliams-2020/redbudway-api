@@ -17,7 +17,7 @@ import (
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v82/customer"
 )
 
 const (
@@ -462,6 +462,69 @@ func GetTradespersonGoogleInfo(tradespersonID, accessToken string) (string, stri
 	return email, picture, nil
 }
 
+// completeTradespersonLoginSession issues JWTs, persists them, and refreshes Google Calendar tokens when linked.
+func completeTradespersonLoginSession(tradespersonID string, admin bool) *operations.PostTradespersonLoginOKBody {
+	payload := &operations.PostTradespersonLoginOKBody{Valid: false}
+	accountType := "tradesperson"
+	if admin {
+		accountType = "admin"
+	}
+	accessToken, err := internal.GenerateToken(tradespersonID, accountType, "access", time.Minute*ACCESS_TIME)
+	if err != nil {
+		log.Printf("Failed to generate access token, %s", err)
+		return payload
+	}
+	refreshToken, err := internal.GenerateToken(tradespersonID, accountType, "refresh", time.Minute*REFRESH_TIME)
+	if err != nil {
+		log.Printf("Failed to generate refresh token, %s", err)
+		return payload
+	}
+
+	isSaved, err := database.SaveTradespersonTokens(tradespersonID, refreshToken, accessToken)
+	if err != nil {
+		log.Printf("Failed to save tradesperson tokens, %v", err)
+	}
+
+	payload.Valid = isSaved
+	payload.TradespersonID = tradespersonID
+	payload.RefreshToken = refreshToken
+	payload.AccessToken = accessToken
+	payload.Admin = admin
+
+	gAccessToken, err := database.GetTradespersonGoogleAccessToken(tradespersonID)
+	if err != nil {
+		log.Printf("Failed to get tradesperson google access token, %v", err)
+		return payload
+	}
+
+	if gAccessToken == "" {
+		return payload
+	}
+
+	res, err := GetTradespersonTradespersonIDGoogleTokenHandler(tradespersonID, gAccessToken)
+	if err != nil {
+		log.Printf("Failed to get tradesperson google token , %v", err)
+		return payload
+	}
+	gAccessToken = res["access_token"].(string)
+	expiresIn := res["expires_in"].(float64)
+	payload.GoogleAccessToken = gAccessToken
+	payload.ExpiresIn = expiresIn
+
+	updated, err := database.UpdateTradespersonGoogleAccessToken(tradespersonID, gAccessToken)
+	if err != nil || !updated {
+		log.Printf("Failed to update tradesperson google access token, %s", err)
+		return payload
+	}
+
+	payload.Email, payload.Picture, err = GetTradespersonGoogleInfo(tradespersonID, gAccessToken)
+	if err != nil {
+		log.Printf("Failed to get tradesperson google info , %v", err)
+		return payload
+	}
+	return payload
+}
+
 func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams) middleware.Responder {
 	tradesperson := params.Tradesperson
 
@@ -485,64 +548,8 @@ func PostTradespersonLoginHandler(params operations.PostTradespersonLoginParams)
 		log.Println("Tradesperson doesn't exist")
 	case nil:
 		if internal.CheckPasswordHash(*tradesperson.Password, hashPassword) {
-			accountType := "tradesperson"
-			if admin {
-				accountType = "admin"
-			}
-			accessToken, err := internal.GenerateToken(tradespersonID, accountType, "access", time.Minute*ACCESS_TIME)
-			if err != nil {
-				log.Printf("Failed to generate access token, %s", err)
-				return response
-			}
-			refreshToken, err := internal.GenerateToken(tradespersonID, accountType, "refresh", time.Minute*REFRESH_TIME)
-			if err != nil {
-				log.Printf("Failed to generate refresh token, %s", err)
-				return response
-			}
-
-			isSaved, err := database.SaveTradespersonTokens(tradespersonID, refreshToken, accessToken)
-			if err != nil {
-				log.Printf("Failed to save tradesperson tokens, %v", err)
-			}
-
-			payload.Valid = isSaved
-			payload.TradespersonID = tradespersonID
-			payload.RefreshToken = refreshToken
-			payload.AccessToken = accessToken
-			payload.Admin = admin
-			response.SetPayload(&payload)
-
-			gAccessToken, err := database.GetTradespersonGoogleAccessToken(tradespersonID)
-			if err != nil {
-				log.Printf("Failed to get tradesperson google access token, %v", err)
-				return response
-			}
-
-			if gAccessToken == "" {
-				return response
-			}
-
-			res, err := GetTradespersonTradespersonIDGoogleTokenHandler(tradespersonID, gAccessToken)
-			if err != nil {
-				log.Printf("Failed to get tradesperson google token , %v", err)
-				return response
-			}
-			gAccessToken = res["access_token"].(string)
-			expiresIn := res["expires_in"].(float64)
-			payload.GoogleAccessToken = gAccessToken
-			payload.ExpiresIn = expiresIn
-
-			updated, err := database.UpdateTradespersonGoogleAccessToken(tradespersonID, gAccessToken)
-			if err != nil || !updated {
-				log.Printf("Failed to update tradesperson google access token, %s", err)
-				return response
-			}
-
-			payload.Email, payload.Picture, err = GetTradespersonGoogleInfo(tradespersonID, gAccessToken)
-			if err != nil {
-				log.Printf("Failed to get tradesperson google info , %v", err)
-				return response
-			}
+			out := completeTradespersonLoginSession(tradespersonID, admin)
+			response.SetPayload(out)
 		}
 	default:
 		log.Printf("Unkown default case %s", err)

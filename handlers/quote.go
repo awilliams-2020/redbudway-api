@@ -35,12 +35,12 @@ func GetQuoteQuoteIDReviewsHandler(params operations.GetQuoteQuoteIDReviewsParam
 	var err error
 	reviews, err = database.GetQuoteRatings(quoteID)
 	if err != nil {
-		log.Printf("Failed to get quote %s ratings, %v", &quoteID, err)
+		log.Printf("Failed to get quote %s ratings, %v", quoteID, err)
 	}
 
 	reviews.Reviews, err = database.GetQuoteReviews(quoteID, page)
 	if err != nil {
-		log.Printf("Failed to get quote %s reviews, %v", &quoteID, err)
+		log.Printf("Failed to get quote %s reviews, %v", quoteID, err)
 	}
 
 	response.SetPayload(&reviews)

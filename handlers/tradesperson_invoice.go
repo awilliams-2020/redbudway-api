@@ -11,10 +11,10 @@ import (
 	"redbudway-api/restapi/operations"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/invoice"
-	"github.com/stripe/stripe-go/v72/product"
-	"github.com/stripe/stripe-go/v72/refund"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/invoice"
+	"github.com/stripe/stripe-go/v82/product"
+	"github.com/stripe/stripe-go/v82/refund"
 )
 
 func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operations.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDParams, principal interface{}) middleware.Responder {
@@ -77,9 +77,9 @@ func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 			_invoice.Refunded = refunded
 		}
 
-		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.Product.ID, nil)
+		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Product, nil)
 		if err != nil {
-			log.Printf("Failed to get stripe product with ID %s, %s", stripeInvoice.Lines.Data[0].Price.Product.ID, err)
+			log.Printf("Failed to get stripe product with ID %s, %s", stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Product, err)
 			return response
 		}
 		service := operations.GetTradespersonTradespersonIDBillingInvoiceInvoiceIDOKBodyService{}
@@ -99,9 +99,9 @@ func GetTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params operatio
 		}
 
 		customer := models.Customer{}
-		customer.Name = *stripeInvoice.CustomerName
+		customer.Name = stripeInvoice.CustomerName
 		customer.Email = stripeInvoice.CustomerEmail
-		customer.Phone = *stripeInvoice.CustomerPhone
+		customer.Phone = stripeInvoice.CustomerPhone
 		address := models.Address{}
 		address.LineOne = stripeInvoice.CustomerAddress.Line1
 		address.LineTwo = stripeInvoice.CustomerAddress.Line2
@@ -213,7 +213,7 @@ func DeleteTradespersonTradespersonIDBillingInvoiceInvoiceIDHandler(params opera
 			log.Printf("Failed to get invoice %s, %v", invoiceID, err)
 		}
 
-		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.Product.ID, nil)
+		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Product, nil)
 		if err != nil {
 			return response
 		}
@@ -360,7 +360,7 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDVoidHandler(params ope
 			log.Printf("Failed to get invoice %s, %v", invoiceID, err)
 		}
 
-		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.Product.ID, nil)
+		stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Product, nil)
 		if err != nil {
 			return response
 		}
@@ -441,18 +441,22 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler(params o
 		log.Printf("Tradesperson with ID %s has no invoice %s", tradespersonID, invoiceID)
 		return response
 	case nil:
-		stripeInvoice, err := invoice.Get(
-			invoiceID,
-			nil,
-		)
+		stripeInvoice, err := invoice.Get(invoiceID, &stripe.InvoiceParams{
+			Params: stripe.Params{Expand: []*string{stripe.String("payments")}},
+		})
 		if err != nil {
 			log.Printf("Failed to get invoice %s, %v", invoiceID, err)
 			return response
 		}
 
 		if stripeInvoice.Total != 0 {
+			chargeID := chargeIDFromInvoice(stripeInvoice)
+			if chargeID == "" {
+				log.Printf("No charge found for invoice %s", invoiceID)
+				return response
+			}
 			params := &stripe.RefundParams{
-				Charge:          stripe.String(stripeInvoice.Charge.ID),
+				Charge:          stripe.String(chargeID),
 				ReverseTransfer: stripe.Bool(true),
 			}
 			stripeRefund, err := refund.New(params)
@@ -474,7 +478,7 @@ func PostTradespersonTradespersonIDBillingInvoiceInvoiceIDRefundHandler(params o
 				payload.Refunded = true
 				response.SetPayload(&payload)
 
-				stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Price.ID, nil)
+				stripeProduct, err := product.Get(stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Price, nil)
 				if err != nil {
 					return response
 				}
@@ -600,7 +604,7 @@ func GetTradespersonTradespersonIDBillingInvoicesHandler(params operations.GetTr
 		invoice.Status = string(stripeInvoice.Status)
 		invoice.Number = stripeInvoice.Number
 		invoice.InvoiceID = stripeInvoice.ID
-		invoice.Customer = *stripeInvoice.CustomerName
+		invoice.Customer = stripeInvoice.CustomerName
 
 		status, _, err := database.GetInvoiceRefund(stripeInvoice.ID)
 		if err != nil {

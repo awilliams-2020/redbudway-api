@@ -12,13 +12,13 @@ import (
 	"redbudway-api/restapi/operations"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/customer"
-	"github.com/stripe/stripe-go/v72/invoice"
-	"github.com/stripe/stripe-go/v72/invoiceitem"
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
-	"github.com/stripe/stripe-go/v72/refund"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/customer"
+	"github.com/stripe/stripe-go/v82/invoice"
+	"github.com/stripe/stripe-go/v82/invoiceitem"
+	"github.com/stripe/stripe-go/v82/price"
+	"github.com/stripe/stripe-go/v82/product"
+	"github.com/stripe/stripe-go/v82/refund"
 )
 
 func GetTradespersonTradespersonIDBillingCustomersHandler(params operations.GetTradespersonTradespersonIDBillingCustomersParams, principal interface{}) middleware.Responder {
@@ -61,7 +61,7 @@ func GetTradespersonTradespersonIDBillingCustomersHandler(params operations.GetT
 		_customer := models.Customer{}
 		stripeCustomer, err := customer.Get(cuStripeID, nil)
 		if err != nil {
-			log.Printf("Failed to retrieve customer, %s", &cuStripeID)
+			log.Printf("Failed to retrieve customer, %v", cuStripeID)
 		}
 		_customer.ID = stripeCustomer.ID
 		_customer.Name = stripeCustomer.Name
@@ -133,7 +133,7 @@ func GetTradespersonTradespersonIDBillingManualInvoicesHandler(params operations
 		invoice.Status = string(stripeInvoice.Status)
 		invoice.Number = stripeInvoice.Number
 		invoice.InvoiceID = stripeInvoice.ID
-		invoice.Customer = *stripeInvoice.CustomerName
+		invoice.Customer = stripeInvoice.CustomerName
 
 		status, _, err := database.GetInvoiceRefund(stripeInvoice.ID)
 		if err != nil {
@@ -232,7 +232,7 @@ func PostTradespersonTradespersonIDBillingManualInvoiceHandler(params operations
 			invoiceItemParams := &stripe.InvoiceItemParams{
 				Customer:    stripe.String(cuStripeID),
 				Currency:    stripe.String("USD"),
-				UnitAmount:  &product.Price,
+				Amount:      &product.Price,
 				Quantity:    &product.Quantity,
 				Description: stripe.String(product.Title),
 				Invoice:     stripe.String(stripeInvoice.ID),
@@ -319,7 +319,7 @@ func GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler(params op
 		manualInvoice.DueDate = stripeInvoice.DueDate
 		manualInvoice.Description = stripeInvoice.Description
 		manualInvoice.Total = stripeInvoice.Total
-		manualInvoice.Paid = stripeInvoice.Paid
+		manualInvoice.Paid = stripeInvoice.Status == stripe.InvoiceStatusPaid
 		manualInvoice.Status = string(stripeInvoice.Status)
 		manualInvoice.Number = stripeInvoice.Number
 		manualInvoice.Pdf = stripeInvoice.InvoicePDF
@@ -337,13 +337,13 @@ func GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler(params op
 		cost := []*models.Product{}
 		for _, data := range stripeInvoice.Lines.Data {
 			item := models.Product{}
-			stripeProduct, err := product.Get(data.Price.Product.ID, nil)
+			stripeProduct, err := product.Get(data.Pricing.PriceDetails.Product, nil)
 			if err != nil {
-				log.Printf("Failed to get stripe product with ID %s, %s", data.Price.Product.ID, err)
+				log.Printf("Failed to get stripe product with ID %s, %s", data.Pricing.PriceDetails.Product, err)
 				return response
 			}
 			item.Title = stripeProduct.Name
-			item.Price = data.Price.UnitAmount
+			item.Price = int64(data.Pricing.UnitAmountDecimal)
 			item.Quantity = data.Quantity
 			cost = append(cost, &item)
 
@@ -351,9 +351,9 @@ func GetTradespersonTradespersonIDBillingManualInvoiceInvoiceIDHandler(params op
 		manualInvoice.Cost = cost
 
 		customer := models.Customer{}
-		customer.Name = *stripeInvoice.CustomerName
+		customer.Name = stripeInvoice.CustomerName
 		customer.Email = stripeInvoice.CustomerEmail
-		customer.Phone = *stripeInvoice.CustomerPhone
+		customer.Phone = stripeInvoice.CustomerPhone
 		address := models.Address{}
 		address.LineOne = stripeInvoice.CustomerAddress.Line1
 		address.LineTwo = stripeInvoice.CustomerAddress.Line2
@@ -401,7 +401,7 @@ func PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler(para
 	row := stmt.QueryRow(tradespersonID, invoiceID)
 	switch err = row.Scan(&tradespersonName, &tradespersonEmail, &tradespersonNumber); err {
 	case sql.ErrNoRows:
-		log.Printf("Tradesperson with ID %s has no invoice %s", &tradespersonID, &invoiceID)
+		log.Printf("Tradesperson with ID %s has no invoice %s", tradespersonID, invoiceID)
 		return response
 	case nil:
 		stripeInvoice, err := invoice.Get(
@@ -414,13 +414,13 @@ func PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDVoidHandler(para
 
 		var itemsAndPrice string
 		for _, data := range stripeInvoice.Lines.Data {
-			stripeProduct, err := product.Get(data.Price.Product.ID, nil)
+			stripeProduct, err := product.Get(data.Pricing.PriceDetails.Product, nil)
 			if err != nil {
-				log.Printf("Failed to get stripe product with ID %s, %s", data.Price.Product.ID, err)
+				log.Printf("Failed to get stripe product with ID %s, %s", data.Pricing.PriceDetails.Product, err)
 				return response
 			}
 			itemsAndPrice += fmt.Sprintf("<b>%v</b><br>", stripeProduct.Name)
-			itemsAndPrice += fmt.Sprintf("Price: $%v<br>", float64(data.Price.UnitAmount)/float64(100))
+			itemsAndPrice += fmt.Sprintf("Price: $%v<br>", data.Pricing.UnitAmountDecimal/100)
 			itemsAndPrice += fmt.Sprintf("Quantity: %v<br><br>", data.Quantity)
 		}
 
@@ -478,20 +478,24 @@ func PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler(pa
 	row := stmt.QueryRow(tradespersonID, invoiceID)
 	switch err = row.Scan(&id); err {
 	case sql.ErrNoRows:
-		log.Printf("Tradesperson with ID %s has no invoice %s", &tradespersonID, &invoiceID)
+		log.Printf("Tradesperson with ID %s has no invoice %s", tradespersonID, invoiceID)
 		return response
 	case nil:
-		stripeInvoice, err := invoice.Get(
-			invoiceID,
-			nil,
-		)
+		stripeInvoice, err := invoice.Get(invoiceID, &stripe.InvoiceParams{
+			Params: stripe.Params{Expand: []*string{stripe.String("payments")}},
+		})
 		if err != nil {
 			log.Printf("Failed to get invoice %s, %v", invoiceID, err)
 			return response
 		}
 
+		chargeID := chargeIDFromInvoice(stripeInvoice)
+		if chargeID == "" {
+			log.Printf("No charge found for invoice %s", invoiceID)
+			return response
+		}
 		params := &stripe.RefundParams{
-			Charge:          stripe.String(stripeInvoice.Charge.ID),
+			Charge:          stripe.String(chargeID),
 			ReverseTransfer: stripe.Bool(true),
 		}
 		stripeRefund, err := refund.New(params)
@@ -512,9 +516,9 @@ func PostTradespersonTradespersonIDBillingManualInvoiceInvoiceIDRefundHandler(pa
 			payload.Refunded = true
 			response.SetPayload(&payload)
 
-			stripePrice, err := price.Get(stripeInvoice.Lines.Data[0].Price.ID, nil)
+			stripePrice, err := price.Get(stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Price, nil)
 			if err != nil {
-				log.Printf("Failed to retrieve stripe price, %s", stripeInvoice.Lines.Data[0].Price.ID)
+				log.Printf("Failed to retrieve stripe price, %s", stripeInvoice.Lines.Data[0].Pricing.PriceDetails.Price)
 				return response
 			}
 

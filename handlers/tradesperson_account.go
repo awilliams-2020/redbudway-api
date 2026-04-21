@@ -14,17 +14,19 @@ import (
 	"redbudway-api/restapi/operations"
 	_stripe "redbudway-api/stripe"
 
-	"github.com/stripe/stripe-go/v72/account"
+	"github.com/stripe/stripe-go/v82/account"
 )
 
 func PostTradespersonHandler(params operations.PostTradespersonParams) middleware.Responder {
 	tradesperson := params.Tradesperson
 
-	db := database.GetConnection()
-
 	payload := operations.PostTradespersonCreatedBody{Created: false}
 	response := operations.NewPostTradespersonCreated().WithPayload(&payload)
-	valid, err := internal.VerifyReCaptcha(*tradesperson.Token)
+	token := ""
+	if tradesperson.Token != nil {
+		token = *tradesperson.Token
+	}
+	valid, err := internal.VerifyReCaptcha(token)
 	if err != nil {
 		log.Printf("Verifying recaptcha failed, %v", err)
 		return response
@@ -34,68 +36,8 @@ func PostTradespersonHandler(params operations.PostTradespersonParams) middlewar
 		return response
 	}
 
-	stmt, err := db.Prepare("SELECT email FROM tradesperson_account WHERE email=?")
-	if err != nil {
-		log.Printf("Failed to create select statement %s", err)
-		return response
-	}
-	defer stmt.Close()
-
-	row := stmt.QueryRow(tradesperson.Email)
-	var _email string
-	switch err = row.Scan(&_email); err {
-	case sql.ErrNoRows:
-		stripeAccount, err := _stripe.CreateTradespersonStripeAccount(tradesperson)
-		if err != nil {
-			log.Printf("Failed creating tradesperson stripe connect account %s", err)
-			return response
-		}
-		tradespersonID, err := database.CreateTradespersonAccount(tradesperson, stripeAccount)
-		if err != nil {
-			log.Printf("Failed creating tradesperson account %s", err)
-			return response
-		}
-		onBoarding, err := _stripe.GetOnBoardingLink(stripeAccount.ID, tradespersonID.String())
-		if err != nil {
-			log.Printf("Failed creating tradesperson onboarding link %s", err)
-			return response
-		}
-		payload.Created = true
-		payload.TradespersonID = tradespersonID.String()
-		payload.URL = onBoarding.URL
-
-		accessToken, err := internal.GenerateToken(tradespersonID.String(), "tradesperson", "access", time.Minute*15)
-		if err != nil {
-			log.Printf("Failed to generate JWT, %s", err)
-			return response
-		}
-		payload.AccessToken = accessToken
-
-		refreshToken, err := internal.GenerateToken(tradespersonID.String(), "tradesperson", "refresh", time.Minute*20)
-		if err != nil {
-			log.Printf("Failed to generate JWT, %s", err)
-			return response
-		}
-		payload.RefreshToken = refreshToken
-
-		saved, err := database.SaveTradespersonTokens(tradespersonID.String(), refreshToken, accessToken)
-		if err != nil {
-			log.Printf("Failed to save tradesperson tokens, %s", err)
-			return response
-		}
-		if !saved {
-			log.Printf("No issues, but failed to save tradesperson")
-		}
-		if err := email.SendProviderWelcome(tradesperson.Email.String()); err != nil {
-			log.Printf("Failed to send tradesperson welcome email, %v", err)
-		}
-		response.SetPayload(&payload)
-	case nil:
-		log.Printf("Tradesperson with email %s already exist", _email)
-	default:
-		log.Printf("Unknown %v", err)
-	}
-
+	out := executeProviderSignup(tradesperson)
+	response.SetPayload(out)
 	return response
 }
 
@@ -128,13 +70,13 @@ func deleteAccount(tradespersonID string) {
 	}
 	stripeAccount, err := account.Del(stripeID, nil)
 	if err != nil {
-		log.Printf("Failed to delete tradesperson %s stripe account, %v", &stripeID, err)
+		log.Printf("Failed to delete tradesperson %s stripe account, %v", stripeID, err)
 		return
 	}
 	if stripeAccount.Deleted {
 		_, err = database.DeleteTradespersonAccount(tradespersonID, stripeID)
 		if err != nil {
-			log.Printf("Failed to delete tradesperson database account, %v", tradespersonID, err)
+			log.Printf("Failed to delete tradesperson database account for %s: %v", tradespersonID, err)
 			return
 		}
 	}
@@ -174,7 +116,7 @@ func GetTradespersonTradespersonIDHandler(params operations.GetTradespersonTrade
 	case nil:
 		connect, err := _stripe.GetConnectAccount(stripeID)
 		if err != nil {
-			log.Print("Failed to get stripe account for tradesperson with ID %s", tradespersonID)
+			log.Printf("Failed to get stripe account for tradesperson with ID %s", tradespersonID)
 			return response
 		}
 		payload.Enabled = connect.ChargesEnabled

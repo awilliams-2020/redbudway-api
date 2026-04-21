@@ -8,10 +8,10 @@ import (
 	"redbudway-api/restapi/operations"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
-	"github.com/stripe/stripe-go/v72/quote"
-	"github.com/stripe/stripe-go/v72/sub"
+	"github.com/stripe/stripe-go/v82/price"
+	"github.com/stripe/stripe-go/v82/product"
+	"github.com/stripe/stripe-go/v82/quote"
+	sub "github.com/stripe/stripe-go/v82/subscription"
 )
 
 func GetCustomerCustomerIDQuoteQuoteIDReviewHandler(params operations.GetCustomerCustomerIDQuoteQuoteIDReviewParams, prinicpal interface{}) middleware.Responder {

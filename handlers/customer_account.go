@@ -14,14 +14,14 @@ import (
 	"time"
 
 	"github.com/go-openapi/runtime/middleware"
-	"github.com/stripe/stripe-go/v72"
-	"github.com/stripe/stripe-go/v72/customer"
-	"github.com/stripe/stripe-go/v72/invoice"
-	"github.com/stripe/stripe-go/v72/invoiceitem"
-	"github.com/stripe/stripe-go/v72/price"
-	"github.com/stripe/stripe-go/v72/product"
-	"github.com/stripe/stripe-go/v72/quote"
-	"github.com/stripe/stripe-go/v72/sub"
+	"github.com/stripe/stripe-go/v82"
+	"github.com/stripe/stripe-go/v82/customer"
+	"github.com/stripe/stripe-go/v82/invoice"
+	"github.com/stripe/stripe-go/v82/invoiceitem"
+	"github.com/stripe/stripe-go/v82/price"
+	"github.com/stripe/stripe-go/v82/product"
+	"github.com/stripe/stripe-go/v82/quote"
+	sub "github.com/stripe/stripe-go/v82/subscription"
 )
 
 func PostCustomerHandler(params operations.PostCustomerParams) middleware.Responder {
@@ -190,7 +190,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 
 	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
 	if err != nil {
-		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
+		log.Printf("Failed to retrieve stripe product, %v", stripePrice.Product.ID)
 	}
 
 	sellingFee, err := database.GetTradespersonSellingFee(tradespersonID)
@@ -256,7 +256,7 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 
 		invoiceItemParams := &stripe.InvoiceItemParams{
 			Customer:    stripe.String(cuStripeID),
-			Price:       stripe.String(stripePrice.ID),
+			Pricing:     &stripe.InvoiceItemPricingParams{Price: stripe.String(stripePrice.ID)},
 			Quantity:    &timeSlot.Quantity,
 			Description: stripe.String(stripeProduct.Description),
 			Invoice:     stripe.String(stripeInvoice.ID),
@@ -303,13 +303,13 @@ func PostCustomerCustomerIDFixedPricePriceIDBookHandler(params operations.PostCu
 func emailSubscriptionHelper(tradesperson models.Tradesperson, stripePrice *stripe.Price, cuStripeID, timeAndPrice, formRowsCols string) {
 	stripeProduct, err := product.Get(stripePrice.Product.ID, nil)
 	if err != nil {
-		log.Printf("Failed to retrieve stripe product, %s", &stripePrice.Product.ID)
+		log.Printf("Failed to retrieve stripe product, %v", stripePrice.Product.ID)
 		return
 	}
 
 	stripeCustomer, err := customer.Get(cuStripeID, nil)
 	if err != nil {
-		log.Printf("Failed to retrieve customer, %s", &cuStripeID)
+		log.Printf("Failed to retrieve customer, %v", cuStripeID)
 		return
 	}
 
@@ -410,7 +410,9 @@ func PostCustomerCustomerIDSubscriptionPriceIDBookHandler(params operations.Post
 			OnBehalfOf:        stripe.String(tpStripeID),
 		}
 		if discount.Valid {
-			subscriptionParams.Coupon = stripe.String(discount.CouponID)
+			subscriptionParams.Discounts = []*stripe.SubscriptionDiscountParams{
+				{Coupon: stripe.String(discount.CouponID)},
+			}
 		}
 		subscriptionParams.AddMetadata("tradesperson_id", tradespersonID)
 		stripeSubscription, err := sub.New(subscriptionParams)
@@ -502,7 +504,8 @@ func GetCustomerCustomerIDPaymentDefaultHandler(params operations.GetCustomerCus
 	return response
 }
 
-func emailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDetails, images []string, cuStripeID, message, quoteID string) {
+// EmailQuoteHelper sends customer confirmation and tradesperson quote-request emails (used by authenticated and public quote flows).
+func EmailQuoteHelper(tradesperson models.Tradesperson, quote *models.ServiceDetails, images []string, cuStripeID, message, quoteID string) {
 	stripeCustomer, err := customer.Get(cuStripeID, nil)
 	if err != nil {
 		log.Printf("Failed to get stripe customer, %v", err)
@@ -587,7 +590,7 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 				return response
 			}
 			if created {
-				go emailQuoteHelper(tradesperson, _quote, images, cuStripeID, message, stripeQuote.ID)
+				go EmailQuoteHelper(tradesperson, _quote, images, cuStripeID, message, stripeQuote.ID)
 
 				payload.Requested = true
 				response.SetPayload(&payload)
@@ -825,6 +828,8 @@ func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCusto
 		if stripeQuote.Status == "accepted" {
 			payload.Accepted = true
 			response.SetPayload(&payload)
+
+			AfterQuoteAcceptedEnsuresInvoiceDepositNote(tradespersonID, quoteID)
 
 			tradesperson, err := database.GetTradespersonProfile(tradespersonID)
 			if err != nil {
