@@ -25,14 +25,14 @@ func CreateInvoiceRefund(invoiceID, refundID string) error {
 func GetInvoiceRefund(invoiceID string) (string, int64, error) {
 	var status string
 	var refunded int64
-	stmt, err := db.Prepare("SELECT refundId FROM tradesperson_refunds WHERE invoiceId=?")
+	stmt, err := db.Prepare("SELECT refundId FROM tradesperson_refunds WHERE invoiceId=? ORDER BY id DESC LIMIT 1")
 	if err != nil {
 		return status, refunded, err
 	}
 	defer stmt.Close()
 
 	var refundID string
-	row := stmt.QueryRow(invoiceID)
+	row := stmt.QueryRow(invoiceID) // latest row for this invoice (multiple partial refunds allowed)
 	switch err = row.Scan(&refundID); err {
 	case sql.ErrNoRows:
 		break

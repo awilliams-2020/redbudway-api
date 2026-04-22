@@ -38,7 +38,7 @@ func executeProviderSignup(tradesperson operations.PostTradespersonBody) *operat
 			log.Printf("Failed creating tradesperson account %s", err)
 			return payload
 		}
-		onBoarding, err := _stripe.GetOnBoardingLink(stripeAccount.ID, tradespersonID.String())
+		onBoarding, err := _stripe.GetOnBoardingLink(stripeAccount.ID)
 		if err != nil {
 			log.Printf("Failed creating tradesperson onboarding link %s", err)
 			return payload

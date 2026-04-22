@@ -1791,6 +1791,9 @@ paths:
               updated:
                 type: boolean
                 x-omitempty: false
+              quoteId:
+                type: string
+                description: Stripe billing quote id (qt_…) when it changed after this request (e.g. revising an open quote).
   /tradesperson/{tradespersonId}/billing/quote/{quoteId}/notify-customer:
     post:
       security:
@@ -2018,6 +2021,19 @@ paths:
                 type: array
                 items:
                   $ref: '#/definitions/Product'
+              cardPayments:
+                description: Paid card charges attached to this invoice (for targeted refunds)
+                type: array
+                items:
+                  $ref: '#/definitions/BillingQuoteInvoiceCardPayment'
+              totalCardRefundableCents:
+                description: Sum of remaining refundable amounts across cardPayments, cents
+                type: integer
+                format: int64
+              totalCardRefundedCents:
+                description: Sum of amount already refunded on those charges, cents
+                type: integer
+                format: int64
     put:
       security:
         - Bearer: []
@@ -2161,6 +2177,11 @@ paths:
         description: Invoice ID
         required: true
         type: string
+      - in: body
+        name: body
+        required: false
+        schema:
+          $ref: '#/definitions/BillingQuoteInvoiceRefundRequest'
       responses:
         '200':
           description: If invoice refunded
@@ -2170,6 +2191,10 @@ paths:
               refunded:
                 type: boolean
                 x-omitempty: false
+              amountRefundedCents:
+                description: Total amount submitted to Stripe refunds in this request, cents
+                type: integer
+                format: int64
   /tradesperson/{tradespersonId}/billing/manual-invoices:
     get:
       security:
@@ -3812,6 +3837,38 @@ paths:
                 type: boolean
                 x-omitempty: false
 definitions:
+  BillingQuoteInvoiceCardPayment:
+    type: object
+    properties:
+      chargeId:
+        type: string
+      paymentIntentId:
+        type: string
+      amountCents:
+        type: integer
+        format: int64
+        description: Original charge amount in cents
+      amountRefundedCents:
+        type: integer
+        format: int64
+      amountRefundableCents:
+        type: integer
+        format: int64
+      segment:
+        type: string
+        description: deposit, balance, full, or unknown
+      label:
+        type: string
+  BillingQuoteInvoiceRefundRequest:
+    type: object
+    properties:
+      chargeId:
+        type: string
+        description: Stripe charge id; omit to refund all remaining refundable card amounts on every charge for this invoice
+      amountCents:
+        type: integer
+        format: int64
+        description: Partial refund in cents on the chosen charge; omit with chargeId to refund the full remaining refundable amount on that charge
   Service:
     type: object
     properties:

@@ -250,18 +250,23 @@ func PostPublicQuoteRequestHTTP(w http.ResponseWriter, r *http.Request, catalogQ
 		return
 	}
 
+	connectCu, err := database.GetOrCreateStripeCustomerOnConnect(tradespersonID, customerID, tpStripeID)
+	if err != nil {
+		log.Printf("public quote request GetOrCreateStripeCustomerOnConnect: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(publicQuoteRequestErr{Error: "internal error"})
+		return
+	}
+
 	daysDue := int64(7)
 	qparams := &stripe.QuoteParams{
-		Customer:         stripe.String(cuStripeID),
+		Customer:         stripe.String(connectCu),
 		CollectionMethod: stripe.String("send_invoice"),
-		TransferData: &stripe.QuoteTransferDataParams{
-			Destination: stripe.String(tpStripeID),
-		},
 		InvoiceSettings: &stripe.QuoteInvoiceSettingsParams{
 			DaysUntilDue: &daysDue,
 		},
-		OnBehalfOf: stripe.String(tpStripeID),
 	}
+	qparams.SetStripeAccount(tpStripeID)
 	stripeQuote, err := quote.New(qparams)
 	if err != nil {
 		log.Printf("public quote request quote.New: %v", err)

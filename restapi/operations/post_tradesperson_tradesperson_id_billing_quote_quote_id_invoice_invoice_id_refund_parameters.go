@@ -9,8 +9,12 @@ import (
 	"net/http"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/validate"
+
+	"redbudway-api/models"
 )
 
 // NewPostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundParams creates a new PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundParams object
@@ -30,6 +34,10 @@ type PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundPara
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
 
+	/*
+	  In: body
+	*/
+	Body *models.BillingQuoteInvoiceRefundRequest
 	/*Invoice ID
 	  Required: true
 	  In: path
@@ -55,6 +63,28 @@ func (o *PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund
 	var res []error
 
 	o.HTTPRequest = r
+
+	if runtime.HasBody(r) {
+		defer r.Body.Close()
+		var body models.BillingQuoteInvoiceRefundRequest
+		if err := route.Consumer.Consume(r.Body, &body); err != nil {
+			res = append(res, errors.NewParseError("body", "body", "", err))
+		} else {
+			// validate body object
+			if err := body.Validate(route.Formats); err != nil {
+				res = append(res, err)
+			}
+
+			ctx := validate.WithOperationRequest(r.Context())
+			if err := body.ContextValidate(ctx, route.Formats); err != nil {
+				res = append(res, err)
+			}
+
+			if len(res) == 0 {
+				o.Body = &body
+			}
+		}
+	}
 
 	rInvoiceID, rhkInvoiceID, _ := route.Params.GetOK("invoiceId")
 	if err := o.bindInvoiceID(rInvoiceID, rhkInvoiceID, route.Formats); err != nil {

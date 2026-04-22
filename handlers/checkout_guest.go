@@ -40,6 +40,137 @@ type postCheckoutGuestSessionResponse struct {
 	URL string `json:"url"`
 }
 
+// guestCheckoutInvoiceEnv is the loaded Stripe invoice plus ids after the same checks used for guest-session.
+type guestCheckoutInvoiceEnv struct {
+	Inv         *stripe.Invoice
+	TpStripeID  string
+	QuoteStripe string
+	DepositPct  int64
+}
+
+// guestCheckoutLoadInvoiceForGuestPay runs authorization + quote validation through finalize (same path as guest-session).
+// On failure returns non-zero HTTP status and an error message for JSON {"error": msg}.
+func guestCheckoutLoadInvoiceForGuestPay(tradespersonID, stripeInvoiceID string) (*guestCheckoutInvoiceEnv, int, string) {
+	tpStripeID, err := database.GetTradespersonStripeID(tradespersonID)
+	if err != nil || tpStripeID == "" {
+		return nil, http.StatusNotFound, "provider not found"
+	}
+
+	inv, err := guestConnectInvoiceGetExpand(tpStripeID, stripeInvoiceID, []*string{
+		stripe.String("quote"),
+		stripe.String("customer"),
+	})
+	if err != nil {
+		log.Printf("guest checkout invoice.Get: %v", err)
+		return nil, http.StatusNotFound, "invoice not found"
+	}
+
+	if inv.Parent == nil || inv.Parent.QuoteDetails == nil || inv.Parent.QuoteDetails.Quote == "" {
+		return nil, http.StatusBadRequest, "invoice is not from a quote; guest pay is only available after the quote is accepted"
+	}
+
+	quoteStripeID := inv.Parent.QuoteDetails.Quote
+
+	dbTpID, err := database.GetTradespersonIDByBillingStripeQuote(quoteStripeID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, http.StatusNotFound, "quote not found for this provider"
+		}
+		log.Printf("guest checkout GetTradespersonIDByBillingStripeQuote: %v", err)
+		return nil, http.StatusInternalServerError, "database error"
+	}
+	if dbTpID != tradespersonID {
+		return nil, http.StatusNotFound, "invoice does not match provider"
+	}
+
+	sq, err := quote.Get(quoteStripeID, billingQuoteParams(tpStripeID, []*string{
+		stripe.String("invoice"),
+	}))
+	if err != nil {
+		log.Printf("guest checkout quote.Get: %v", err)
+		return nil, http.StatusBadRequest, "unable to load Stripe quote"
+	}
+
+	if sq.Status != stripe.QuoteStatusAccepted {
+		return nil, http.StatusConflict, "quote must be accepted before the customer can pay the invoice"
+	}
+
+	if sq.Invoice == nil || sq.Invoice.ID != inv.ID {
+		return nil, http.StatusBadRequest, "invoice does not match this quote"
+	}
+
+	acct, err := _stripe.GetConnectAccount(tpStripeID)
+	if err != nil {
+		log.Printf("guest checkout GetConnectAccount: %v", err)
+		return nil, http.StatusBadRequest, "unable to load Connect account"
+	}
+	if !acct.ChargesEnabled {
+		return nil, http.StatusConflict, "provider cannot accept charges yet"
+	}
+
+	if !quoteConnectMatchesProvider(sq, tpStripeID) {
+		return nil, http.StatusBadRequest, "quote does not belong to this Connect account"
+	}
+
+	inv, err = guestConnectInvoiceGet(tpStripeID, inv.ID)
+	if err != nil {
+		log.Printf("guest checkout invoice refresh %s: %v", stripeInvoiceID, err)
+		return nil, http.StatusBadGateway, "invoice not available"
+	}
+
+	ensureQuoteInvoiceDepositFooter(tpStripeID, tradespersonID, quoteStripeID, sq)
+
+	inv, err = finalizeInvoiceIfDraft(inv, tpStripeID)
+	if err != nil {
+		log.Printf("guest checkout finalizeInvoiceIfDraft: %v", err)
+		return nil, http.StatusBadGateway, "could not finalize invoice for payment"
+	}
+
+	var depositPct int64
+	if err := database.GetConnection().QueryRow(
+		`SELECT q.depositPct FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?`,
+		tradespersonID, quoteStripeID,
+	).Scan(&depositPct); err != nil {
+		depositPct = -1
+	}
+
+	return &guestCheckoutInvoiceEnv{
+		Inv:         inv,
+		TpStripeID:  tpStripeID,
+		QuoteStripe: quoteStripeID,
+		DepositPct:  depositPct,
+	}, 0, ""
+}
+
+// guestQuotePublicFieldsFromInvoice returns DB-backed guest UI fields when the invoice was created from a billing quote
+// (same source as guest-accept-quote). Requires inv.Parent.QuoteDetails (request expand parent.quote_details on invoice Get when needed).
+func guestQuotePublicFieldsFromInvoice(tradespersonID string, inv *stripe.Invoice) (depositPct int64, providerEmail, serviceName, request string) {
+	depositPct = -1
+	if inv == nil || inv.Parent == nil || inv.Parent.QuoteDetails == nil {
+		return depositPct, "", "", ""
+	}
+	qid := strings.TrimSpace(inv.Parent.QuoteDetails.Quote)
+	if qid == "" {
+		return depositPct, "", "", ""
+	}
+	dbTpID, err := database.GetTradespersonIDByBillingStripeQuote(qid)
+	if err != nil || dbTpID != tradespersonID {
+		return depositPct, "", "", ""
+	}
+	if err := database.GetConnection().QueryRow(
+		`SELECT q.depositPct FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?`,
+		tradespersonID, qid,
+	).Scan(&depositPct); err != nil {
+		depositPct = -1
+	}
+	pd, err := database.GetGuestAcceptQuotePageDetails(tradespersonID, qid)
+	if err != nil {
+		log.Printf("guestQuotePublicFieldsFromInvoice GetGuestAcceptQuotePageDetails: %v", err)
+		return depositPct, "", "", ""
+	}
+	return depositPct, pd.ProviderEmail, pd.ServiceName, pd.Request
+}
+
 type postCheckoutGuestAcceptQuoteBody struct {
 	TradespersonID string `json:"tradespersonId"`
 	StripeQuoteID  string `json:"stripeQuoteId"`
@@ -49,6 +180,8 @@ type postCheckoutGuestAcceptQuoteBody struct {
 type postCheckoutGuestAcceptQuoteResponse struct {
 	TradespersonID  string `json:"tradespersonId"`
 	StripeInvoiceID string `json:"stripeInvoiceId"`
+	// StripeQuoteID echoes the billing quote id (qt_…) from the request for symmetry with guest-invoice-status.
+	StripeQuoteID string `json:"stripeQuoteId,omitempty"`
 	// DepositPct is 0–100 from the quote; -1 if unknown (DB error).
 	DepositPct int64 `json:"depositPct"`
 	// AlreadyAccepted is true when the quote was accepted before this request (revisit / refresh).
@@ -62,10 +195,19 @@ type postCheckoutGuestAcceptQuoteResponse struct {
 	AmountTotal     *int64 `json:"amountTotal,omitempty"`
 }
 
-// guestConnectInvoiceGet loads an invoice for a Connect billing flow (try connected account first).
-func guestConnectInvoiceGet(connectAccountID, invoiceID string) (*stripe.Invoice, error) {
+// guestConnectInvoiceGetExpand loads an invoice for a Connect billing flow (try connected account first).
+func guestConnectInvoiceGetExpand(connectAccountID, invoiceID string, expand []*string) (*stripe.Invoice, error) {
+	baseParams := &stripe.InvoiceParams{
+		Params: stripe.Params{
+			Expand: expand,
+		},
+	}
 	if connectAccountID != "" {
-		p := &stripe.InvoiceParams{}
+		p := &stripe.InvoiceParams{
+			Params: stripe.Params{
+				Expand: expand,
+			},
+		}
 		p.SetStripeAccount(connectAccountID)
 		inv, err := invoice.Get(invoiceID, p)
 		if err == nil {
@@ -73,7 +215,12 @@ func guestConnectInvoiceGet(connectAccountID, invoiceID string) (*stripe.Invoice
 		}
 		log.Printf("guest invoice.Get %s with Connect account: %v", invoiceID, err)
 	}
-	return invoice.Get(invoiceID, nil)
+	return invoice.Get(invoiceID, baseParams)
+}
+
+// guestConnectInvoiceGet loads an invoice for a Connect billing flow (try connected account first).
+func guestConnectInvoiceGet(connectAccountID, invoiceID string) (*stripe.Invoice, error) {
+	return guestConnectInvoiceGetExpand(connectAccountID, invoiceID, nil)
 }
 
 // depositInvoiceFooter returns text for the Stripe invoice footer (hosted invoice, PDF, email) so customers
@@ -91,7 +238,7 @@ func depositInvoiceFooter(depositPct, amountTotalCents int64) string {
 	depositDue := (amountTotalCents * depositPct) / 100
 	balance := amountTotalCents - depositDue
 	return fmt.Sprintf(
-		"Deposit terms: %d%% of the quoted total is due with this invoice ($%s). Remaining balance on this same invoice after this payment: $%s.",
+		"Deposit terms: %d%% of the quoted total ($%s) is due with the first payment. Remaining balance after that payment: $%s.",
 		depositPct,
 		formatCentsForFooter(depositDue),
 		formatCentsForFooter(balance),
@@ -105,26 +252,52 @@ func formatCentsForFooter(cents int64) string {
 	return fmt.Sprintf("%.2f", float64(cents)/100.0)
 }
 
-// checkoutLineItemDepositDescription is a short line for Stripe Checkout when ProductData description is shown.
-func checkoutLineItemDepositDescription(depositPct int64) string {
-	if depositPct < 0 || depositPct > 100 {
-		return ""
+// guestCheckoutLineProductCopy builds Stripe Checkout line item name/description and a line for PaymentIntent text.
+// Checkout does not show the invoice, so copy uses dollar amounts against the invoice total instead of “same invoice” language.
+func guestCheckoutLineProductCopy(
+	base string,
+	depositPct int64,
+	partialDeposit bool,
+	chargeCents, invoiceTotalCents, amountRemainingBefore, amountPaidBefore int64,
+) (name string, productDescription string, paymentIntentLine string) {
+	dp := depositPct
+	if dp < 0 || dp > 100 {
+		dp = 0
 	}
-	if depositPct == 0 {
-		return "Full quoted amount due with this payment (no separate deposit)."
+	base = strings.TrimSpace(base)
+	if base == "" {
+		base = "Invoice payment"
 	}
-	return fmt.Sprintf("%d%% of the quoted total is due with this payment; the remaining balance stays on this invoice until it is paid.", depositPct)
-}
+	format := formatCentsForFooter
 
-// checkoutLineItemNameSuffix is a compact fragment merged into the Checkout line item name (Stripe often hides ProductData.Description).
-func checkoutLineItemNameSuffix(depositPct int64) string {
-	if depositPct < 0 || depositPct > 100 {
-		return ""
+	balanceAfter := amountRemainingBefore - chargeCents
+	if balanceAfter < 0 {
+		balanceAfter = 0
 	}
-	if depositPct == 0 {
-		return "Full amount due now (no separate deposit)"
+
+	switch {
+	case dp == 0:
+		suf := "Full amount due now (no separate deposit)"
+		return combineCheckoutLineItemDisplayName(base, suf),
+			"Full quoted amount due with this payment (no separate deposit).",
+			"Full quoted amount due with this payment (no separate deposit)."
+	case partialDeposit && dp > 0:
+		suf := fmt.Sprintf("%d%% deposit ($%s of $%s)", dp, format(chargeCents), format(invoiceTotalCents))
+		desc := fmt.Sprintf(
+			"$%s of $%s total (%d%% deposit).\nRemaining balance after this payment: $%s.",
+			format(chargeCents), format(invoiceTotalCents), dp, format(balanceAfter),
+		)
+		return combineCheckoutLineItemDisplayName(base, suf), desc, strings.ReplaceAll(desc, "\n", " ")
+	case !partialDeposit && dp > 0 && amountPaidBefore > 0:
+		suf := "Remaining balance due"
+		line := fmt.Sprintf("Pay the remaining $%s of $%s total.", format(amountRemainingBefore), format(invoiceTotalCents))
+		return combineCheckoutLineItemDisplayName(base, suf), line, line
+	default:
+		// Full remaining in one Checkout session (e.g. 100%% deposit or no split).
+		suf := fmt.Sprintf("Full payment (%d%% of total)", dp)
+		line := fmt.Sprintf("$%s of $%s total due with this payment.", format(chargeCents), format(invoiceTotalCents))
+		return combineCheckoutLineItemDisplayName(base, suf), line, line
 	}
-	return fmt.Sprintf("%d%% deposit now; balance on same invoice", depositPct)
 }
 
 const stripeCheckoutLineItemNameMaxBytes = 500
@@ -147,14 +320,14 @@ func truncateStripeLineItemName(s string, maxBytes int) string {
 	return s[:end] + ellipsis
 }
 
-func checkoutLineItemDisplayName(base string, depositPct int64) string {
+func combineCheckoutLineItemDisplayName(base, suffix string) string {
 	base = strings.TrimSpace(base)
-	if base == "" {
-		base = "Invoice payment"
-	}
-	suf := checkoutLineItemNameSuffix(depositPct)
+	suf := strings.TrimSpace(suffix)
 	if suf == "" {
 		return truncateStripeLineItemName(base, stripeCheckoutLineItemNameMaxBytes)
+	}
+	if base == "" {
+		base = "Invoice payment"
 	}
 	sep := " — "
 	combined := base + sep + suf
@@ -168,7 +341,9 @@ func checkoutLineItemDisplayName(base string, depositPct int64) string {
 	return truncateStripeLineItemName(base, room) + sep + suf
 }
 
-func ensureQuoteInvoiceDepositFooter(tradespersonID, stripeQuoteID string, sq *stripe.Quote) {
+// ensureQuoteInvoiceDepositFooter sets deposit/payment terms on the invoice footer while the invoice is still a draft.
+// Stripe rejects footer updates after finalization (draft → open), and Connect invoices require Stripe-Account on API calls.
+func ensureQuoteInvoiceDepositFooter(connectAccountID, tradespersonID, stripeQuoteID string, sq *stripe.Quote) {
 	if sq == nil || sq.Invoice == nil || sq.Invoice.ID == "" {
 		return
 	}
@@ -184,7 +359,7 @@ func ensureQuoteInvoiceDepositFooter(tradespersonID, stripeQuoteID string, sq *s
 	if footer == "" {
 		return
 	}
-	inv, err := invoice.Get(sq.Invoice.ID, nil)
+	inv, err := guestConnectInvoiceGet(connectAccountID, sq.Invoice.ID)
 	if err != nil {
 		log.Printf("ensureQuoteInvoiceDepositFooter invoice.Get %s: %v", sq.Invoice.ID, err)
 		return
@@ -192,20 +367,26 @@ func ensureQuoteInvoiceDepositFooter(tradespersonID, stripeQuoteID string, sq *s
 	if strings.TrimSpace(inv.Footer) != "" {
 		return
 	}
-	if _, err := invoice.Update(sq.Invoice.ID, &stripe.InvoiceParams{Footer: stripe.String(footer)}); err != nil {
+	if inv.Status != stripe.InvoiceStatusDraft {
+		return
+	}
+	up := &stripe.InvoiceParams{Footer: stripe.String(footer)}
+	if connectAccountID != "" {
+		up.SetStripeAccount(connectAccountID)
+	}
+	if _, err := invoice.Update(sq.Invoice.ID, up); err != nil {
 		log.Printf("ensureQuoteInvoiceDepositFooter invoice.Update footer %s: %v", sq.Invoice.ID, err)
 	}
 }
 
-// AfterQuoteAcceptedEnsuresInvoiceDepositNote finalizes a draft invoice if needed and applies payment/deposit footer text.
+// AfterQuoteAcceptedEnsuresInvoiceDepositNote applies payment/deposit footer text on the draft invoice, then finalizes if needed.
 // Use after quote.Accept (e.g. logged-in customer flow) so the generated invoice matches guest accept behavior.
 func AfterQuoteAcceptedEnsuresInvoiceDepositNote(tradespersonID, stripeQuoteID string) {
-	expand := &stripe.QuoteParams{
-		Params: stripe.Params{
-			Expand: []*string{stripe.String("invoice")},
-		},
+	tpStripeID, errStripe := database.GetTradespersonStripeID(tradespersonID)
+	if errStripe != nil {
+		log.Printf("AfterQuoteAccepted GetTradespersonStripeID %s: %v", tradespersonID, errStripe)
 	}
-	sq, err := quote.Get(stripeQuoteID, expand)
+	sq, err := quote.Get(stripeQuoteID, billingQuoteParams(tpStripeID, []*string{stripe.String("invoice")}))
 	if err != nil {
 		log.Printf("AfterQuoteAccepted quote.Get %s: %v", stripeQuoteID, err)
 		return
@@ -213,23 +394,18 @@ func AfterQuoteAcceptedEnsuresInvoiceDepositNote(tradespersonID, stripeQuoteID s
 	if sq.Invoice == nil || sq.Invoice.ID == "" {
 		return
 	}
-	inv, err := invoice.Get(sq.Invoice.ID, nil)
+	ensureQuoteInvoiceDepositFooter(tpStripeID, tradespersonID, stripeQuoteID, sq)
+	inv, err := guestConnectInvoiceGet(tpStripeID, sq.Invoice.ID)
 	if err != nil {
 		log.Printf("AfterQuoteAccepted invoice.Get %s: %v", sq.Invoice.ID, err)
 		return
 	}
-	if _, err := finalizeInvoiceIfDraft(inv); err != nil {
+	if _, err := finalizeInvoiceIfDraft(inv, tpStripeID); err != nil {
 		log.Printf("AfterQuoteAccepted finalizeInvoiceIfDraft %s: %v", sq.Invoice.ID, err)
 	}
-	sq, err = quote.Get(stripeQuoteID, expand)
-	if err != nil {
-		log.Printf("AfterQuoteAccepted quote.Get refresh %s: %v", stripeQuoteID, err)
-		return
-	}
-	ensureQuoteInvoiceDepositFooter(tradespersonID, stripeQuoteID, sq)
 }
 
-func notifyTradespersonQuoteAcceptedGuest(tradespersonID, stripeQuoteID string, sq *stripe.Quote) {
+func notifyTradespersonQuoteAcceptedGuest(connectAccountID, tradespersonID, stripeQuoteID string, sq *stripe.Quote) {
 	if sq == nil || sq.Customer == nil || sq.Customer.ID == "" {
 		return
 	}
@@ -252,7 +428,11 @@ func notifyTradespersonQuoteAcceptedGuest(tradespersonID, stripeQuoteID string, 
 		log.Printf("guest accept GetTradespersonQuote: %v", err)
 		return
 	}
-	stripeCustomer, err := customer.Get(sq.Customer.ID, nil)
+	cuParams := &stripe.CustomerParams{}
+	if connectAccountID != "" {
+		cuParams.SetStripeAccount(connectAccountID)
+	}
+	stripeCustomer, err := customer.Get(sq.Customer.ID, cuParams)
 	if err != nil {
 		log.Printf("guest accept customer.Get: %v", err)
 		return
@@ -324,18 +504,12 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expand := &stripe.QuoteParams{
-		Params: stripe.Params{
-			Expand: []*string{
-				stripe.String("customer"),
-				stripe.String("transfer_data.destination"),
-				stripe.String("on_behalf_of"),
-				stripe.String("invoice"),
-			},
-		},
+	expandList := []*string{
+		stripe.String("customer"),
+		stripe.String("invoice"),
 	}
 
-	sq, err := quote.Get(body.StripeQuoteID, expand)
+	sq, err := quote.Get(body.StripeQuoteID, billingQuoteParams(tpStripeID, expandList))
 	if err != nil {
 		log.Printf("guest accept quote.Get: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -352,7 +526,9 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 	var didAccept bool
 	switch sq.Status {
 	case stripe.QuoteStatusOpen:
-		sq, err = quote.Accept(body.StripeQuoteID, nil)
+		acceptParams := &stripe.QuoteAcceptParams{}
+		acceptParams.SetStripeAccount(tpStripeID)
+		sq, err = quote.Accept(body.StripeQuoteID, acceptParams)
 		if err != nil {
 			log.Printf("guest accept quote.Accept: %v", err)
 			w.WriteHeader(http.StatusBadGateway)
@@ -373,7 +549,7 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sq, err = quote.Get(body.StripeQuoteID, expand)
+	sq, err = quote.Get(body.StripeQuoteID, billingQuoteParams(tpStripeID, expandList))
 	if err != nil {
 		log.Printf("guest accept quote.Get after accept: %v", err)
 		w.WriteHeader(http.StatusBadGateway)
@@ -393,6 +569,8 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ensureQuoteInvoiceDepositFooter(tpStripeID, body.TradespersonID, body.StripeQuoteID, sq)
+
 	invAccept, err := guestConnectInvoiceGet(tpStripeID, sq.Invoice.ID)
 	if err != nil {
 		log.Printf("guest accept invoice.Get %s: %v", sq.Invoice.ID, err)
@@ -400,7 +578,7 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invoice not available"})
 		return
 	}
-	if _, err = finalizeInvoiceIfDraft(invAccept); err != nil {
+	if _, err = finalizeInvoiceIfDraft(invAccept, tpStripeID); err != nil {
 		log.Printf("guest accept finalizeInvoiceIfDraft %s: %v", sq.Invoice.ID, err)
 		w.WriteHeader(http.StatusBadGateway)
 		_ = json.NewEncoder(w).Encode(map[string]string{"error": "could not finalize invoice for payment"})
@@ -419,10 +597,8 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 		amountTotal = &at
 	}
 
-	ensureQuoteInvoiceDepositFooter(body.TradespersonID, body.StripeQuoteID, sq)
-
 	if didAccept {
-		notifyTradespersonQuoteAcceptedGuest(body.TradespersonID, body.StripeQuoteID, sq)
+		notifyTradespersonQuoteAcceptedGuest(tpStripeID, body.TradespersonID, body.StripeQuoteID, sq)
 	}
 
 	var depositPct int64
@@ -442,6 +618,7 @@ func PostCheckoutGuestAcceptQuoteHTTP(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(postCheckoutGuestAcceptQuoteResponse{
 		TradespersonID:  body.TradespersonID,
 		StripeInvoiceID: sq.Invoice.ID,
+		StripeQuoteID:   body.StripeQuoteID,
 		DepositPct:      depositPct,
 		AlreadyAccepted: !didAccept,
 		ProviderEmail:   pageDetails.ProviderEmail,
@@ -482,32 +659,46 @@ func guestCheckoutApplicationFeeCents(amountCents int64, sellingFee float64) int
 }
 
 func quoteConnectMatchesProvider(sq *stripe.Quote, tpStripeID string) bool {
+	if tpStripeID == "" {
+		return false
+	}
+	// Legacy destination-charge quotes (platform invoice + transfer_data).
 	if sq.TransferData != nil && sq.TransferData.Destination != nil && sq.TransferData.Destination.ID != "" {
 		return sq.TransferData.Destination.ID == tpStripeID
 	}
 	if sq.OnBehalfOf != nil && sq.OnBehalfOf.ID != "" {
 		return sq.OnBehalfOf.ID == tpStripeID
 	}
-	return false
+	// Direct charges: quote and invoice live on the connected account.
+	return true
 }
 
 // finalizeInvoiceIfDraft turns a post–accept quote invoice from draft → open. Without this, customers see
 // "invoice is not open for payment" until the provider finalizes in the dashboard or app.
-func finalizeInvoiceIfDraft(inv *stripe.Invoice) (*stripe.Invoice, error) {
+// connectAccountID must be set when the invoice lives on a Stripe Connect account.
+func finalizeInvoiceIfDraft(inv *stripe.Invoice, connectAccountID string) (*stripe.Invoice, error) {
 	if inv.Status != stripe.InvoiceStatusDraft {
 		return inv, nil
 	}
-	if _, err := invoice.FinalizeInvoice(inv.ID, nil); err != nil {
+	finalizeParams := &stripe.InvoiceFinalizeInvoiceParams{}
+	if connectAccountID != "" {
+		finalizeParams.SetStripeAccount(connectAccountID)
+	}
+	if _, err := invoice.FinalizeInvoice(inv.ID, finalizeParams); err != nil {
 		return nil, err
 	}
-	return invoice.Get(inv.ID, &stripe.InvoiceParams{
+	getParams := &stripe.InvoiceParams{
 		Params: stripe.Params{
 			Expand: []*string{
 				stripe.String("quote"),
 				stripe.String("customer"),
 			},
 		},
-	})
+	}
+	if connectAccountID != "" {
+		getParams.SetStripeAccount(connectAccountID)
+	}
+	return invoice.Get(inv.ID, getParams)
 }
 
 // PostCheckoutGuestSessionHTTP creates a payment path for an open Stripe invoice from an accepted quote (verified in DB + Stripe).
@@ -547,108 +738,16 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inv, err := invoice.Get(body.StripeInvoiceID, &stripe.InvoiceParams{
-		Params: stripe.Params{
-			Expand: []*string{
-				stripe.String("quote"),
-				stripe.String("customer"),
-			},
-		},
-	})
-	if err != nil {
-		log.Printf("guest checkout invoice.Get: %v", err)
-		w.WriteHeader(http.StatusNotFound)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invoice not found"})
+	env, loadCode, loadErr := guestCheckoutLoadInvoiceForGuestPay(body.TradespersonID, body.StripeInvoiceID)
+	if loadCode != 0 {
+		w.WriteHeader(loadCode)
+		_ = json.NewEncoder(w).Encode(map[string]string{"error": loadErr})
 		return
 	}
-
-	inv, err = finalizeInvoiceIfDraft(inv)
-	if err != nil {
-		log.Printf("guest checkout finalizeInvoiceIfDraft: %v", err)
-		w.WriteHeader(http.StatusBadGateway)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "could not finalize invoice for payment"})
-		return
-	}
-
-	if inv.Parent == nil || inv.Parent.QuoteDetails == nil || inv.Parent.QuoteDetails.Quote == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invoice is not from a quote; guest pay is only available after the quote is accepted"})
-		return
-	}
-
-	quoteStripeID := inv.Parent.QuoteDetails.Quote
-
-	dbTpID, err := database.GetTradespersonIDByBillingStripeQuote(quoteStripeID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			w.WriteHeader(http.StatusNotFound)
-			_ = json.NewEncoder(w).Encode(map[string]string{"error": "quote not found for this provider"})
-			return
-		}
-		log.Printf("guest checkout GetTradespersonIDByBillingStripeQuote: %v", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "database error"})
-		return
-	}
-	if dbTpID != body.TradespersonID {
-		w.WriteHeader(http.StatusNotFound)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invoice does not match provider"})
-		return
-	}
-
-	sq, err := quote.Get(quoteStripeID, &stripe.QuoteParams{
-		Params: stripe.Params{
-			Expand: []*string{
-				stripe.String("transfer_data.destination"),
-				stripe.String("on_behalf_of"),
-				stripe.String("invoice"),
-			},
-		},
-	})
-	if err != nil {
-		log.Printf("guest checkout quote.Get: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "unable to load Stripe quote"})
-		return
-	}
-
-	if sq.Status != stripe.QuoteStatusAccepted {
-		w.WriteHeader(http.StatusConflict)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "quote must be accepted before the customer can pay the invoice"})
-		return
-	}
-
-	if sq.Invoice == nil || sq.Invoice.ID != inv.ID {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invoice does not match this quote"})
-		return
-	}
-
-	tpStripeID, err := database.GetTradespersonStripeID(body.TradespersonID)
-	if err != nil || tpStripeID == "" {
-		w.WriteHeader(http.StatusNotFound)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "provider not found"})
-		return
-	}
-
-	acct, err := _stripe.GetConnectAccount(tpStripeID)
-	if err != nil {
-		log.Printf("guest checkout GetConnectAccount: %v", err)
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "unable to load Connect account"})
-		return
-	}
-	if !acct.ChargesEnabled {
-		w.WriteHeader(http.StatusConflict)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "provider cannot accept charges yet"})
-		return
-	}
-
-	if !quoteConnectMatchesProvider(sq, tpStripeID) {
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(map[string]string{"error": "quote does not belong to this Connect account"})
-		return
-	}
+	inv := env.Inv
+	tpStripeID := env.TpStripeID
+	quoteStripeID := env.QuoteStripe
+	depositPct := env.DepositPct
 
 	if inv.Status == stripe.InvoiceStatusPaid || inv.AmountRemaining <= 0 {
 		w.WriteHeader(http.StatusConflict)
@@ -660,14 +759,6 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusConflict)
 		_ = json.NewEncoder(w).Encode(map[string]string{"error": "invoice is not open for payment"})
 		return
-	}
-
-	var depositPct int64
-	if err := database.GetConnection().QueryRow(
-		`SELECT q.depositPct FROM tradesperson_quotes tq INNER JOIN quotes q ON tq.quoteId=q.id WHERE tq.tradespersonId=? AND tq.quote=?`,
-		body.TradespersonID, quoteStripeID,
-	).Scan(&depositPct); err != nil {
-		depositPct = -1
 	}
 
 	dpForCalc := depositPct
@@ -689,7 +780,6 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Hosted invoice page cannot collect a custom partial amount — use Checkout for deposit slices.
 	if u := strings.TrimSpace(inv.HostedInvoiceURL); u != "" && !partialDeposit {
-		ensureQuoteInvoiceDepositFooter(body.TradespersonID, quoteStripeID, sq)
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(postCheckoutGuestSessionResponse{ID: inv.ID, URL: u})
 		return
@@ -710,12 +800,15 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		displayDepositPct = 0
 	}
 
-	ensureQuoteInvoiceDepositFooter(body.TradespersonID, quoteStripeID, sq)
+	invoiceTotalCents := inv.Total
+	if invoiceTotalCents <= 0 {
+		invoiceTotalCents = inv.AmountPaid + inv.AmountRemaining
+	}
 
 	sellingFee, err := database.GetTradespersonSellingFee(body.TradespersonID)
 	if err != nil {
 		log.Printf("guest checkout selling fee: %v", err)
-		sellingFee = 0.06
+		sellingFee = defaultSellingFeeFraction
 	}
 	appFeeCents := guestCheckoutApplicationFeeCents(amountCents, sellingFee)
 	if appFeeCents >= amountCents {
@@ -735,16 +828,28 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	lineName, productDescription, piLine := guestCheckoutLineProductCopy(
+		desc,
+		displayDepositPct,
+		partialDeposit,
+		amountCents,
+		invoiceTotalCents,
+		inv.AmountRemaining,
+		inv.AmountPaid,
+	)
+
+	paymentSegment := guestInvoicePaymentSegment(inv, partialDeposit, displayDepositPct)
+
 	productData := &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
-		Name: stripe.String(checkoutLineItemDisplayName(desc, displayDepositPct)),
+		Name: stripe.String(lineName),
 	}
-	if depLine := checkoutLineItemDepositDescription(displayDepositPct); depLine != "" {
-		productData.Description = stripe.String(depLine)
+	if productDescription != "" {
+		productData.Description = stripe.String(productDescription)
 	}
 
 	piDesc := desc
-	if depLine := checkoutLineItemDepositDescription(displayDepositPct); depLine != "" {
-		piDesc = fmt.Sprintf("%s — %s", desc, depLine)
+	if piLine != "" {
+		piDesc = fmt.Sprintf("%s — %s", desc, piLine)
 	}
 	piDesc = truncateStripeLineItemName(piDesc, 1000)
 
@@ -765,22 +870,23 @@ func PostCheckoutGuestSessionHTTP(w http.ResponseWriter, r *http.Request) {
 		PaymentIntentData: &stripe.CheckoutSessionPaymentIntentDataParams{
 			Description:          stripe.String(piDesc),
 			ApplicationFeeAmount: stripe.Int64(appFeeCents),
-			OnBehalfOf:           stripe.String(tpStripeID),
-			TransferData: &stripe.CheckoutSessionPaymentIntentDataTransferDataParams{
-				Destination: stripe.String(tpStripeID),
-			},
 			Metadata: map[string]string{
-				"tradesperson_id":   body.TradespersonID,
-				"stripe_invoice_id": inv.ID,
-				"stripe_quote_id":   quoteStripeID,
-				"guest_pay":         "true",
+				"tradesperson_id":            body.TradespersonID,
+				"stripe_invoice_id":          inv.ID,
+				"stripe_quote_id":            quoteStripeID,
+				"guest_pay":                  "true",
+				"stripe_connect_account_id":  tpStripeID,
+				invoicePaymentSegmentMetaKey: paymentSegment,
 			},
 		},
 	}
+	params.SetStripeAccount(tpStripeID)
 	params.AddMetadata("tradesperson_id", body.TradespersonID)
 	params.AddMetadata("stripe_invoice_id", inv.ID)
 	params.AddMetadata("stripe_quote_id", quoteStripeID)
 	params.AddMetadata("guest_pay", "true")
+	params.AddMetadata("stripe_connect_account_id", tpStripeID)
+	params.AddMetadata(invoicePaymentSegmentMetaKey, paymentSegment)
 	if partialDeposit {
 		params.AddMetadata(guestCheckoutMetadataInvoiceAttach, "true")
 		params.Customer = stripe.String(stripeInvoiceCustomerID(inv))

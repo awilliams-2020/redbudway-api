@@ -8,7 +8,6 @@ import (
 	"redbudway-api/models"
 	"strings"
 
-	"github.com/go-gomail/gomail"
 	"github.com/stripe/stripe-go/v82"
 )
 
@@ -31,33 +30,17 @@ var fixedPriceReview string
 var welcomeMessage string
 
 func SendProviderWelcome(accountEmail string) error {
-	welcome := welcomeMessage
-	m := gomail.NewMessage()
-	m.SetAddressHeader("From", "service@redbudway.com", "Redbud Way")
-	m.SetAddressHeader("To", accountEmail, accountEmail)
-	m.SetHeader("Subject", "Welcome provider")
-	m.SetBody("text/html", welcome)
-
-	return sendMailMessage(m)
+	return email(accountEmail, accountEmail, "Welcome to Redbud Way", welcomeMessage)
 }
 
 func SendTradespersonMessage(businessName, businessEmail, service, message string, stripeCustomer *stripe.Customer, images []string) ([]string, error) {
-	m := gomail.NewMessage()
-	m.SetAddressHeader("To", businessEmail, businessName)
-	m.SetAddressHeader("From", stripeCustomer.Email, stripeCustomer.Name)
-	m.SetHeader("Subject", service)
-	m.SetBody("text/plain", message)
-
 	images, err := internal.ProcessEmailImages(stripeCustomer.Email, "", images)
 	if err != nil {
 		log.Printf("Failed to process email images, %s", err)
 		return images, nil
 	}
-	for _, image := range images {
-		m.Attach(image)
-	}
-
-	return images, sendMailMessage(m)
+	replyTo := formatMailbox(stripeCustomer.Email, stripeCustomer.Name)
+	return images, sendTextResendWithAttachments(businessEmail, businessName, service, message, replyTo, images)
 }
 
 func SendTradespersonBooking(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, stripeProduct *stripe.Product, timeAndPrice, formRowsCols string) error {
@@ -105,7 +88,7 @@ func SendTradespersonQuoteRequest(tradesperson models.Tradesperson, stripeCustom
 	body = strings.Replace(body, "{SERVICE_NAME}", *quote.Title, -1)
 	body = strings.Replace(body, "{CUSTOMER_INFO}", customerInfo, -1)
 
-	return images, SendProviderQuoteRequestResendOrSMTP(tradesperson.Email, tradesperson.Name, "Quote Request", body, images)
+	return images, SendProviderQuoteRequest(tradesperson.Email, tradesperson.Name, "Quote Request", body, images)
 }
 
 func SendTradespersonQuoteAccepted(tradesperson models.Tradesperson, stripeCustomer *stripe.Customer, message string, quote *models.ServiceDetails) error {

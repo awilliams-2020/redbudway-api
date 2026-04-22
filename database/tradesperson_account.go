@@ -6,7 +6,9 @@ import (
 	"redbudway-api/internal"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
+	"strings"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/gofrs/uuid"
 	"github.com/stripe/stripe-go/v82"
 )
@@ -31,6 +33,33 @@ func GetTradespersonSellingFee(tradespersonID string) (float64, error) {
 	}
 
 	return fee, err
+}
+
+// initialProfileNameFromEmail derives a readable default business name from the signup email local-part.
+// (Historically the profile name was incorrectly set to tradespersonId, which leaked on public quote pages.)
+func initialProfileNameFromEmail(email *strfmt.Email) string {
+	if email == nil {
+		return ""
+	}
+	s := strings.TrimSpace(string(*email))
+	if s == "" {
+		return ""
+	}
+	at := strings.IndexByte(s, '@')
+	if at <= 0 {
+		return ""
+	}
+	local := strings.TrimSpace(s[:at])
+	if local == "" {
+		return ""
+	}
+	local = strings.ReplaceAll(local, ".", " ")
+	local = strings.ReplaceAll(local, "_", " ")
+	local = strings.Join(strings.Fields(local), " ")
+	if len(local) > 120 {
+		local = local[:120]
+	}
+	return local
 }
 
 func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, stripeAccount *stripe.Account) (uuid.UUID, error) {
@@ -68,7 +97,8 @@ func CreateTradespersonAccount(tradesperson operations.PostTradespersonBody, str
 		}
 		defer stmt.Close()
 
-		results, err := stmt.Exec(tradespersonID, tradespersonID, tradesperson.Email)
+		profileName := initialProfileNameFromEmail(tradesperson.Email)
+		results, err := stmt.Exec(tradespersonID, profileName, tradesperson.Email)
 		if err != nil {
 			return tradespersonID, err
 		}

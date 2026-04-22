@@ -6,6 +6,7 @@ import (
 	"os"
 	"redbudway-api/internal"
 	"redbudway-api/models"
+	"strings"
 )
 
 func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *models.Business, error) {
@@ -28,6 +29,10 @@ func GetQuoteServiceDetails(quoteID string) (*models.ServiceDetails, *models.Bus
 	case sql.ErrNoRows:
 		return quote, business, err
 	case nil:
+		// Profile name was historically seeded with tradespersonId; never show that on public listings.
+		if strings.TrimSpace(name) == strings.TrimSpace(tradespersonID) {
+			name = ""
+		}
 		business.Name = name
 		business.Icon = icon.String
 		business.VanityURL = vanityURL.String

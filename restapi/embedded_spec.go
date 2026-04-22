@@ -3595,6 +3595,10 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "quoteId": {
+                  "description": "Stripe billing quote id (qt_…) when it changed after this request (e.g. revising an open quote).",
+                  "type": "string"
+                },
                 "updated": {
                   "type": "boolean",
                   "x-omitempty": false
@@ -3727,6 +3731,13 @@ func init() {
                   "type": "integer",
                   "format": "int64"
                 },
+                "cardPayments": {
+                  "description": "Paid card charges attached to this invoice (for targeted refunds)",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BillingQuoteInvoiceCardPayment"
+                  }
+                },
                 "created": {
                   "type": "integer",
                   "format": "int64"
@@ -3758,6 +3769,16 @@ func init() {
                   "type": "string"
                 },
                 "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "totalCardRefundableCents": {
+                  "description": "Sum of remaining refundable amounts across cardPayments, cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "totalCardRefundedCents": {
+                  "description": "Sum of amount already refunded on those charges, cents",
                   "type": "integer",
                   "format": "int64"
                 },
@@ -3901,6 +3922,13 @@ func init() {
             "name": "invoiceId",
             "in": "path",
             "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/BillingQuoteInvoiceRefundRequest"
+            }
           }
         ],
         "responses": {
@@ -3909,6 +3937,11 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "amountRefundedCents": {
+                  "description": "Total amount submitted to Stripe refunds in this request, cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
                 "refunded": {
                   "type": "boolean",
                   "x-omitempty": false
@@ -6133,6 +6166,51 @@ func init() {
           "type": "string"
         },
         "zipCode": {
+          "type": "string"
+        }
+      }
+    },
+    "BillingQuoteInvoiceCardPayment": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "description": "Original charge amount in cents",
+          "type": "integer",
+          "format": "int64"
+        },
+        "amountRefundableCents": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "amountRefundedCents": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "chargeId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "paymentIntentId": {
+          "type": "string"
+        },
+        "segment": {
+          "description": "deposit, balance, full, or unknown",
+          "type": "string"
+        }
+      }
+    },
+    "BillingQuoteInvoiceRefundRequest": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "description": "Partial refund in cents on the chosen charge; omit with chargeId to refund the full remaining refundable amount on that charge",
+          "type": "integer",
+          "format": "int64"
+        },
+        "chargeId": {
+          "description": "Stripe charge id; omit to refund all remaining refundable card amounts on every charge for this invoice",
           "type": "string"
         }
       }
@@ -10155,6 +10233,10 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "quoteId": {
+                  "description": "Stripe billing quote id (qt_…) when it changed after this request (e.g. revising an open quote).",
+                  "type": "string"
+                },
                 "updated": {
                   "type": "boolean",
                   "x-omitempty": false
@@ -10287,6 +10369,13 @@ func init() {
                   "type": "integer",
                   "format": "int64"
                 },
+                "cardPayments": {
+                  "description": "Paid card charges attached to this invoice (for targeted refunds)",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/BillingQuoteInvoiceCardPayment"
+                  }
+                },
                 "created": {
                   "type": "integer",
                   "format": "int64"
@@ -10318,6 +10407,16 @@ func init() {
                   "type": "string"
                 },
                 "total": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "totalCardRefundableCents": {
+                  "description": "Sum of remaining refundable amounts across cardPayments, cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "totalCardRefundedCents": {
+                  "description": "Sum of amount already refunded on those charges, cents",
                   "type": "integer",
                   "format": "int64"
                 },
@@ -10461,6 +10560,13 @@ func init() {
             "name": "invoiceId",
             "in": "path",
             "required": true
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/BillingQuoteInvoiceRefundRequest"
+            }
           }
         ],
         "responses": {
@@ -10469,6 +10575,11 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "amountRefundedCents": {
+                  "description": "Total amount submitted to Stripe refunds in this request, cents",
+                  "type": "integer",
+                  "format": "int64"
+                },
                 "refunded": {
                   "type": "boolean",
                   "x-omitempty": false
@@ -12539,6 +12650,51 @@ func init() {
           "type": "string"
         },
         "zipCode": {
+          "type": "string"
+        }
+      }
+    },
+    "BillingQuoteInvoiceCardPayment": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "description": "Original charge amount in cents",
+          "type": "integer",
+          "format": "int64"
+        },
+        "amountRefundableCents": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "amountRefundedCents": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "chargeId": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "paymentIntentId": {
+          "type": "string"
+        },
+        "segment": {
+          "description": "deposit, balance, full, or unknown",
+          "type": "string"
+        }
+      }
+    },
+    "BillingQuoteInvoiceRefundRequest": {
+      "type": "object",
+      "properties": {
+        "amountCents": {
+          "description": "Partial refund in cents on the chosen charge; omit with chargeId to refund the full remaining refundable amount on that charge",
+          "type": "integer",
+          "format": "int64"
+        },
+        "chargeId": {
+          "description": "Stripe charge id; omit to refund all remaining refundable card amounts on every charge for this invoice",
           "type": "string"
         }
       }

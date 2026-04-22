@@ -192,6 +192,9 @@ func (o *PutTradespersonTradespersonIDBillingQuoteQuoteIDBody) UnmarshalBinary(b
 // swagger:model PutTradespersonTradespersonIDBillingQuoteQuoteIDOKBody
 type PutTradespersonTradespersonIDBillingQuoteQuoteIDOKBody struct {
 
+	// Stripe billing quote id (qt_…) when it changed after this request (e.g. revising an open quote).
+	QuoteID string `json:"quoteId,omitempty"`
+
 	// updated
 	Updated bool `json:"updated"`
 }

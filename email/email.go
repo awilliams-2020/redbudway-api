@@ -2,48 +2,9 @@ package email
 
 import (
 	_ "embed"
-	"fmt"
 	"os"
-	"strconv"
 	"strings"
-
-	"github.com/go-gomail/gomail"
 )
-
-// loadSMTPConfig reads outbound mail settings from the environment (same contract as production SMTP).
-func loadSMTPConfig() (host string, port int, user string, password string, err error) {
-	password = os.Getenv("SMTP_PASSWORD")
-	if password == "" {
-		return "", 0, "", "", fmt.Errorf("SMTP_PASSWORD is not set")
-	}
-	host = os.Getenv("SMTP_HOST")
-	if host == "" {
-		host = "mail.redbudway.com"
-	}
-	port = 587
-	if ps := os.Getenv("SMTP_PORT"); ps != "" {
-		p, convErr := strconv.Atoi(ps)
-		if convErr != nil {
-			return "", 0, "", "", fmt.Errorf("invalid SMTP_PORT: %w", convErr)
-		}
-		port = p
-	}
-	user = os.Getenv("SMTP_USER")
-	if user == "" {
-		user = "service@redbudway.com"
-	}
-	return host, port, user, password, nil
-}
-
-// sendMailMessage sends a fully built gomail message using SMTP_* env (attachments, custom From, etc.).
-func sendMailMessage(m *gomail.Message) error {
-	host, port, user, password, err := loadSMTPConfig()
-	if err != nil {
-		return err
-	}
-	d := gomail.NewDialer(host, port, user, password)
-	return d.DialAndSend(m)
-}
 
 //go:embed html/password.html
 var password string
@@ -58,25 +19,10 @@ func email(toEmail, name, subject, body string) error {
 	return emailWithOptionalReplyTo(toEmail, name, subject, body, "")
 }
 
-// emailWithOptionalReplyTo sends HTML mail; when replyTo is non-empty, sets the Reply-To header.
+// emailWithOptionalReplyTo sends HTML mail via Resend; replyTo is optional Reply-To header.
 func emailWithOptionalReplyTo(toEmail, name, subject, body, replyTo string) error {
-	host, port, user, password, err := loadSMTPConfig()
-	if err != nil {
-		return err
-	}
-
-	m := gomail.NewMessage()
-	m.SetAddressHeader("From", user, "Redbud Way")
-	m.SetAddressHeader("To", toEmail, name)
-	m.SetHeader("Subject", subject)
-	if strings.TrimSpace(replyTo) != "" {
-		m.SetHeader("Reply-To", replyTo)
-	}
-
-	m.SetBody("text/html", body)
-
-	d := gomail.NewDialer(host, port, user, password)
-	return d.DialAndSend(m)
+	_, err := sendHTMLResend(toEmail, name, subject, body, replyTo)
+	return err
 }
 
 func ForgotPassword(userEmail, name, token, accountType string) error {

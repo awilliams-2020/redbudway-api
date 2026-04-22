@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"redbudway-api/database"
 	"redbudway-api/internal"
 
 	"github.com/stripe/stripe-go/v82"
@@ -15,15 +16,26 @@ import (
 
 // postCheckoutGuestInvoiceCompleteBody links a successful guest Checkout PaymentIntent to the billing invoice (partial payment).
 type postCheckoutGuestInvoiceCompleteBody struct {
-	TradespersonID  string `json:"tradespersonId"`
-	StripeInvoiceID string `json:"stripeInvoiceId"`
+	TradespersonID    string `json:"tradespersonId"`
+	StripeInvoiceID   string `json:"stripeInvoiceId"`
 	CheckoutSessionID string `json:"checkoutSessionId"`
 	Token             string `json:"token"`
 }
 
 type postCheckoutGuestInvoiceCompleteResponse struct {
-	Attached bool   `json:"attached"`
-	Message  string `json:"message,omitempty"`
+	Attached        bool   `json:"attached"`
+	Message         string `json:"message,omitempty"`
+	TradespersonID  string `json:"tradespersonId,omitempty"`
+	StripeInvoiceID string `json:"stripeInvoiceId,omitempty"`
+	StripeQuoteID   string `json:"stripeQuoteId,omitempty"`
+	// DepositPct is 0–100 from the quote; -1 if unknown (aligned with guest-accept-quote).
+	DepositPct      int64  `json:"depositPct"`
+	ProviderEmail   string `json:"providerEmail,omitempty"`
+	ServiceName     string `json:"serviceName,omitempty"`
+	Request         string `json:"request,omitempty"`
+	AmountPaid      *int64 `json:"amountPaid,omitempty"`
+	AmountRemaining *int64 `json:"amountRemaining,omitempty"`
+	AmountTotal     *int64 `json:"amountTotal,omitempty"`
 }
 
 // PostCheckoutGuestInvoiceCompleteHTTP calls invoice.AttachPayment for guest Checkout sessions created with guest_invoice_attach metadata.
@@ -64,13 +76,18 @@ func PostCheckoutGuestInvoiceCompleteHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	sess, err := session.Get(body.CheckoutSessionID, &stripe.CheckoutSessionParams{
+	tpStripeID, _ := database.GetTradespersonStripeID(body.TradespersonID)
+	sessParams := &stripe.CheckoutSessionParams{
 		Params: stripe.Params{
 			Expand: []*string{
 				stripe.String("payment_intent"),
 			},
 		},
-	})
+	}
+	if tpStripeID != "" {
+		sessParams.SetStripeAccount(tpStripeID)
+	}
+	sess, err := session.Get(body.CheckoutSessionID, sessParams)
 	if err != nil {
 		log.Printf("guest invoice complete session.Get: %v", err)
 		w.WriteHeader(http.StatusNotFound)
@@ -89,8 +106,13 @@ func PostCheckoutGuestInvoiceCompleteHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if sess.Metadata[guestCheckoutMetadataInvoiceAttach] != "true" {
+		var inv *stripe.Invoice
+		if invTry, invErr := guestConnectInvoiceGetExpand(tpStripeID, body.StripeInvoiceID, []*string{stripe.String("parent.quote_details")}); invErr == nil {
+			inv = invTry
+		}
+		resp := guestInvoiceCompleteResponseWithAmounts(false, "no invoice attach needed", inv, body.TradespersonID, body.StripeInvoiceID)
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(postCheckoutGuestInvoiceCompleteResponse{Attached: false, Message: "no invoice attach needed"})
+		_ = json.NewEncoder(w).Encode(resp)
 		return
 	}
 
@@ -107,13 +129,11 @@ func PostCheckoutGuestInvoiceCompleteHTTP(w http.ResponseWriter, r *http.Request
 
 	piID := sess.PaymentIntent.ID
 
-	invLoaded, err := invoice.Get(body.StripeInvoiceID, &stripe.InvoiceParams{
-		Params: stripe.Params{
-			Expand: []*string{
-				stripe.String("payments.data.payment.payment_intent"),
-			},
-		},
-	})
+	expandPI := []*string{
+		stripe.String("payments.data.payment.payment_intent"),
+		stripe.String("parent.quote_details"),
+	}
+	invLoaded, err := guestConnectInvoiceGetExpand(tpStripeID, body.StripeInvoiceID, expandPI)
 	if err != nil {
 		log.Printf("guest invoice complete invoice.Get %s: %v", body.StripeInvoiceID, err)
 		w.WriteHeader(http.StatusBadGateway)
@@ -122,22 +142,22 @@ func PostCheckoutGuestInvoiceCompleteHTTP(w http.ResponseWriter, r *http.Request
 	}
 	if guestInvoicePaymentIntentAttached(invLoaded, piID) {
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(postCheckoutGuestInvoiceCompleteResponse{Attached: true, Message: "payment already linked to invoice"})
+		_ = json.NewEncoder(w).Encode(guestInvoiceCompleteResponseWithAmounts(true, "payment already linked to invoice", invLoaded, body.TradespersonID, body.StripeInvoiceID))
 		return
 	}
 
-	if _, err := invoice.AttachPayment(body.StripeInvoiceID, &stripe.InvoiceAttachPaymentParams{
+	attachParams := &stripe.InvoiceAttachPaymentParams{
 		PaymentIntent: stripe.String(piID),
-	}); err != nil {
+	}
+	if tpStripeID != "" {
+		attachParams.SetStripeAccount(tpStripeID)
+	}
+	if _, err := invoice.AttachPayment(body.StripeInvoiceID, attachParams); err != nil {
 		log.Printf("guest invoice complete AttachPayment %s invoice %s: %v", piID, body.StripeInvoiceID, err)
 		// Race: another request may have attached between Get and Attach.
-		if inv2, err2 := invoice.Get(body.StripeInvoiceID, &stripe.InvoiceParams{
-			Params: stripe.Params{
-				Expand: []*string{stripe.String("payments.data.payment.payment_intent")},
-			},
-		}); err2 == nil && guestInvoicePaymentIntentAttached(inv2, piID) {
+		if inv2, err2 := guestConnectInvoiceGetExpand(tpStripeID, body.StripeInvoiceID, expandPI); err2 == nil && guestInvoicePaymentIntentAttached(inv2, piID) {
 			w.WriteHeader(http.StatusOK)
-			_ = json.NewEncoder(w).Encode(postCheckoutGuestInvoiceCompleteResponse{Attached: true, Message: "payment linked to invoice"})
+			_ = json.NewEncoder(w).Encode(guestInvoiceCompleteResponseWithAmounts(true, "payment linked to invoice", inv2, body.TradespersonID, body.StripeInvoiceID))
 			return
 		}
 		w.WriteHeader(http.StatusBadGateway)
@@ -145,8 +165,49 @@ func PostCheckoutGuestInvoiceCompleteHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	invFinal, errFinal := guestConnectInvoiceGetExpand(tpStripeID, body.StripeInvoiceID, expandPI)
+	if errFinal != nil {
+		log.Printf("guest invoice complete invoice refresh after attach %s: %v", body.StripeInvoiceID, errFinal)
+		// Expand+payments can fail transiently; plain Get still returns paid/remaining for the client UI.
+		if invPlain, plainErr := guestConnectInvoiceGetExpand(tpStripeID, body.StripeInvoiceID, []*string{stripe.String("parent.quote_details")}); plainErr == nil {
+			w.WriteHeader(http.StatusOK)
+			_ = json.NewEncoder(w).Encode(guestInvoiceCompleteResponseWithAmounts(true, "payment linked to invoice", invPlain, body.TradespersonID, body.StripeInvoiceID))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(guestInvoiceCompleteResponseWithAmounts(true, "payment linked to invoice", nil, body.TradespersonID, body.StripeInvoiceID))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(postCheckoutGuestInvoiceCompleteResponse{Attached: true, Message: "payment linked to invoice"})
+	_ = json.NewEncoder(w).Encode(guestInvoiceCompleteResponseWithAmounts(true, "payment linked to invoice", invFinal, body.TradespersonID, body.StripeInvoiceID))
+}
+
+func guestInvoiceCompleteResponseWithAmounts(attached bool, msg string, inv *stripe.Invoice, tradespersonID, invoiceID string) postCheckoutGuestInvoiceCompleteResponse {
+	resp := postCheckoutGuestInvoiceCompleteResponse{Attached: attached, Message: msg, DepositPct: -1}
+	if tradespersonID != "" {
+		resp.TradespersonID = tradespersonID
+	}
+	if invoiceID != "" {
+		resp.StripeInvoiceID = invoiceID
+	}
+	if inv != nil {
+		ap, ar := inv.AmountPaid, inv.AmountRemaining
+		resp.AmountPaid = &ap
+		resp.AmountRemaining = &ar
+		at := inv.Total
+		resp.AmountTotal = &at
+		dep, pe, sn, rq := guestQuotePublicFieldsFromInvoice(tradespersonID, inv)
+		resp.DepositPct = dep
+		resp.ProviderEmail = pe
+		resp.ServiceName = sn
+		resp.Request = rq
+		if inv.Parent != nil && inv.Parent.QuoteDetails != nil {
+			if q := strings.TrimSpace(inv.Parent.QuoteDetails.Quote); q != "" {
+				resp.StripeQuoteID = q
+			}
+		}
+	}
+	return resp
 }
 
 func guestInvoicePaymentIntentAttached(inv *stripe.Invoice, paymentIntentID string) bool {

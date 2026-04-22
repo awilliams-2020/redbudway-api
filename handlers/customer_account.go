@@ -565,18 +565,21 @@ func PostCustomerCustomerIDQuoteQuoteIDRequestHandler(params operations.PostCust
 			return response
 		}
 
+		connectCu, err := database.GetOrCreateStripeCustomerOnConnect(tradespersonID, customerID, tpStripeID)
+		if err != nil {
+			log.Printf("Failed to create Connect billing customer, %v", err)
+			return response
+		}
+
 		daysDue := int64(7)
 		params := &stripe.QuoteParams{
-			Customer:         stripe.String(cuStripeID),
+			Customer:         stripe.String(connectCu),
 			CollectionMethod: stripe.String("send_invoice"),
-			TransferData: &stripe.QuoteTransferDataParams{
-				Destination: stripe.String(tpStripeID),
-			},
 			InvoiceSettings: &stripe.QuoteInvoiceSettingsParams{
 				DaysUntilDue: &daysDue,
 			},
-			OnBehalfOf: stripe.String(tpStripeID),
 		}
+		params.SetStripeAccount(tpStripeID)
 		stripeQuote, err := quote.New(params)
 		if err != nil {
 			log.Printf("Failed to create stripe quote, %v", err)
@@ -820,7 +823,14 @@ func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCusto
 	case sql.ErrNoRows:
 		log.Printf("Customer %s has no quote %s", customerID, quoteID)
 	case nil:
-		stripeQuote, err := quote.Accept(quoteID, nil)
+		tpStripeID, err := database.GetTradespersonStripeID(tradespersonID)
+		if err != nil || tpStripeID == "" {
+			log.Printf("accept quote GetTradespersonStripeID: %v", err)
+			return response
+		}
+		acceptParams := &stripe.QuoteAcceptParams{}
+		acceptParams.SetStripeAccount(tpStripeID)
+		stripeQuote, err := quote.Accept(quoteID, acceptParams)
 		if err != nil {
 			log.Printf("Failed to accept stripe quote, %v", err)
 			return response
@@ -843,7 +853,9 @@ func PostCustomerCustomerIDQuoteQuoteIDAcceptHandler(params operations.PostCusto
 				return response
 			}
 
-			stripeCustomer, err := customer.Get(stripeQuote.Customer.ID, nil)
+			cuParams := &stripe.CustomerParams{}
+			cuParams.SetStripeAccount(tpStripeID)
+			stripeCustomer, err := customer.Get(stripeQuote.Customer.ID, cuParams)
 			if err != nil {
 				log.Printf("Failed to get stripe customer, %v", err)
 				return response

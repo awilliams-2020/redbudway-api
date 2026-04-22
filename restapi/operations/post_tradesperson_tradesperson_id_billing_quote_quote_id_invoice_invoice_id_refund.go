@@ -76,6 +76,9 @@ func (o *PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefund
 // swagger:model PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundOKBody
 type PostTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDRefundOKBody struct {
 
+	// Total amount submitted to Stripe refunds in this request, cents
+	AmountRefundedCents int64 `json:"amountRefundedCents,omitempty"`
+
 	// refunded
 	Refunded bool `json:"refunded"`
 }

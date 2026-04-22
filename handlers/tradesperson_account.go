@@ -45,7 +45,7 @@ func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradesperso
 	tradespersonID := params.TradespersonID
 	token := params.HTTPRequest.Header.Get("Authorization")
 
-	payload := operations.DeleteTradespersonTradespersonIDOKBody{Deleted: true}
+	payload := operations.DeleteTradespersonTradespersonIDOKBody{Deleted: false}
 	response := operations.NewDeleteTradespersonTradespersonIDOK().WithPayload(&payload)
 
 	valid, err := ValidateTradespersonAccessToken(tradespersonID, token)
@@ -56,30 +56,38 @@ func DeleteTradespersonTradespersonIDHandler(params operations.DeleteTradesperso
 		log.Printf("Bad actor tradesperson %s, accessToken %s", tradespersonID, token)
 		return response
 	}
-	deleteAccount(tradespersonID)
 
+	deleted := deleteTradespersonStripeAndDatabase(tradespersonID)
+	payload.Deleted = deleted
+	response.SetPayload(&payload)
 	return response
 }
 
-func deleteAccount(tradespersonID string) {
-
+// deleteTradespersonStripeAndDatabase removes the Stripe Connect account then the local row.
+func deleteTradespersonStripeAndDatabase(tradespersonID string) bool {
 	stripeID, err := database.GetTradespersonStripeID(tradespersonID)
 	if err != nil {
-		log.Printf("Failed to get tradesperson %s stripe ID, %v", tradespersonID, err)
-		return
+		if err == sql.ErrNoRows {
+			log.Printf("Tradesperson %s not found for deletion", tradespersonID)
+		} else {
+			log.Printf("Failed to get tradesperson %s stripe ID, %v", tradespersonID, err)
+		}
+		return false
 	}
 	stripeAccount, err := account.Del(stripeID, nil)
 	if err != nil {
 		log.Printf("Failed to delete tradesperson %s stripe account, %v", stripeID, err)
-		return
+		return false
 	}
-	if stripeAccount.Deleted {
-		_, err = database.DeleteTradespersonAccount(tradespersonID, stripeID)
-		if err != nil {
-			log.Printf("Failed to delete tradesperson database account for %s: %v", tradespersonID, err)
-			return
-		}
+	if !stripeAccount.Deleted {
+		return false
 	}
+	ok, err := database.DeleteTradespersonAccount(tradespersonID, stripeID)
+	if err != nil {
+		log.Printf("Failed to delete tradesperson database account for %s: %v", tradespersonID, err)
+		return false
+	}
+	return ok
 }
 
 func GetTradespersonTradespersonIDHandler(params operations.GetTradespersonTradespersonIDParams, principal interface{}) middleware.Responder {
@@ -155,12 +163,8 @@ func GetTradespersonTradespersonIDSyncHandler(params operations.GetTradespersonT
 		return response
 	}
 
-	if connect.BusinessProfile.Name != "" {
-		if err := database.UpdateTradespersonProfileName(tradespersonID, connect.BusinessProfile.Name); err != nil {
-			log.Printf("Failed to update tradesperson profile name, %v", err)
-		}
-	} else if connect.BusinessProfile.URL != "" {
-		if err := database.UpdateTradespersonProfileName(tradespersonID, connect.BusinessProfile.URL); err != nil {
+	if name := _stripe.ConnectAccountDisplayName(connect); name != "" {
+		if err := database.UpdateTradespersonProfileName(tradespersonID, name); err != nil {
 			log.Printf("Failed to update tradesperson profile name, %v", err)
 		}
 	}
@@ -224,7 +228,7 @@ func GetTradespersonTradespersonIDOnboardHandler(params operations.GetTradespers
 	case sql.ErrNoRows:
 		log.Printf("Tradesperson with ID %v doesn't exist", tradespersonID)
 	case nil:
-		onBoarding, err := _stripe.GetOnBoardingLink(stripeID, tradespersonID)
+		onBoarding, err := _stripe.GetOnBoardingLink(stripeID)
 		if err != nil {
 			log.Printf("Failed creating tradesperson onboarding link %s", err)
 			return response

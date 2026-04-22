@@ -86,6 +86,9 @@ type GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody stru
 	// Balance still due on the invoice (Stripe), cents
 	AmountRemaining int64 `json:"amountRemaining,omitempty"`
 
+	// Paid card charges attached to this invoice (for targeted refunds)
+	CardPayments []*models.BillingQuoteInvoiceCardPayment `json:"cardPayments"`
+
 	// created
 	Created int64 `json:"created,omitempty"`
 
@@ -113,6 +116,12 @@ type GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody stru
 	// total
 	Total int64 `json:"total,omitempty"`
 
+	// Sum of remaining refundable amounts across cardPayments, cents
+	TotalCardRefundableCents int64 `json:"totalCardRefundableCents,omitempty"`
+
+	// Sum of amount already refunded on those charges, cents
+	TotalCardRefundedCents int64 `json:"totalCardRefundedCents,omitempty"`
+
 	// url
 	URL string `json:"url,omitempty"`
 }
@@ -120,6 +129,10 @@ type GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody stru
 // Validate validates this get tradesperson tradesperson ID billing quote quote ID invoice invoice ID o k body
 func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := o.validateCardPayments(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := o.validateCustomer(formats); err != nil {
 		res = append(res, err)
@@ -132,6 +145,32 @@ func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody)
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody) validateCardPayments(formats strfmt.Registry) error {
+	if swag.IsZero(o.CardPayments) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(o.CardPayments); i++ {
+		if swag.IsZero(o.CardPayments[i]) { // not required
+			continue
+		}
+
+		if o.CardPayments[i] != nil {
+			if err := o.CardPayments[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK" + "." + "cardPayments" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK" + "." + "cardPayments" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -184,6 +223,10 @@ func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody)
 func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
+	if err := o.contextValidateCardPayments(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := o.contextValidateCustomer(ctx, formats); err != nil {
 		res = append(res, err)
 	}
@@ -195,6 +238,31 @@ func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody)
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *GetTradespersonTradespersonIDBillingQuoteQuoteIDInvoiceInvoiceIDOKBody) contextValidateCardPayments(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(o.CardPayments); i++ {
+
+		if o.CardPayments[i] != nil {
+
+			if swag.IsZero(o.CardPayments[i]) { // not required
+				return nil
+			}
+
+			if err := o.CardPayments[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK" + "." + "cardPayments" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("getTradespersonTradespersonIdBillingQuoteQuoteIdInvoiceInvoiceIdOK" + "." + "cardPayments" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 

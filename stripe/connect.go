@@ -6,6 +6,7 @@ import (
 	"os"
 	"redbudway-api/models"
 	"redbudway-api/restapi/operations"
+	"strings"
 
 	"github.com/stripe/stripe-go/v82"
 	"github.com/stripe/stripe-go/v82/account"
@@ -35,12 +36,41 @@ func GetConnectAccount(stripeID string) (*stripe.Account, error) {
 	return account.GetByID(stripeID, nil)
 }
 
-func GetOnBoardingLink(stripeID, tradespersonID string) (*stripe.AccountLink, error) {
+// ConnectAccountDisplayName picks a customer-facing business name from a Connect Account.
+// Stripe stores the public name in business_profile.name, but legal-entity edits (and some
+// Express Dashboard flows) update company.name or individual instead — only reading
+// business_profile.name misses those updates.
+func ConnectAccountDisplayName(ac *stripe.Account) string {
+	if ac == nil {
+		return ""
+	}
+	if ac.BusinessProfile != nil {
+		if n := strings.TrimSpace(ac.BusinessProfile.Name); n != "" {
+			return n
+		}
+	}
+	if ac.Company != nil {
+		if n := strings.TrimSpace(ac.Company.Name); n != "" {
+			return n
+		}
+	}
+	if ac.Individual != nil {
+		first := strings.TrimSpace(ac.Individual.FirstName)
+		last := strings.TrimSpace(ac.Individual.LastName)
+		if first != "" || last != "" {
+			return strings.TrimSpace(first + " " + last)
+		}
+	}
+	return ""
+}
+
+func GetOnBoardingLink(stripeID string) (*stripe.AccountLink, error) {
 	log.Print("Creating stripe connect account onboarding link")
+	base := "https://" + os.Getenv("SUBDOMAIN") + "redbudway.com"
 	params := &stripe.AccountLinkParams{
 		Account:    stripe.String(stripeID),
-		RefreshURL: stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/provider/" + tradespersonID),
-		ReturnURL:  stripe.String("https://" + os.Getenv("SUBDOMAIN") + "redbudway.com/provider/" + tradespersonID),
+		RefreshURL: stripe.String(base + "/dashboard"),
+		ReturnURL:  stripe.String(base + "/dashboard"),
 		Type:       stripe.String("account_onboarding"),
 	}
 	return accountlink.New(params)

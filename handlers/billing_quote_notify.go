@@ -17,7 +17,6 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/stripe/stripe-go/v82"
 	"github.com/stripe/stripe-go/v82/customer"
-	"github.com/stripe/stripe-go/v82/invoice"
 	"github.com/stripe/stripe-go/v82/product"
 	"github.com/stripe/stripe-go/v82/quote"
 )
@@ -46,15 +45,11 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler(para
 		return errMap(http.StatusNotFound, "provider not found")
 	}
 
-	sq, err := quote.Get(stripeQuoteID, &stripe.QuoteParams{
-		Params: stripe.Params{
-			Expand: []*string{
-				stripe.String("customer"),
-				stripe.String("transfer_data.destination"),
-				stripe.String("on_behalf_of"),
-			},
-		},
-	})
+	sq, err := quote.Get(stripeQuoteID, billingQuoteParams(tpStripeID, []*string{
+		stripe.String("customer"),
+		stripe.String("transfer_data.destination"),
+		stripe.String("on_behalf_of"),
+	}))
 	if err != nil {
 		log.Printf("notify quote.Get %s: %v", stripeQuoteID, err)
 		return errMap(http.StatusBadRequest, "unable to load quote")
@@ -71,7 +66,7 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler(para
 		return errMap(http.StatusConflict, "quote is accepted; use the invoice payment flow instead of quote update emails")
 	}
 
-	custEmail, custName, err := billingQuoteStripeCustomerEmailName(sq)
+	custEmail, custName, err := billingQuoteStripeCustomerEmailName(tpStripeID, sq)
 	if err != nil {
 		log.Printf("notify customer resolution: %v", err)
 		return errMap(http.StatusInternalServerError, "unable to load customer")
@@ -109,7 +104,7 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler(para
 		payNote = "<p>This quote is not yet open for payment. You’ll be notified when it’s ready to review and pay.</p>"
 	}
 
-	lineItemsHTML := buildLineItemsHTML(stripeQuoteID, sq.AmountSubtotal, quoteTaxAmount(sq), sq.AmountTotal, depositPct)
+	lineItemsHTML := buildLineItemsHTML(tpStripeID, stripeQuoteID, sq.AmountSubtotal, quoteTaxAmount(sq), sq.AmountTotal, depositPct)
 
 	emailID, err := email.SendBillingQuoteCustomerUpdate(custEmail, custName, providerName, strings.TrimSpace(tp.Email), desc, lineItemsHTML, payNote)
 	if err != nil {
@@ -125,12 +120,16 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDNotifyCustomerHandler(para
 }
 
 // billingQuoteStripeCustomerEmailName resolves the recipient for billing quote customer emails.
-func billingQuoteStripeCustomerEmailName(sq *stripe.Quote) (custEmail, custName string, err error) {
+func billingQuoteStripeCustomerEmailName(connectAccountID string, sq *stripe.Quote) (custEmail, custName string, err error) {
 	if sq == nil {
 		return "", "", nil
 	}
 	if sq.Customer != nil && sq.Customer.ID != "" {
-		sc, e := customer.Get(sq.Customer.ID, nil)
+		cu := &stripe.CustomerParams{}
+		if connectAccountID != "" {
+			cu.SetStripeAccount(connectAccountID)
+		}
+		sc, e := customer.Get(sq.Customer.ID, cu)
 		if e != nil {
 			return "", "", e
 		}
@@ -138,7 +137,7 @@ func billingQuoteStripeCustomerEmailName(sq *stripe.Quote) (custEmail, custName 
 			return sc.Email, sc.Name, nil
 		}
 		if sq.Status == stripe.QuoteStatusAccepted && sq.Invoice != nil && sq.Invoice.ID != "" {
-			inv, e := invoice.Get(sq.Invoice.ID, nil)
+			inv, e := loadStripeInvoiceForBillingQuote(connectAccountID, sq.Invoice.ID)
 			if e != nil {
 				return "", "", e
 			}
@@ -156,7 +155,15 @@ func sendFinalizedQuoteReadyEmail(tradespersonID, stripeQuoteID string, sq *stri
 		tradespersonID, stripeQuoteID,
 	).Scan(&depositPct)
 
-	custEmail, custName, err := billingQuoteStripeCustomerEmailName(sq)
+	tpStripeID, stripeAccErr := database.GetTradespersonStripeID(tradespersonID)
+	if stripeAccErr != nil {
+		return "", fmt.Errorf("provider Stripe account: %w", stripeAccErr)
+	}
+	if tpStripeID == "" {
+		return "", fmt.Errorf("provider has no Stripe Connect account")
+	}
+
+	custEmail, custName, err := billingQuoteStripeCustomerEmailName(tpStripeID, sq)
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +185,7 @@ func sendFinalizedQuoteReadyEmail(tradespersonID, stripeQuoteID string, sq *stri
 		desc = "—"
 	}
 
-	lineItemsHTML := buildLineItemsHTML(stripeQuoteID, sq.AmountSubtotal, quoteTaxAmount(sq), sq.AmountTotal, depositPct)
+	lineItemsHTML := buildLineItemsHTML(tpStripeID, stripeQuoteID, sq.AmountSubtotal, quoteTaxAmount(sq), sq.AmountTotal, depositPct)
 	payBlock := buildFinalizedQuotePayHTML(guestAcceptQuoteURL(tradespersonID, stripeQuoteID))
 	pn := providerName
 	lead := fmt.Sprintf(
@@ -235,15 +242,11 @@ func PostTradespersonTradespersonIDBillingQuoteQuoteIDResendFinalizedEmailHandle
 		return errMap(http.StatusNotFound, "provider not found")
 	}
 
-	sq, err := quote.Get(stripeQuoteID, &stripe.QuoteParams{
-		Params: stripe.Params{
-			Expand: []*string{
-				stripe.String("customer"),
-				stripe.String("transfer_data.destination"),
-				stripe.String("on_behalf_of"),
-			},
-		},
-	})
+	sq, err := quote.Get(stripeQuoteID, billingQuoteParams(tpStripeID, []*string{
+		stripe.String("customer"),
+		stripe.String("transfer_data.destination"),
+		stripe.String("on_behalf_of"),
+	}))
 	if err != nil {
 		log.Printf("resend finalized email quote.Get %s: %v", stripeQuoteID, err)
 		return errMap(http.StatusBadRequest, "unable to load quote")
@@ -313,7 +316,7 @@ func quoteTaxAmount(sq *stripe.Quote) int64 {
 	return sq.TotalDetails.AmountTax
 }
 
-func buildLineItemsHTML(stripeQuoteID string, amountSubtotal, amountTax, amountTotal, depositPct int64) string {
+func buildLineItemsHTML(connectAccountID, stripeQuoteID string, amountSubtotal, amountTax, amountTotal, depositPct int64) string {
 	var sb strings.Builder
 	sb.WriteString(`<table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; font-size: 15px; color: black;">`)
 	sb.WriteString(`<tr style="background-color: #f5f5f5;">` +
@@ -324,12 +327,19 @@ func buildLineItemsHTML(stripeQuoteID string, amountSubtotal, amountTax, amountT
 		`</tr>`)
 
 	params := &stripe.QuoteListLineItemsParams{Quote: stripe.String(stripeQuoteID)}
+	if connectAccountID != "" {
+		params.SetStripeAccount(connectAccountID)
+	}
 	it := quote.ListLineItems(params)
 	for it.Next() {
 		li := it.LineItem()
 		name := ""
 		if li.Price != nil && li.Price.Product != nil {
-			if p, err := product.Get(li.Price.Product.ID, nil); err == nil {
+			pp := &stripe.ProductParams{}
+			if connectAccountID != "" {
+				pp.SetStripeAccount(connectAccountID)
+			}
+			if p, err := product.Get(li.Price.Product.ID, pp); err == nil {
 				name = p.Name
 			}
 		}

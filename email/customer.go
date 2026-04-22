@@ -78,7 +78,7 @@ func SendCustomerQuoteConfirmation(tradesperson models.Tradesperson, stripeCusto
 	body = strings.Replace(body, "{SERVICE_NAME}", *quote.Title, -1)
 	body = strings.Replace(body, "{TRADESPERSON_INFO}", tradespersonInfo, -1)
 
-	_, err := sendHTMLResendOrSMTP(stripeCustomer.Email, stripeCustomer.Name, "Confirmation", body, "")
+	_, err := sendHTMLResend(stripeCustomer.Email, stripeCustomer.Name, "Confirmation", body, "")
 	return err
 }
 
@@ -172,7 +172,7 @@ type BillingQuoteCustomerEmailParams struct {
 	CustomerEmail string
 	CustomerName  string
 	// ProviderEmail is the tradesperson profile email: sets Reply-To and the mailto line when non-empty.
-	ProviderEmail string
+	ProviderEmail     string
 	Description       string
 	LineItemsHTML     string
 	PayBlockHTML      string
@@ -237,7 +237,7 @@ func SendBillingQuoteCustomerEmail(p BillingQuoteCustomerEmailParams) (string, e
 	body = strings.Replace(body, "{PAY_BLOCK}", p.PayBlockHTML, -1)
 	body = strings.Replace(body, "{REPLY_HINT}", billingQuoteReplyHintHTML(p.ProviderEmail), -1)
 	body = strings.Replace(body, "{FOOTER_PERMISSION}", html.EscapeString(footer), -1)
-	return sendHTMLResendOrSMTP(p.CustomerEmail, displayName, subject, body, p.ProviderEmail)
+	return sendHTMLResend(p.CustomerEmail, displayName, subject, body, p.ProviderEmail)
 }
 
 // SendBillingQuoteCustomerUpdate emails the customer after a provider updates a billing quote.
